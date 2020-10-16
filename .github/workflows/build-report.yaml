@@ -1,0 +1,32 @@
+name: Build
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - 'v*'
+  pull_request:
+    branches:
+      - '**'
+    tags-ignore:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    container: mirisbowring/texlive_ctan_full:2019
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Build
+        run: |
+          cd report
+          bash -x ./build.sh
+      - name: Save PDF
+        uses: actions/upload-artifact@v2
+        with:
+          name: report.zip
+          path: report/*.pdf

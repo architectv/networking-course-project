@@ -1,0 +1,50 @@
+%! TEX root = ./main.tex
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+%\usepackage[14pt]{extsizes}
+\usepackage{adjustbox}
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools}
+\usepackage{ulem}
+\usepackage[backend=biber]{biblatex}
+\usepackage[top=2cm,bottom=2cm,left=3cm,right=2cm,nohead,nofoot]{geometry}
+\usepackage[onehalfspacing]{setspace}
+\usepackage{ifthenx}
+\usepackage{ifthen}
+\usepackage{csvsimple}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning,shadows,datavisualization}
+\usepackage[
+bookmarks=true, colorlinks=true, unicode=true,
+urlcolor=black,linkcolor=black, anchorcolor=black,
+citecolor=black, menucolor=black, filecolor=black,
+]{hyperref}
+\usepackage{microtype}
+\usepackage{enumerate}
+\usepackage{multirow}
+\usepackage{paralist,array}
+\usepackage{blindtext}
+\usepackage{newfloat}
+\usepackage{float}
+\usepackage{verbatim}
+\usepackage{caption}
+\newcommand{\mintedoptions}{cachedir=./out,outputdir=./out,newfloat}
+\usepackage[\mintedoptions]{minted}
+\usepackage{csquotes}
+\usepackage{textcomp}
+\setlength{\parskip}{0ex}
+\pgfplotsset{compat=1.16}
+\renewcommand{\thefigure}{\arabic{section}.\arabic{figure}}
+\renewenvironment{listing}{\captionsetup{type=listing}}{}
+\captionsetup[figure]{name=Рисунок}
+\captionsetup[listing]{name=Листинг}
+\setminted{linenos,frame=single}
+
+% Например \getenv{\var}{ENVVAR}
+% Теперь в \var лежит значение переменной окружения ENVVAR
+\newcommand{\getenv}[2]{%
+  \immediate\write18{kpsewhich --var-value=#2 > out/getenv_#2.dat}
+  \def#1{\input{out/getenv_#2.dat}}
+}

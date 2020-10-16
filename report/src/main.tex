@@ -1,0 +1,53 @@
+\documentclass[12pt,a4paper]{article}
+\include{preamble}
+\getenv{\wauthor}{ABBRNAME}
+\getenv{\wauthorfull}{FULLNAME}
+\getenv{\wfirstlead}{TEACHER}
+\getenv{\wgroup}{GROUP}
+\def\wthemea{Тема}
+\def\wthemeb{2 строка}
+\def\wthemec{3 строка}
+\def\wleadprefix{Руководитель курсового проекта}
+\def\wdiscipline{Компьютерные сети}
+\def\wtype{
+    РАСЧЕТНО-ПОЯСНИТЕЛЬНАЯ ЗАПИСКА
+
+    \bigskip
+
+    К КУРСОВОМУ ПРОЕКТУ ПО ЧЕМУ-ТО
+
+    \bigskip
+
+
+    ПО ТЕМЕ
+
+    \bigskip
+}
+\addbibresource{main.bib}
+
+\begin{document}
+
+\include{title}
+
+\include{task}
+
+\setcounter{page}{3}
+\tableofcontents
+\addcontentsline{toc}{section}{Содержание}
+
+\include{intro}
+
+\include{analytical}
+
+\include{design}
+
+\include{technological}
+
+\include{research}
+
+\include{conclusion}
+
+\printbibliography%
+\addcontentsline{toc}{section}{Литература}
+
+\end{document}
