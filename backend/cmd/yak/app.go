@@ -1,8 +1,10 @@
 package yak
 
 import "github.com/gofiber/fiber/v2"
+import "yak/backend/pkg/handlers"
 
 func CreateApp() {
-	api := fiber.New()
-	api.Listen(":8001")
+	app := fiber.New()
+	handlers.RegisterHandlers(app)
+	app.Listen(":8001")
 }
