@@ -1,6 +1,6 @@
 package models
 
 type Label struct {
-	Id int64 `json:"id,omitempty"`
+	Id string `json:"_id,omitempty"`
 	Name string `json:"name"`
 }

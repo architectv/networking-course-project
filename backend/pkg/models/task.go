@@ -1,10 +1,10 @@
 package models
 
 type Task struct {
-	Id int64 `json:"id,omitempty"`
-	BoardId int64 `json:"boardId"`
-	ListId int64 `json:"listId"`
-	ChatId int64 `json:"chatId,omitempty"`
+	Id string `json:"_id,omitempty"`
+	BoardId string `json:"boardId"`
+	ListId string `json:"listId"`
+	ChatId string `json:"chatId,omitempty"`
 	Title string `json:"title"`
 	Datetimes *Datetimes `json:"datetimes,omitempty"`
 }
