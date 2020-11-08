@@ -2,8 +2,10 @@ package v1
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"runtime"
+	"yak/backend/pkg/services"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func implementMe() {
@@ -11,11 +13,19 @@ func implementMe() {
 	fmt.Printf("Implement me in %s[%s:%d]\n", runtime.FuncForPC(pc).Name(), fn, line)
 }
 
-func RegisterHandlers(router fiber.Router) {
+type ApiV1 struct {
+	services *services.Service
+}
+
+func NewApiV1(services *services.Service) *ApiV1 {
+	return &ApiV1{services: services}
+}
+
+func (apiVX *ApiV1) RegisterHandlers(router fiber.Router) {
 	v1 := router.Group("/v1")
-	registerBoardsHandlers(v1)
-	registerListsHandlers(v1)
-	registerProjectsHandlers(v1)
-	registerTasksHandlers(v1)
-	registerUsersHandlers(v1)
+	apiVX.registerBoardsHandlers(v1)
+	apiVX.registerListsHandlers(v1)
+	apiVX.registerProjectsHandlers(v1)
+	apiVX.registerTasksHandlers(v1)
+	apiVX.registerUsersHandlers(v1)
 }

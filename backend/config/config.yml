@@ -1,0 +1,10 @@
+port: ":8001"
+
+mongo:
+    uri: "mongodb://mongodb:27017"
+    name: "testdb"
+    userCollection: "users"
+    projectCollection: "projects"
+    boardCollection: "boards"
+    taskListCollection: "taskLists"
+    taskCollection: "tasks"

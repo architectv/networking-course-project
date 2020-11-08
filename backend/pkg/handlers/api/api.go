@@ -1,9 +1,22 @@
 package api
 
-import "github.com/gofiber/fiber/v2"
-import "yak/backend/pkg/handlers/api/v1"
+import (
+	v1 "yak/backend/pkg/handlers/api/v1"
+	"yak/backend/pkg/services"
 
-func RegisterHandlers(router fiber.Router) {
+	"github.com/gofiber/fiber/v2"
+)
+
+type Api struct {
+	services *services.Service
+}
+
+func NewApi(services *services.Service) *Api {
+	return &Api{services: services}
+}
+
+func (a *Api) RegisterHandlers(router fiber.Router) {
 	api := router.Group("/api")
-	v1.RegisterHandlers(api)
+	apiV1 := v1.NewApiV1(a.services)
+	apiV1.RegisterHandlers(api)
 }

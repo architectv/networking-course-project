@@ -1,42 +1,49 @@
 package v1
 
-import "github.com/gofiber/fiber/v2"
-import "yak/backend/pkg/models"
+import (
+	"yak/backend/pkg/models"
 
-func registerUsersHandlers(router fiber.Router) {
+	"github.com/gofiber/fiber/v2"
+)
+
+func (apiVX *ApiV1) registerUsersHandlers(router fiber.Router) {
 	group := router.Group("/users")
-	group.Get("/", getUsers)
-	group.Post("/", createUser)
-	group.Get("/:uid", getUser)
-	group.Get("/login", loginUser)
-	group.Get("/logout", logoutUser)
+	group.Get("/", apiVX.getUsers)
+	group.Post("/", apiVX.createUser)
+	group.Get("/:uid", apiVX.getUser)
+	group.Get("/login", apiVX.loginUser)
+	group.Get("/logout", apiVX.logoutUser)
 }
 
-func getUsers(ctx *fiber.Ctx) error {
-	implementMe()
-	users := make([]models.User, 0)
+func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
+	// implementMe()
+	// users := make([]models.User, 0)
+	users, err := apiVX.services.User.GetAll()
+	if err != nil {
+		return err
+	}
 	return ctx.JSON(users)
 }
 
-func getUser(ctx *fiber.Ctx) error {
+func (apiVX *ApiV1) getUser(ctx *fiber.Ctx) error {
 	implementMe()
 	user := models.User{}
 	return ctx.JSON(user)
 }
 
-func createUser(ctx *fiber.Ctx) error {
+func (apiVX *ApiV1) createUser(ctx *fiber.Ctx) error {
 	implementMe()
 	user := models.User{}
 	return ctx.JSON(user)
 }
 
-func loginUser(ctx *fiber.Ctx) error {
+func (apiVX *ApiV1) loginUser(ctx *fiber.Ctx) error {
 	implementMe()
 	user := models.User{}
 	return ctx.JSON(user)
 }
 
-func logoutUser(ctx *fiber.Ctx) error {
+func (apiVX *ApiV1) logoutUser(ctx *fiber.Ctx) error {
 	implementMe()
 	return ctx.Send([]byte{})
 }
