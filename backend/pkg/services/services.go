@@ -7,6 +7,8 @@ import (
 
 type User interface {
 	GetAll() ([]models.User, error)
+	GetById(id string) (models.User, error)
+	Create(user models.User) (string, error)
 }
 
 type Project interface {

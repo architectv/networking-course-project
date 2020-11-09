@@ -26,15 +26,32 @@ func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
 }
 
 func (apiVX *ApiV1) getUser(ctx *fiber.Ctx) error {
-	implementMe()
-	user := models.User{}
+	// implementMe()
+		// user := models.User{}
+	id := ctx.Params("uid")
+	user, err := apiVX.services.User.GetById(id)
+	if err != nil {
+		return err
+	}
 	return ctx.JSON(user)
 }
 
 func (apiVX *ApiV1) createUser(ctx *fiber.Ctx) error {
-	implementMe()
-	user := models.User{}
-	return ctx.JSON(user)
+	// implementMe()
+	// user := models.User{}
+	var user models.User
+
+	if err := ctx.BodyParser(&user); err != nil {
+		return err
+	}
+	id, err := apiVX.services.User.Create(user)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(map[string]interface{}{
+		"id": id,
+	})
 }
 
 func (apiVX *ApiV1) loginUser(ctx *fiber.Ctx) error {
