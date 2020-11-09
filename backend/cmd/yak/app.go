@@ -3,6 +3,7 @@ package yak
 import (
 	"yak/backend/pkg/handlers"
 	"yak/backend/pkg/repositories"
+	mongoDB "yak/backend/pkg/repositories/mongo"
 	"yak/backend/pkg/services"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,7 +19,7 @@ func CreateApp() {
 		logrus.Fatalf("error initializing configs: %s", err.Error())
 	}
 
-	db, err := repositories.NewMongoDB()
+	db, err := mongoDB.NewMongoDB()
 	if err != nil {
 		logrus.Fatalf("failed to initialize db: %s", err.Error())
 	}

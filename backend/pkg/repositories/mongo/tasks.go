@@ -1,4 +1,4 @@
-package repositories
+package mongo
 
 import (
 	"github.com/spf13/viper"

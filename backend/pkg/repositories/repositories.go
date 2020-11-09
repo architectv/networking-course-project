@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"yak/backend/pkg/models"
+	repoMongo "yak/backend/pkg/repositories/mongo"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -32,10 +33,10 @@ type Repository struct {
 
 func NewRepository(db *mongo.Database) *Repository {
 	return &Repository{
-		User:     NewUserMongo(db),
-		Project:  NewProjectMongo(db),
-		Board:    NewBoardMongo(db),
-		TaskList: NewTaskListMongo(db),
-		Task:     NewTaskMongo(db),
+		User:     repoMongo.NewUserMongo(db),
+		Project:  repoMongo.NewProjectMongo(db),
+		Board:    repoMongo.NewBoardMongo(db),
+		TaskList: repoMongo.NewTaskListMongo(db),
+		Task:     repoMongo.NewTaskMongo(db),
 	}
 }
