@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -43,4 +44,29 @@ func (r *UserMongo) GetAll() ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *UserMongo) GetUser(username, password string) (models.User, error) {
+	var user models.User
+	ctx := context.TODO()
+	filter := bson.M{"username": username, "password": password}
+	err := r.db.FindOne(ctx, filter).Decode(&user)
+
+	return user, err
+}
+
+func (r *UserMongo) Create(user models.User) (string, error) {
+	ctx := context.TODO()
+	bsonUser, err := bson.Marshal(user)
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: check unique username
+	res, err := r.db.InsertOne(ctx, bsonUser)
+	if err != nil {
+		return "", err
+	}
+
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }

@@ -22,10 +22,12 @@ func NewApiV1(services *services.Service) *ApiV1 {
 }
 
 func (apiVX *ApiV1) RegisterHandlers(router fiber.Router) {
-	v1 := router.Group("/v1")
+	v1 := router.Group("/v1", apiVX.userIdentity)
 	apiVX.registerBoardsHandlers(v1)
 	apiVX.registerListsHandlers(v1)
 	apiVX.registerProjectsHandlers(v1)
 	apiVX.registerTasksHandlers(v1)
-	apiVX.registerUsersHandlers(v1)
+
+	auth := router.Group("/auth")
+	apiVX.registerUsersHandlers(auth)
 }

@@ -9,6 +9,8 @@ import (
 
 type User interface {
 	GetAll() ([]models.User, error)
+	Create(user models.User) (string, error)
+	GetUser(username, password string) (models.User, error)
 }
 
 type Project interface {
