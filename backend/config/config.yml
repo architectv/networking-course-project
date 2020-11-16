@@ -1,10 +1,11 @@
 port: ":8001"
 
 mongo:
-    uri: "mongodb://localhost:27017"
+    uri: ""
     name: "testdb"
     userCollection: "users"
     projectCollection: "projects"
+    projectUser: "projects"
     boardCollection: "boards"
     taskListCollection: "taskLists"
     taskCollection: "tasks"

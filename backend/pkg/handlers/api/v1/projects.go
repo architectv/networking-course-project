@@ -15,9 +15,23 @@ func (apiVX *ApiV1) registerProjectsHandlers(router fiber.Router) {
 	group.Delete("/:pid", apiVX.deleteProject)
 }
 
+func getUserId(ctx *fiber.Ctx) (string, error) {
+	return "5fa8780a58e7c68e0a706032", nil  // ivan petrov
+}
+
 func (apiVX *ApiV1) getProjects(ctx *fiber.Ctx) error {
-	implementMe()
-	projects := make([]models.Project, 0)
+	// implementMe()
+	// projects := make([]models.Project, 0)
+
+	userId, err := getUserId(ctx)
+	if err != nil {
+		return err
+	}
+
+	projects, err := apiVX.services.Project.GetAll(userId)
+	if err != nil {
+		return err
+	}
 	return ctx.JSON(projects)
 }
 
@@ -28,9 +42,22 @@ func (apiVX *ApiV1) getProject(ctx *fiber.Ctx) error {
 }
 
 func (apiVX *ApiV1) createProject(ctx *fiber.Ctx) error {
-	implementMe()
-	project := models.Project{}
-	return ctx.JSON(project)
+	// implementMe()
+	// project := models.Project{}
+	userId, err := getUserId(ctx)
+	var project models.Project
+
+	if err := ctx.BodyParser(&project); err != nil {
+		return err
+	}
+	id, err := apiVX.services.Project.Create(userId, project)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(map[string]interface{}{
+		"id": id,
+	})
 }
 
 func (apiVX *ApiV1) updateProject(ctx *fiber.Ctx) error {
