@@ -1,9 +1,13 @@
 package v1
 
 import (
+	"errors"
+	"net/http"
+	"strings"
 	"yak/backend/pkg/models"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/sirupsen/logrus"
 )
 
 func (apiVX *ApiV1) registerUsersHandlers(router fiber.Router) {
@@ -16,8 +20,6 @@ func (apiVX *ApiV1) registerUsersHandlers(router fiber.Router) {
 }
 
 func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
-	// implementMe()
-	// users := make([]models.User, 0)
 	users, err := apiVX.services.User.GetAll()
 	if err != nil {
 		return err
@@ -25,32 +27,50 @@ func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
 	return ctx.JSON(users)
 }
 
+type signInInput struct {
+	Username string `json:"username,required"`
+	Password string `json:"password,required"`
+}
+
 func (apiVX *ApiV1) getUser(ctx *fiber.Ctx) error {
-	// implementMe()
-		// user := models.User{}
-	id := ctx.Params("uid")
-	user, err := apiVX.services.User.GetById(id)
-	if err != nil {
-		return err
+	var input signInInput
+
+	if err := ctx.BodyParser(&input); err != nil {
+		logrus.Println("Bad Request")
+		return ctx.SendStatus(http.StatusBadRequest)
 	}
-	return ctx.JSON(user)
+	if input.Username == "" || input.Password == "" {
+		logrus.Println("Bad Request")
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+
+	token, err := apiVX.services.User.GenerateToken(input.Username, input.Password)
+	if err != nil {
+		logrus.Println("Internal Server Error")
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+
+	return ctx.JSON(fiber.Map{
+		"token": token,
+	})
 }
 
 func (apiVX *ApiV1) createUser(ctx *fiber.Ctx) error {
-	// implementMe()
-	// user := models.User{}
-	var user models.User
+	var input models.User
 
-	if err := ctx.BodyParser(&user); err != nil {
-		return err
+	if err := ctx.BodyParser(&input); err != nil {
+		logrus.Println("Bad Request")
+		return ctx.SendStatus(http.StatusBadRequest)
 	}
-	id, err := apiVX.services.User.Create(user)
+
+	id, err := apiVX.services.User.Create(input)
 	if err != nil {
-		return err
+		logrus.Println("Internal Server Error")
+		return ctx.SendStatus(http.StatusInternalServerError)
 	}
 
-	return ctx.JSON(map[string]interface{}{
-		"id": id,
+	return ctx.JSON(fiber.Map{
+		"_id": id,
 	})
 }
 
@@ -63,4 +83,43 @@ func (apiVX *ApiV1) loginUser(ctx *fiber.Ctx) error {
 func (apiVX *ApiV1) logoutUser(ctx *fiber.Ctx) error {
 	implementMe()
 	return ctx.Send([]byte{})
+}
+
+const (
+	authorizationHeader = "Authorization"
+	userCtx             = "_id"
+)
+
+func (apiVX *ApiV1) userIdentity(ctx *fiber.Ctx) error {
+	header := ctx.Get(authorizationHeader)
+	if header == "" {
+		return ctx.SendStatus(http.StatusUnauthorized)
+	}
+
+	headerParts := strings.Split(header, " ")
+	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+		return ctx.SendStatus(http.StatusUnauthorized)
+	}
+
+	if len(headerParts[1]) == 0 {
+		return ctx.SendStatus(http.StatusUnauthorized)
+	}
+
+	userId, err := apiVX.services.User.ParseToken(headerParts[1])
+	if err != nil {
+		return ctx.SendStatus(http.StatusUnauthorized)
+	}
+
+	return ctx.JSON(fiber.Map{
+		userCtx: userId,
+	})
+}
+
+func (apiVX *ApiV1) getUserId(ctx *fiber.Ctx) (string, error) {
+	id := ctx.Params(userCtx)
+	if id == "" {
+		return "", errors.New("user id not found")
+	}
+
+	return id, nil
 }

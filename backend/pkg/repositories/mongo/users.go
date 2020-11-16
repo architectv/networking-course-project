@@ -1,15 +1,13 @@
 package mongo
 
 import (
-	"github.com/sirupsen/logrus"
 	"context"
 	"yak/backend/pkg/models"
 
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	// "encoding/json"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserMongo struct {
@@ -48,29 +46,23 @@ func (r *UserMongo) GetAll() ([]models.User, error) {
 	return users, nil
 }
 
-func (r *UserMongo) GetById(id string) (models.User, error) {
+func (r *UserMongo) GetUser(username, password string) (models.User, error) {
 	var user models.User
 	ctx := context.TODO()
-	logrus.Println(id)
-	objID, _ := primitive.ObjectIDFromHex(id)
-	logrus.Println(objID)
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"username": username, "password": password}
 	err := r.db.FindOne(ctx, filter).Decode(&user)
-	// err := r.db.FindOne(ctx, bson.M{
-	// 	"_id": objID,
-	// }).Decode(&user)
 
-	if err != nil {
-		return user, err
-	}
-
-	return user, nil
+	return user, err
 }
 
 func (r *UserMongo) Create(user models.User) (string, error) {
 	ctx := context.TODO()
-	bsonUser, _ := bson.Marshal(user)
+	bsonUser, err := bson.Marshal(user)
+	if err != nil {
+		return "", err
+	}
 
+	// TODO: check unique username
 	res, err := r.db.InsertOne(ctx, bsonUser)
 	if err != nil {
 		return "", err
