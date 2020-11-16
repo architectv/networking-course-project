@@ -110,13 +110,12 @@ func (apiVX *ApiV1) userIdentity(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(http.StatusUnauthorized)
 	}
 
-	return ctx.JSON(fiber.Map{
-		userCtx: userId,
-	})
+	ctx.Request().Header.Set(userCtx, userId)
+	return ctx.Next()
 }
 
 func (apiVX *ApiV1) getUserId(ctx *fiber.Ctx) (string, error) {
-	id := ctx.Params(userCtx)
+	id := ctx.Get(userCtx)
 	if id == "" {
 		return "", errors.New("user id not found")
 	}
