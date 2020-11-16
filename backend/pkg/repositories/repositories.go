@@ -17,6 +17,8 @@ type Project interface {
 }
 
 type Board interface {
+	GetAll(userId, projectId string) ([]models.Board, error)
+	Create(userId, projectId string, board models.Board) (string, error)
 }
 
 type TaskList interface {

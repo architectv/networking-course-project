@@ -16,6 +16,8 @@ type Project interface {
 }
 
 type Board interface {
+	GetAll(userId, projectId string) ([]models.Board, error)
+	Create(userId, projectId string, board models.Board) (string, error)
 }
 
 type TaskList interface {
@@ -36,7 +38,7 @@ func NewService(repos *repositories.Repository) *Service {
 	return &Service{
 		User:     NewUserService(repos.User),
 		Project:  NewProjectService(repos.Project),
-		Board:    NewBoardService(repos.Board),
+		Board:    NewBoardService(repos.Board, repos.Project),
 		TaskList: NewTaskListService(repos.TaskList),
 		Task:     NewTaskService(repos.Task),
 	}
