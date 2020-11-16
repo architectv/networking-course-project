@@ -13,10 +13,16 @@ type User interface {
 
 type Project interface {
 	Create(project models.Project) (string, error)
-	GetAll(userId string) ([]models.Project, error)
+	GetAll(projectsId []string) ([]models.Project, error)
 	// GetById(userId, projectId string) (models.Project, error)
 	// Delete(userId, projectId string) error
 	// Update(userId, projectId string, project models.Project) error
+	ProjectIdGetByPermissions(userId string) ([]string, error)
+	ProjectUserCreate(projectUser models.ProjectUser) error
+	
+
+
+	
 }
 
 type Board interface {
