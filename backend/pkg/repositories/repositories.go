@@ -14,11 +14,12 @@ type User interface {
 type Project interface {
 	Create(project models.Project) (string, error)
 	GetAll(projectsId []string) ([]models.Project, error)
-	// GetById(userId, projectId string) (models.Project, error)
+	GetById(projectId string) (models.Project, error)
 	// Delete(userId, projectId string) error
-	// Update(userId, projectId string, project models.Project) error
+	Update(projectId string, project models.Project) error
 	ProjectIdGetByPermissions(userId string) ([]string, error)
 	ProjectUserCreate(projectUser models.ProjectUser) error
+	GetPermission(userId, projectId string) (*models.Permission, error)
 	
 
 

@@ -6,7 +6,7 @@ type Project struct {
 	ChatId string `json:"chatId,omitempty" bson:"chatId,omitempty"`
 	DefaultPermissions *Permission `json:"defaultPermissions,omitempty" bson:"defaultPermissions,omitempty"`
 	Datetimes *Datetimes `json:"datetimes,omitempty" bson:"datetimes,omitempty"`
-	Title string `json:"title" bson:"title"`
+	Title string `json:"title" binding:"required" bson:"title"`
 	Description string `json:"description,omitempty" bson:"description,omitempty"`
 }
 

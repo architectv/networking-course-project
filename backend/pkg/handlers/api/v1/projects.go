@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"yak/backend/pkg/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,7 +23,6 @@ func getUserId(ctx *fiber.Ctx) (string, error) {
 func (apiVX *ApiV1) getProjects(ctx *fiber.Ctx) error {
 	// implementMe()
 	// projects := make([]models.Project, 0)
-
 	userId, err := getUserId(ctx)
 	if err != nil {
 		return err
@@ -36,8 +36,19 @@ func (apiVX *ApiV1) getProjects(ctx *fiber.Ctx) error {
 }
 
 func (apiVX *ApiV1) getProject(ctx *fiber.Ctx) error {
-	implementMe()
-	project := models.Project{}
+	// implementMe()
+	// project := models.Project{}
+	userId, err := getUserId(ctx)
+	if err != nil {
+		return err
+	}
+	
+	projectId := ctx.Params("pid")
+	fmt.Println(projectId)
+	project, err := apiVX.services.Project.GetById(userId, projectId)
+	if err != nil {
+		return err
+	}
 	return ctx.JSON(project)
 }
 
@@ -45,8 +56,11 @@ func (apiVX *ApiV1) createProject(ctx *fiber.Ctx) error {
 	// implementMe()
 	// project := models.Project{}
 	userId, err := getUserId(ctx)
-	var project models.Project
+	if err != nil {
+		return err
+	}
 
+	var project models.Project
 	if err := ctx.BodyParser(&project); err != nil {
 		return err
 	}
@@ -61,9 +75,23 @@ func (apiVX *ApiV1) createProject(ctx *fiber.Ctx) error {
 }
 
 func (apiVX *ApiV1) updateProject(ctx *fiber.Ctx) error {
-	implementMe()
-	project := models.Project{}
-	return ctx.JSON(project)
+	// implementMe()
+	// project := models.Project{}
+	userId, err := getUserId(ctx)
+	if err != nil {
+		return err
+	}
+	
+	projectId := ctx.Params("pid")
+	var project models.Project
+	if err := ctx.BodyParser(&project); err != nil {
+		return err
+	}
+
+	if err := apiVX.services.Project.Update(userId, projectId, project); err != nil {
+		return err
+	}
+	return ctx.JSON(err)
 }
 
 func (apiVX *ApiV1) deleteProject(ctx *fiber.Ctx) error {
