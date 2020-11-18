@@ -46,7 +46,7 @@ func TestUsersHadlers_createUser(t *testing.T) {
 			expectedResponseBody: `{"code":200,"message":"OK","data":{"userId":"1"}}`,
 		},
 		{
-			name:                 "Wrong email",
+			name:                 "Wrong Email",
 			inputBody:            `{"nickname": "nickname", "email": "nick", "password": "qwerty"}`,
 			inputUser:            &models.User{},
 			mockBehavior:         func(r *mock_services.MockUser, user *models.User) {},
@@ -54,7 +54,7 @@ func TestUsersHadlers_createUser(t *testing.T) {
 			expectedResponseBody: `{"code":400,"message":"email: nick does not validate as email"}`,
 		},
 		{
-			name:                 "Wrong nickname (too short)",
+			name:                 "Wrong Nickname (Too Short)",
 			inputBody:            `{"nickname": "n", "email": "nick@test.com", "password": "qwerty"}`,
 			inputUser:            &models.User{},
 			mockBehavior:         func(r *mock_services.MockUser, user *models.User) {},
@@ -62,7 +62,7 @@ func TestUsersHadlers_createUser(t *testing.T) {
 			expectedResponseBody: `{"code":400,"message":"nickname: n does not validate as length(3|32)"}`,
 		},
 		{
-			name:                 "Wrong password (too short)",
+			name:                 "Wrong Password (Too Short)",
 			inputBody:            `{"nickname": "nickname", "email": "nick@test.com", "password": "q"}`,
 			inputUser:            &models.User{},
 			mockBehavior:         func(r *mock_services.MockUser, user *models.User) {},
@@ -70,12 +70,29 @@ func TestUsersHadlers_createUser(t *testing.T) {
 			expectedResponseBody: `{"code":400,"message":"password: q does not validate as length(6|32)"}`,
 		},
 		{
-			name:                 "Wrong request body",
+			name:                 "Wrong Request Body",
 			inputBody:            ``,
 			inputUser:            &models.User{},
 			mockBehavior:         func(r *mock_services.MockUser, user *models.User) {},
 			expectedStatusCode:   400,
 			expectedResponseBody: `{"code":400,"message":"json: unexpected end of JSON input: "}`,
+		},
+		{
+			name:      "Service Error",
+			inputBody: `{"nickname": "nickname", "email": "nick@test.com", "password": "qwerty"}`,
+			inputUser: &models.User{
+				Nickname: "nickname",
+				Email:    "nick@test.com",
+				Password: "qwerty",
+			},
+			mockBehavior: func(r *mock_services.MockUser, user *models.User) {
+				r.EXPECT().Create(gomock.Any(), user).Return(&models.ApiResponse{
+					Code:    500,
+					Message: "Something went wrong",
+				})
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"code":500,"message":"Something went wrong"}`,
 		},
 	}
 
@@ -108,8 +125,12 @@ func TestUsersHadlers_createUser(t *testing.T) {
 			req.Header.Set("Content-type", "application/json")
 
 			// Make Request
-			w, _ := r.Test(req, -1)
-			bytesBody, _ := ioutil.ReadAll(w.Body)
+			w, err := r.Test(req, -1)
+			assert.Nil(t, err)
+
+			bytesBody, err := ioutil.ReadAll(w.Body)
+			assert.Nil(t, err)
+
 			body := string(bytesBody)
 
 			// Assert
