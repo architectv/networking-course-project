@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"yak/backend/pkg/models"
 	repoMongo "yak/backend/pkg/repositories/mongo"
 
@@ -9,8 +10,9 @@ import (
 
 type User interface {
 	GetAll() ([]models.User, error)
-	Create(user models.User) (string, error)
+	Create(ctx context.Context, user *models.User) (string, error)
 	GetUser(username, password string) (models.User, error)
+	GetByNickname(ctx context.Context, nickname string) (*models.User, error)
 }
 
 type Project interface {

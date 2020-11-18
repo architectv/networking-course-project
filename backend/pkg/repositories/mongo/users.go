@@ -55,18 +55,27 @@ func (r *UserMongo) GetUser(username, password string) (models.User, error) {
 	return user, err
 }
 
-func (r *UserMongo) Create(user models.User) (string, error) {
-	ctx := context.TODO()
+func (r *UserMongo) Create(ctx context.Context, user *models.User) (string, error) {
 	bsonUser, err := bson.Marshal(user)
 	if err != nil {
 		return "", err
 	}
 
-	// TODO: check unique username
 	res, err := r.db.InsertOne(ctx, bsonUser)
 	if err != nil {
 		return "", err
 	}
 
 	return res.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+func (r *UserMongo) GetByNickname(ctx context.Context, nickname string) (*models.User, error) {
+	user := &models.User{}
+	filter := bson.M{"nickname": nickname}
+	err := r.db.FindOne(ctx, filter).Decode(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, err
 }

@@ -1,13 +1,14 @@
 package services
 
 import (
+	"context"
 	"yak/backend/pkg/models"
 	"yak/backend/pkg/repositories"
 )
 
 type User interface {
 	GetAll() ([]models.User, error)
-	Create(user models.User) (string, error)
+	Create(ctx context.Context, user *models.User) *models.ApiResponse
 	GenerateToken(username, password string) (string, error)
 	ParseToken(token string) (string, error)
 }

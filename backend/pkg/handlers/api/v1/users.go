@@ -6,47 +6,45 @@ import (
 	"strings"
 	"yak/backend/pkg/models"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
-	"github.com/sirupsen/logrus"
 )
 
 func (apiVX *ApiV1) registerUsersHandlers(router fiber.Router) {
 	group := router.Group("/users")
-	group.Get("/", apiVX.getUsers)
+	// group.Get("/", apiVX.getUsers)
 	group.Post("/", apiVX.createUser)
 	group.Get("/:uid", apiVX.getUser)
 	group.Get("/login", apiVX.loginUser)
 	group.Get("/logout", apiVX.logoutUser)
 }
 
-func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
-	users, err := apiVX.services.User.GetAll()
-	if err != nil {
-		return err
-	}
-	return ctx.JSON(users)
-}
+// func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
+// 	users, err := apiVX.services.User.GetAll()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return ctx.JSON(users)
+// }
 
 type signInInput struct {
-	Username string `json:"username,required"`
-	Password string `json:"password,required"`
+	Nickname string `json:"username" valid:"length(3|32)"`
+	Password string `json:"password" valid:"length(6|32)"`
 }
 
+// sigIn function
 func (apiVX *ApiV1) getUser(ctx *fiber.Ctx) error {
 	var input signInInput
 
 	if err := ctx.BodyParser(&input); err != nil {
-		logrus.Println("Bad Request")
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
-	if input.Username == "" || input.Password == "" {
-		logrus.Println("Bad Request")
+	if _, err := govalidator.ValidateStruct(input); err != nil {
 		return ctx.SendStatus(http.StatusBadRequest)
 	}
 
-	token, err := apiVX.services.User.GenerateToken(input.Username, input.Password)
+	token, err := apiVX.services.User.GenerateToken(input.Nickname, input.Password)
 	if err != nil {
-		logrus.Println("Internal Server Error")
 		return ctx.SendStatus(http.StatusInternalServerError)
 	}
 
@@ -55,23 +53,21 @@ func (apiVX *ApiV1) getUser(ctx *fiber.Ctx) error {
 	})
 }
 
+// sigUp function
 func (apiVX *ApiV1) createUser(ctx *fiber.Ctx) error {
-	var input models.User
+	response := &models.ApiResponse{}
+	input := &models.User{}
 
-	if err := ctx.BodyParser(&input); err != nil {
-		logrus.Println("Bad Request")
-		return ctx.SendStatus(http.StatusBadRequest)
+	if err := ctx.BodyParser(input); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
 	}
-
-	id, err := apiVX.services.User.Create(input)
-	if err != nil {
-		logrus.Println("Internal Server Error")
-		return ctx.SendStatus(http.StatusInternalServerError)
+	if _, err := govalidator.ValidateStruct(input); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
 	}
-
-	return ctx.JSON(fiber.Map{
-		"_id": id,
-	})
+	response = apiVX.services.User.Create(ctx.Context(), input)
+	return Send(ctx, response)
 }
 
 func (apiVX *ApiV1) loginUser(ctx *fiber.Ctx) error {

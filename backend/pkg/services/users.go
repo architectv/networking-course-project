@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
@@ -34,10 +35,28 @@ func (s *UserService) GetAll() ([]models.User, error) {
 	return s.repo.GetAll()
 }
 
-func (s *UserService) Create(user models.User) (string, error) {
+func (s *UserService) Create(ctx context.Context, user *models.User) *models.ApiResponse {
+	r := &models.ApiResponse{}
+	if err := s.checkByNickname(ctx, user.Nickname); err == nil {
+		r.Error(StatusConflict, "User already exists")
+		return r
+	}
+
 	// TODO: generatePasswordHash(password)
 	// user.Password = generatePasswordHash(user.Password)
-	return s.repo.Create(user)
+	id, err := s.repo.Create(ctx, user)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{userId: id})
+	return r
+}
+
+func (s *UserService) checkByNickname(ctx context.Context, nickname string) error {
+	_, err := s.repo.GetByNickname(ctx, nickname)
+	return err
 }
 
 func (s *UserService) GenerateToken(username, password string) (string, error) {
