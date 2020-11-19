@@ -9,8 +9,9 @@ import (
 type User interface {
 	GetAll() ([]models.User, error)
 	Create(ctx context.Context, user *models.User) *models.ApiResponse
-	GenerateToken(username, password string) (string, error)
-	ParseToken(token string) (string, error)
+	GenerateToken(ctx context.Context, username, password string) *models.ApiResponse
+	ParseToken(ctx context.Context, token string) (string, error)
+	SignOut(ctx context.Context, token string) *models.ApiResponse
 }
 
 type Project interface {

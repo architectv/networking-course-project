@@ -11,8 +11,10 @@ import (
 type User interface {
 	GetAll() ([]models.User, error)
 	Create(ctx context.Context, user *models.User) (string, error)
-	GetUser(username, password string) (models.User, error)
+	GetUser(ctx context.Context, username, password string) (*models.User, error)
 	GetByNickname(ctx context.Context, nickname string) (*models.User, error)
+	SignOut(ctx context.Context, token string) error
+	FindToken(ctx context.Context, token string) error
 }
 
 type Project interface {

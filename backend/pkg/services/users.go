@@ -59,11 +59,13 @@ func (s *UserService) checkByNickname(ctx context.Context, nickname string) erro
 	return err
 }
 
-func (s *UserService) GenerateToken(username, password string) (string, error) {
+func (s *UserService) GenerateToken(ctx context.Context, username, password string) *models.ApiResponse {
 	// TODO: generatePasswordHash(password)
-	user, err := s.repo.GetUser(username, password)
+	r := &models.ApiResponse{}
+	user, err := s.repo.GetUser(ctx, username, password)
 	if err != nil {
-		return "", err
+		r.Error(StatusConflict, err.Error())
+		return r
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
@@ -74,10 +76,17 @@ func (s *UserService) GenerateToken(username, password string) (string, error) {
 		user.Id,
 	})
 
-	return token.SignedString([]byte(signingKey))
+	encToken, err := token.SignedString([]byte(signingKey))
+	if err != nil {
+		r.Error(StatusConflict, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{"token": encToken})
+	return r
 }
 
-func (s *UserService) ParseToken(accessToken string) (string, error) {
+func (s *UserService) ParseToken(ctx context.Context, accessToken string) (string, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -94,6 +103,11 @@ func (s *UserService) ParseToken(accessToken string) (string, error) {
 		return "", errors.New("token claims are not of type *tokenClaims")
 	}
 
+	err = s.repo.FindToken(ctx, accessToken)
+	if err == nil {
+		return "", errors.New("Invalid token")
+	}
+
 	return claims.UserId, nil
 }
 
@@ -102,4 +116,16 @@ func generatePasswordHash(password string) string {
 	hash.Write([]byte(password))
 
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+}
+
+func (s *UserService) SignOut(ctx context.Context, token string) *models.ApiResponse {
+	r := &models.ApiResponse{}
+	err := s.repo.SignOut(ctx, token)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", nil)
+	return r
 }

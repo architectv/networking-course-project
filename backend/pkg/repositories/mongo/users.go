@@ -11,12 +11,14 @@ import (
 )
 
 type UserMongo struct {
-	db *mongo.Collection
+	db       *mongo.Collection
+	tokenOut *mongo.Collection
 }
 
 func NewUserMongo(db *mongo.Database) *UserMongo {
 	return &UserMongo{
-		db: db.Collection(viper.GetString("mongo.userCollection")),
+		db:       db.Collection(viper.GetString("mongo.userCollection")),
+		tokenOut: db.Collection(viper.GetString("mongo.tokenCollection")),
 	}
 }
 
@@ -46,13 +48,15 @@ func (r *UserMongo) GetAll() ([]models.User, error) {
 	return users, nil
 }
 
-func (r *UserMongo) GetUser(username, password string) (models.User, error) {
-	var user models.User
-	ctx := context.TODO()
-	filter := bson.M{"username": username, "password": password}
+func (r *UserMongo) GetUser(ctx context.Context, username, password string) (*models.User, error) {
+	user := &models.User{}
+	filter := bson.M{"nickname": username, "password": password}
 	err := r.db.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
 
-	return user, err
+	return user, nil
 }
 
 func (r *UserMongo) Create(ctx context.Context, user *models.User) (string, error) {
@@ -77,5 +81,26 @@ func (r *UserMongo) GetByNickname(ctx context.Context, nickname string) (*models
 		return nil, err
 	}
 
-	return user, err
+	return user, nil
+}
+
+func (r *UserMongo) SignOut(ctx context.Context, token string) error {
+	bsonToken, err := bson.Marshal(map[string]string{"token": token})
+	if err != nil {
+		return err
+	}
+
+	_, err = r.tokenOut.InsertOne(ctx, bsonToken)
+	return err
+}
+
+func (r *UserMongo) FindToken(ctx context.Context, token string) error {
+	type tokenOut struct {
+		Id    string `json:"_id"`
+		Token string `json:"token"`
+	}
+	var tmp tokenOut
+	filter := bson.M{"token": token}
+	err := r.tokenOut.FindOne(ctx, filter).Decode(&tmp)
+	return err
 }

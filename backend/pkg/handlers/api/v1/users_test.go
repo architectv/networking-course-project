@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUsersHadlers_createUser(t *testing.T) {
+func TestUsersHadlers_signUp(t *testing.T) {
 	type mockBehavior func(r *mock_services.MockUser, user *models.User)
 
 	tests := []struct {
@@ -78,6 +78,23 @@ func TestUsersHadlers_createUser(t *testing.T) {
 			expectedResponseBody: `{"code":400,"message":"json: unexpected end of JSON input: "}`,
 		},
 		{
+			name:      "User Already Exists",
+			inputBody: `{"nickname": "nickname", "email": "nick@test.com", "password": "qwerty"}`,
+			inputUser: &models.User{
+				Nickname: "nickname",
+				Email:    "nick@test.com",
+				Password: "qwerty",
+			},
+			mockBehavior: func(r *mock_services.MockUser, user *models.User) {
+				r.EXPECT().Create(gomock.Any(), user).Return(&models.ApiResponse{
+					Code:    409,
+					Message: "User already exists",
+				})
+			},
+			expectedStatusCode:   409,
+			expectedResponseBody: `{"code":409,"message":"User already exists"}`,
+		},
+		{
 			name:      "Service Error",
 			inputBody: `{"nickname": "nickname", "email": "nick@test.com", "password": "qwerty"}`,
 			inputUser: &models.User{
@@ -110,11 +127,12 @@ func TestUsersHadlers_createUser(t *testing.T) {
 
 			// Init Endpoint
 			r := fiber.New()
-			api := r.Group("/api")
-			apiV1 := NewApiV1(handler.services)
-			apiV1.RegisterHandlers(api)
+			// api := r.Group("/api")
+			// apiV1 := NewApiV1(handler.services)
+			// apiV1.RegisterHandlers(api)
 
-			url := "/api/auth/users/"
+			url := "/api/auth/users/signup"
+			r.Post(url, handler.signUp)
 
 			// Create Request
 			req := httptest.NewRequest(

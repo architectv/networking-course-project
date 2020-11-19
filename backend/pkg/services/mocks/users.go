@@ -49,18 +49,17 @@ func (mr *MockUserMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GenerateToken mocks base method
-func (m *MockUser) GenerateToken(arg0, arg1 string) (string, error) {
+func (m *MockUser) GenerateToken(arg0 context.Context, arg1, arg2 string) *models.ApiResponse {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateToken", arg0, arg1)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "GenerateToken", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*models.ApiResponse)
+	return ret0
 }
 
 // GenerateToken indicates an expected call of GenerateToken
-func (mr *MockUserMockRecorder) GenerateToken(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockUserMockRecorder) GenerateToken(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockUser)(nil).GenerateToken), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockUser)(nil).GenerateToken), arg0, arg1, arg2)
 }
 
 // GetAll mocks base method
@@ -79,16 +78,30 @@ func (mr *MockUserMockRecorder) GetAll() *gomock.Call {
 }
 
 // ParseToken mocks base method
-func (m *MockUser) ParseToken(arg0 string) (string, error) {
+func (m *MockUser) ParseToken(arg0 context.Context, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ParseToken", arg0)
+	ret := m.ctrl.Call(m, "ParseToken", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ParseToken indicates an expected call of ParseToken
-func (mr *MockUserMockRecorder) ParseToken(arg0 interface{}) *gomock.Call {
+func (mr *MockUserMockRecorder) ParseToken(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseToken", reflect.TypeOf((*MockUser)(nil).ParseToken), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseToken", reflect.TypeOf((*MockUser)(nil).ParseToken), arg0, arg1)
+}
+
+// SignOut mocks base method
+func (m *MockUser) SignOut(arg0 context.Context, arg1 string) *models.ApiResponse {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignOut", arg0, arg1)
+	ret0, _ := ret[0].(*models.ApiResponse)
+	return ret0
+}
+
+// SignOut indicates an expected call of SignOut
+func (mr *MockUserMockRecorder) SignOut(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignOut", reflect.TypeOf((*MockUser)(nil).SignOut), arg0, arg1)
 }

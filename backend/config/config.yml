@@ -8,3 +8,4 @@ mongo:
     boardCollection: "boards"
     taskListCollection: "taskLists"
     taskCollection: "tasks"
+    tokenCollection: "tokenOut"
