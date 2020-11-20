@@ -1,20 +1,19 @@
 package repositories
 
 import (
-	"context"
 	"yak/backend/pkg/models"
-	repoMongo "yak/backend/pkg/repositories/mongo"
+	"yak/backend/pkg/repositories/postgres"
 
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/jmoiron/sqlx"
 )
 
 type User interface {
-	GetAll() ([]models.User, error)
-	Create(ctx context.Context, user *models.User) (string, error)
-	GetUser(ctx context.Context, username, password string) (*models.User, error)
-	GetByNickname(ctx context.Context, nickname string) (*models.User, error)
-	SignOut(ctx context.Context, token string) error
-	FindToken(ctx context.Context, token string) error
+	GetAll() ([]*models.User, error)
+	Create(user *models.User) (int, error)
+	Get(nickname, password string) (*models.User, error)
+	GetByNickname(nickname string) (*models.User, error)
+	// SignOut(token string) error
+	// FindToken(token string) error
 }
 
 type Project interface {
@@ -37,12 +36,18 @@ type Repository struct {
 	Task
 }
 
-func NewRepository(db *mongo.Database) *Repository {
+// func NewRepository(db *mongo.Database) *Repository {
+// 	return &Repository{
+// 		User:     repoMongo.NewUserMongo(db),
+// 		Project:  repoMongo.NewProjectMongo(db),
+// 		Board:    repoMongo.NewBoardMongo(db),
+// 		TaskList: repoMongo.NewTaskListMongo(db),
+// 		Task:     repoMongo.NewTaskMongo(db),
+// 	}
+// }
+
+func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		User:     repoMongo.NewUserMongo(db),
-		Project:  repoMongo.NewProjectMongo(db),
-		Board:    repoMongo.NewBoardMongo(db),
-		TaskList: repoMongo.NewTaskListMongo(db),
-		Task:     repoMongo.NewTaskMongo(db),
+		User: postgres.NewUserPg(db),
 	}
 }

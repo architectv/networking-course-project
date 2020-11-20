@@ -34,7 +34,7 @@ func TestUsersHadlers_signUp(t *testing.T) {
 				Password: "qwerty",
 			},
 			mockBehavior: func(r *mock_services.MockUser, user *models.User) {
-				r.EXPECT().Create(gomock.Any(), user).Return(&models.ApiResponse{
+				r.EXPECT().Create(user).Return(&models.ApiResponse{
 					Code:    200,
 					Message: "OK",
 					Data: fiber.Map{
@@ -86,7 +86,7 @@ func TestUsersHadlers_signUp(t *testing.T) {
 				Password: "qwerty",
 			},
 			mockBehavior: func(r *mock_services.MockUser, user *models.User) {
-				r.EXPECT().Create(gomock.Any(), user).Return(&models.ApiResponse{
+				r.EXPECT().Create(user).Return(&models.ApiResponse{
 					Code:    409,
 					Message: "User already exists",
 				})
@@ -103,7 +103,7 @@ func TestUsersHadlers_signUp(t *testing.T) {
 				Password: "qwerty",
 			},
 			mockBehavior: func(r *mock_services.MockUser, user *models.User) {
-				r.EXPECT().Create(gomock.Any(), user).Return(&models.ApiResponse{
+				r.EXPECT().Create(user).Return(&models.ApiResponse{
 					Code:    500,
 					Message: "Something went wrong",
 				})

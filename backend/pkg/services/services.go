@@ -1,17 +1,16 @@
 package services
 
 import (
-	"context"
 	"yak/backend/pkg/models"
 	"yak/backend/pkg/repositories"
 )
 
 type User interface {
-	GetAll() ([]models.User, error)
-	Create(ctx context.Context, user *models.User) *models.ApiResponse
-	GenerateToken(ctx context.Context, username, password string) *models.ApiResponse
-	ParseToken(ctx context.Context, token string) (string, error)
-	SignOut(ctx context.Context, token string) *models.ApiResponse
+	GetAll() ([]*models.User, error)
+	Create(user *models.User) *models.ApiResponse
+	GenerateToken(username, password string) *models.ApiResponse
+	ParseToken(token string) (int, error)
+	// SignOut(token string) *models.ApiResponse
 }
 
 type Project interface {

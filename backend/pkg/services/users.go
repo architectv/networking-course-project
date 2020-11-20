@@ -1,7 +1,6 @@
 package services
 
 import (
-	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
@@ -20,7 +19,7 @@ const (
 
 type tokenClaims struct {
 	jwt.StandardClaims
-	UserId string `json:"_id"`
+	UserId int `json:"id"`
 }
 
 type UserService struct {
@@ -31,20 +30,20 @@ func NewUserService(repo repositories.User) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (s *UserService) GetAll() ([]models.User, error) {
+func (s *UserService) GetAll() ([]*models.User, error) {
 	return s.repo.GetAll()
 }
 
-func (s *UserService) Create(ctx context.Context, user *models.User) *models.ApiResponse {
+func (s *UserService) Create(user *models.User) *models.ApiResponse {
 	r := &models.ApiResponse{}
-	if err := s.checkByNickname(ctx, user.Nickname); err == nil {
+	if err := s.checkByNickname(user.Nickname); err == nil {
 		r.Error(StatusConflict, "User already exists")
 		return r
 	}
 
 	// TODO: generatePasswordHash(password)
 	// user.Password = generatePasswordHash(user.Password)
-	id, err := s.repo.Create(ctx, user)
+	id, err := s.repo.Create(user)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -54,15 +53,15 @@ func (s *UserService) Create(ctx context.Context, user *models.User) *models.Api
 	return r
 }
 
-func (s *UserService) checkByNickname(ctx context.Context, nickname string) error {
-	_, err := s.repo.GetByNickname(ctx, nickname)
+func (s *UserService) checkByNickname(nickname string) error {
+	_, err := s.repo.GetByNickname(nickname)
 	return err
 }
 
-func (s *UserService) GenerateToken(ctx context.Context, username, password string) *models.ApiResponse {
+func (s *UserService) GenerateToken(nickname, password string) *models.ApiResponse {
 	// TODO: generatePasswordHash(password)
 	r := &models.ApiResponse{}
-	user, err := s.repo.GetUser(ctx, username, password)
+	user, err := s.repo.Get(nickname, password)
 	if err != nil {
 		r.Error(StatusConflict, err.Error())
 		return r
@@ -86,7 +85,7 @@ func (s *UserService) GenerateToken(ctx context.Context, username, password stri
 	return r
 }
 
-func (s *UserService) ParseToken(ctx context.Context, accessToken string) (string, error) {
+func (s *UserService) ParseToken(accessToken string) (int, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -95,18 +94,18 @@ func (s *UserService) ParseToken(ctx context.Context, accessToken string) (strin
 		return []byte(signingKey), nil
 	})
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	claims, ok := token.Claims.(*tokenClaims)
 	if !ok {
-		return "", errors.New("token claims are not of type *tokenClaims")
+		return 0, errors.New("token claims are not of type *tokenClaims")
 	}
 
-	err = s.repo.FindToken(ctx, accessToken)
-	if err == nil {
-		return "", errors.New("Invalid token")
-	}
+	// err = s.repo.FindToken(ctx, accessToken)
+	// if err == nil {
+	// 	return "", errors.New("Invalid token")
+	// }
 
 	return claims.UserId, nil
 }
@@ -118,14 +117,14 @@ func generatePasswordHash(password string) string {
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
 
-func (s *UserService) SignOut(ctx context.Context, token string) *models.ApiResponse {
-	r := &models.ApiResponse{}
-	err := s.repo.SignOut(ctx, token)
-	if err != nil {
-		r.Error(StatusInternalServerError, err.Error())
-		return r
-	}
+// func (s *UserService) SignOut(token string) *models.ApiResponse {
+// 	r := &models.ApiResponse{}
+// 	err := s.repo.SignOut(token)
+// 	if err != nil {
+// 		r.Error(StatusInternalServerError, err.Error())
+// 		return r
+// 	}
 
-	r.Set(StatusOK, "OK", nil)
-	return r
-}
+// 	r.Set(StatusOK, "OK", nil)
+// 	return r
+// }

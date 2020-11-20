@@ -3,7 +3,7 @@ package yak
 import (
 	"yak/backend/pkg/handlers"
 	"yak/backend/pkg/repositories"
-	mongoDB "yak/backend/pkg/repositories/mongo"
+	"yak/backend/pkg/repositories/postgres"
 	"yak/backend/pkg/services"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,7 +19,19 @@ func CreateApp() {
 		logrus.Fatalf("error initializing configs: %s", err.Error())
 	}
 
-	db, err := mongoDB.NewMongoDB()
+	// if err := godotenv.Load(); err != nil {
+	// 	logrus.Fatalf("error loading env variables: %s", err.Error())
+	// }
+
+	// db, err := mongoDB.NewMongoDB()
+	db, err := postgres.NewPostgresDB(postgres.Config{
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		DBName:   viper.GetString("db.dbname"),
+		SSLMode:  viper.GetString("db.sslmode"),
+		Password: viper.GetString("db.password"), //os.Getenv("DB_PASSWORD"),
+	})
 	if err != nil {
 		logrus.Fatalf("failed to initialize db: %s", err.Error())
 	}

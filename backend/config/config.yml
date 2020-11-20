@@ -9,3 +9,11 @@ mongo:
     taskListCollection: "taskLists"
     taskCollection: "tasks"
     tokenCollection: "tokenOut"
+
+db:
+    username: "postgres"
+    password: "1234"
+    host: "localhost"
+    port: "5432"
+    dbname: "yak_test_db"
+    sslmode: "disable"
