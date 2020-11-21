@@ -36,7 +36,7 @@ func (apiVX *ApiV1) registerBoardsHandlers(router fiber.Router) {
 
 func (apiVX *ApiV1) getBoard(ctx *fiber.Ctx) error {
 	response := &models.ApiResponse{}
-	userId, err := apiVX.getUserId(ctx)
+	userId, err := getUserId(ctx)
 	if err != nil {
 		response.Error(fiber.StatusInternalServerError, err.Error())
 		return Send(ctx, response)
@@ -60,7 +60,7 @@ func (apiVX *ApiV1) getBoard(ctx *fiber.Ctx) error {
 
 func (apiVX *ApiV1) createBoard(ctx *fiber.Ctx) error {
 	response := &models.ApiResponse{}
-	userId, err := apiVX.getUserId(ctx)
+	userId, err := getUserId(ctx)
 	if err != nil {
 		response.Error(fiber.StatusInternalServerError, err.Error())
 		return Send(ctx, response)
