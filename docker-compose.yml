@@ -19,9 +19,23 @@ services:
     ports:
       - "5432"
     volumes:
-      - .data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
 
-  fiber:
+  pgadmin4:
+    image: dpage/pgadmin4:latest
+    restart: always
+    networks:
+      - backend
+    environment:
+      PGADMIN_DEFAULT_EMAIL: yak@yak.ru
+      PGADMIN_DEFAULT_PASSWORD: yak
+    ports:
+      - "80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./nginx/servers.json:/pgadmin4/servers.json
+
+  fiber_main:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
@@ -29,7 +43,41 @@ services:
     networks:
       - backend
     ports:
-      - "8001:8001"
+      - "8001"
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./backend:/app
+
+  fiber_ro1:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    restart: always
+    environment:
+      YAK_READONLY: y
+    networks:
+      - backend
+    ports:
+      - "8001"
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./backend:/app
+
+  fiber_ro2:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    restart: always
+    environment:
+      YAK_READONLY: y
+    networks:
+      - backend
+    ports:
+      - "8001"
     depends_on:
       - redis
       - postgres
@@ -44,9 +92,9 @@ services:
     networks:
       - frontend
     ports:
-      - "5000:5000"
+      - "5000"
     depends_on:
-      - fiber
+      - fiber_main
     volumes:
       - ./frontend:/app
   nginx:
@@ -54,12 +102,19 @@ services:
       context: ./nginx
       dockerfile: Dockerfile.dev
     restart: always
+    depends_on:
+      - fiber_main
+      - svelte
     networks:
       - frontend
       - backend
     ports:
       - 443:443
       - 80:80
+
+volumes:
+  postgres_data:
+  pgadmin_data:
 
 networks:
   backend:
