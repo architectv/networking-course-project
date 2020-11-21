@@ -17,6 +17,12 @@ type User interface {
 }
 
 type Project interface {
+	Create(project models.Project) (int, error)
+	GetAll(userId int) ([]*models.Project, error)
+	GetById(projectId int) (*models.Project, error)
+	// Delete(userId, projectId string) error
+	// Update(projectId string, project models.Project) error
+	GetPermissions(userId, projectId int) (*models.Permission, error)
 }
 
 type Board interface {
@@ -48,6 +54,7 @@ type Repository struct {
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		User: postgres.NewUserPg(db),
+		User:    postgres.NewUserPg(db),
+		Project: postgres.NewProjectPg(db),
 	}
 }

@@ -131,11 +131,21 @@ func (apiVX *ApiV1) userIdentity(ctx *fiber.Ctx) error {
 	return ctx.Next()
 }
 
-func getUserId(ctx *fiber.Ctx) (string, error) {
+func (apiVX *ApiV1) getUserId(ctx *fiber.Ctx) (int, error) {
 	id := ctx.Get(userCtx)
 	if id == "" {
-		return "", errors.New("user id not found")
+		return 0, errors.New("user id not found")
 	}
 
-	return id, nil
+	// TODO сделать нормальный перевод строки в число
+	// idInt, ok := id.(int)
+	// if !ok {
+	// 	return 0, errors.New("user id is of invalid type")
+	// }
+	intId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return 0, errors.New("user id is of invalid type")
+	}
+
+	return int(intId), nil
 }
