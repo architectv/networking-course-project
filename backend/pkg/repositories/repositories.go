@@ -20,8 +20,8 @@ type Project interface {
 	Create(project *models.Project) (int, error)
 	GetAll(userId int) ([]*models.Project, error)
 	GetById(projectId int) (*models.Project, error)
-	// Delete(userId, projectId string) error
-	// Update(projectId string, project models.Project) error
+	Delete(projectId int) error
+	Update(projectId int, project *models.UpdateProject) error
 	GetPermissions(userId, projectId int) (*models.Permission, error)
 }
 
