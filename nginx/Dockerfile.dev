@@ -1,0 +1,8 @@
+from nginx:latest
+
+WORKDIR /etc/nginx
+COPY gen-cert.sh .
+RUN ./gen-cert.sh
+COPY conf.d .
+EXPOSE 80
+EXPOSE 443
