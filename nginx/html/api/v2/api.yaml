@@ -1,0 +1,901 @@
+openapi: 3.0.0
+info:
+  description: |
+    Yet another kanban
+  version: "1.0.0"
+  title: Yak
+  contact:
+    email: vovac12@gmail.com
+    name: Vladimir
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/vovac12/yak/1.0.0
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/vovac12/kanbanman/1.0.0
+  - description: Local dev server
+    url: https://localhost/api/v2
+tags:
+  - name: user
+    description: Operations about users
+  - name: project
+    description: Operations about projects
+  - name: board
+    description: Operations about boards
+  - name: list
+    description: Operations about task lists
+  - name: task
+    description: Operations about tasks
+  - name: content
+    description: Operations about content
+externalDocs:
+  url: https://github.com/architectv/networking-course-project
+  description: Github repo
+paths:
+  /users:
+    get:
+      summary: Get a list of all users
+      description: This can only be done by the logged in user.
+      operationId: getUsers
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+      tags:
+        - user
+    post:
+      summary: Create user
+      description: This can only be done by anyone (should add captcha).
+      operationId: createUser
+      requestBody:
+        description: Task to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: successful operation
+        '200':
+          description: user exists
+      tags:
+        - user
+  /users/login:
+    post:
+      tags:
+        - user
+      summary: Logs user into the system
+      operationId: loginUser
+      requestBody:
+        description: Task to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Board'
+      responses:
+        '200':
+          description: successful operation
+          headers:
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                $ref: '#/components/schemas/Datetime'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid username/password supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /users/logout:
+    get:
+      tags:
+        - user
+      summary: Logs out current logged in user session
+      operationId: logoutUser
+      responses:
+        default:
+          description: successful operation
+
+  /projects:
+    get:
+      tags:
+        - project
+      summary: Get a list of all projects
+      description: This can only be done by the logged in user.
+      operationId: getProjects
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+    post:
+      tags:
+        - project
+      summary: Create project
+      operationId: createProject
+      requestBody:
+        description: Project to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '200':
+          description: project exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /projects/{projectId}:
+    get:
+      tags:
+        - project
+      summary: Get project
+      description: Project to get
+      operationId: getProject
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+    put:
+      tags:
+        - project
+      summary: Update project
+      operationId: updateProject
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: Project to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    delete:
+      tags:
+        - project
+      summary: Delete project
+      operationId: deleteProject
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: successful operation
+        '403':
+          description: forbidden operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: project was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /projects/{projectId}/boards:
+    get:
+      tags:
+        - board
+      summary: Get a list of all boards in project
+      description: This can only be done by the logged in user.
+      operationId: getBoards
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Board'
+    post:
+      tags:
+        - board
+      summary: Create board
+      operationId: createBoard
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: Board to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Board'
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '200':
+          description: board exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /projects/{projectId}/boards/{boardId}:
+    get:
+      tags:
+        - board
+      summary: Get board
+      description: Board to get
+      operationId: getBoard
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Board'
+    put:
+      tags:
+        - board
+      summary: Update board
+      operationId: updateBoard
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: Board to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Board'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+    delete:
+      tags:
+        - board
+      summary: Delete board
+      operationId: deleteBoard
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: successful operation
+        '403':
+          description: forbidden operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: board was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /projects/{projectId}/boards/{boardId}/lists:
+    get:
+      tags:
+        - list
+      summary: Get a list of all task lists in board
+      description: This can only be done by the logged in user.
+      operationId: getLists
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskList'
+    post:
+      tags:
+        - list
+      summary: Create list
+      operationId: createList
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: List to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskList'
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskList'
+        '200':
+          description: list exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /projects/{projectId}/boards/{boardId}/lists/{listId}:
+    get:
+      tags:
+        - list
+      summary: Get list
+      description: List to get
+      operationId: getList
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: listId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskList'
+    put:
+      tags:
+        - list
+      summary: Update list
+      operationId: updateList
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: listId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: List to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskList'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskList'
+    delete:
+      tags:
+        - list
+      summary: List board
+      operationId: deleteList
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: listId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: successful operation
+        '403':
+          description: forbidden operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: list was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /projects/{projectId}/boards/{boardId}/lists/{listId}/tasks:
+    get:
+      tags:
+        - task
+      summary: Get tasks
+      operationId: getTasks
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: listId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+    post:
+      tags:
+        - task
+      summary: Create task
+      operationId: createTask
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: listId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: Task to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '200':
+          description: list exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /projects/{projectId}/boards/{boardId}/lists/{listId}/tasks/{taskId}:
+    get:
+      tags:
+        - task
+      summary: Get task
+      operationId: getTask
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: listId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: taskId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+    put:
+      tags:
+        - task
+      summary: Update task
+      operationId: updateTask
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: listId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: taskId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: Task to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Board'
+      responses:
+        '200':
+          description: successful operation
+    delete:
+      tags:
+        - task
+      summary: Delete task
+      operationId: deleteTask
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: boardId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: listId
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: taskId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: successful operation
+        '403':
+          description: forbidden operation
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+        phone:
+          type: string
+      xml:
+        name: User
+      required:
+        - username
+        - email
+        - password
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        ownerId:
+          type: integer
+          format: int64
+        chatId:
+          type: integer
+          format: int64
+          readOnly: true
+        defaultPermissions:
+          $ref: '#/components/schemas/Permission'
+        datetimes:
+          $ref: '#/components/schemas/Datetimes'
+          readOnly: true
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - title
+
+    Board:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        title:
+          type: string
+        projectId:
+          type: integer
+          format: int64
+          readOnly: true
+        defaultPermissions:
+          $ref: '#/components/schemas/Permission'
+        datetimes:
+          $ref: '#/components/schemas/Datetimes'
+          readOnly: true
+      required:
+        - title
+        - projectId
+
+    TaskList:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        title:
+          type: string
+        boardId:
+          type: integer
+          format: int64
+          readOnly: true
+        position:
+          type: integer
+          format: int32
+      required:
+        - title
+        - boardId
+        - position
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        boardId:
+          type: integer
+          format: int64
+          readOnly: true
+        listId:
+          type: integer
+          format: int64
+        chatId:
+          type: integer
+          format: int64
+          readOnly: true
+        title:
+          type: string
+        datetimes:
+          $ref: '#/components/schemas/Datetimes'
+          readOnly: true
+      required:
+        - title
+        - boardId
+        - listId
+
+    Datetimes:
+      type: object
+      properties:
+        created:
+          $ref: '#/components/schemas/Datetime'
+        updated:
+          $ref: '#/components/schemas/Datetime'
+        accessed:
+          $ref: '#/components/schemas/Datetime'
+
+    Datetime:
+      type: integer
+      format: int64
+
+    Permission:
+      type: object
+      properties:
+        read:
+          type: boolean
+        write:
+          type: boolean
+        access:
+          type: boolean
+
+    Label:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        name:
+          type: string
+      required:
+        - name
+
+    Content:
+      type: object
+      properties:
+        content_type:
+          $ref: '#/components/schemas/ContentType'
+        data:
+          type: string
+      required:
+        - content_type
+        - data
+
+    ContentType:
+      type: integer
+
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
