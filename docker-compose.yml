@@ -107,11 +107,15 @@ services:
       - "5000"
     volumes:
       - ./frontend:/app
+
   nginx:
     build:
       context: ./nginx
       dockerfile: Dockerfile.dev
     restart: always
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/html:/usr/share/nginx/html
     depends_on:
       - fiber_main
       - fiber_ro1
