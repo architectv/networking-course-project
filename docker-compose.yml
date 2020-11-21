@@ -1,0 +1,66 @@
+version: "3.8"
+services:
+  redis:
+    image: redis:latest
+    restart: always
+    networks:
+      - backend
+    ports:
+      - "6379"
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    networks:
+      - backend
+    environment:
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: yak
+    ports:
+      - "5432"
+    volumes:
+      - .data:/var/lib/postgresql/data
+
+  fiber:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    restart: always
+    networks:
+      - backend
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./backend:/app
+
+  svelte:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    restart: always
+    networks:
+      - frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - fiber
+    volumes:
+      - ./frontend:/app
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
+    restart: always
+    networks:
+      - frontend
+      - backend
+    ports:
+      - 443:443
+      - 80:80
+
+networks:
+  backend:
+  frontend:
