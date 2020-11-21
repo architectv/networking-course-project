@@ -19,33 +19,31 @@ CREATE TABLE IF NOT EXISTS datetimes (
 );
 CREATE TABLE IF NOT EXISTS projects (
     id serial PRIMARY KEY,
-    owner_id INT REFERENCES users (id) ON DELETE CASCADE NOT NULL,
-    default_permissions_id INT REFERENCES permissions (id) ON DELETE CASCADE NOT NULL,
-    datetimes_id INT REFERENCES datetimes (id) ON DELETE CASCADE NOT NULL,
+    owner_id int REFERENCES users (id) ON DELETE CASCADE NOT NULL,
+    default_permissions_id int REFERENCES permissions (id) ON DELETE CASCADE NOT NULL,
+    datetimes_id int REFERENCES datetimes (id) ON DELETE CASCADE NOT NULL,
     title varchar(50) NOT NULL,
     description text
 );
-CREATE TABLE project_users (
+CREATE TABLE IF NOT EXISTS project_users (
     id serial PRIMARY KEY,
-    user_id INT REFERENCES users (id) ON DELETE CASCADE NOT NULL,
-    project_id INT REFERENCES projects (id) ON DELETE CASCADE NOT NULL,
-    permissions_id INT REFERENCES permissions (id) ON DELETE CASCADE NOT NULL
+    user_id int REFERENCES users (id) ON DELETE CASCADE NOT NULL,
+    project_id int REFERENCES projects (id) ON DELETE CASCADE NOT NULL,
+    permissions_id int REFERENCES permissions (id) ON DELETE CASCADE NOT NULL
 );
--- CREATE TABLE boards
--- (
---     id serial      not null unique,
---     title varchar(30) not null,
---     project_id int references projects (id) on delete cascade      not null,
---     default_permissions int references permissions (id) on delete cascade      not null,
---     datetimes int references datetimes (id) on delete cascade      not null
--- );
--- CREATE TABLE board_users
--- (
---     id serial      not null unique,
---     user_id int references users (id) on delete cascade      not null,
---     board_id int references boards (id) on delete cascade      not null,
---     permissions int references permissions (id) on delete cascade      not null
--- );
+CREATE TABLE IF NOT EXISTS boards (
+    id serial PRIMARY KEY,
+    project_id int REFERENCES projects (id) ON DELETE CASCADE NOT NULL,
+    default_permissions_id int REFERENCES permissions (id) ON DELETE CASCADE NOT NULL,
+    datetimes_id int references datetimes (id) ON DELETE CASCADE NOT NULL,
+    title varchar(30) NOT NULL
+);
+CREATE TABLE IF NOT EXISTS board_users (
+    id serial NOT NULL unique,
+    user_id int REFERENCES users (id) ON DELETE CASCADE NOT NULL,
+    board_id int REFERENCES boards (id) ON DELETE CASCADE NOT NULL,
+    permissions_id int REFERENCES permissions (id) ON DELETE CASCADE NOT NULL
+);
 -- CREATE TABLE labels
 -- (
 --     id serial      not null unique,

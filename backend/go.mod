@@ -16,6 +16,7 @@ require (
 	github.com/golangci/revgrep v0.0.0-20180812185044-276a5c0a1039 // indirect
 	github.com/google/go-cmp v0.5.3 // indirect
 	github.com/gostaticanalysis/analysisutil v0.5.0 // indirect
+	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jirfag/go-printf-func-name v0.0.0-20200119135958-7558a9eaa5af // indirect
 	github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5
 	github.com/kyoh86/exportloopref v0.1.8 // indirect

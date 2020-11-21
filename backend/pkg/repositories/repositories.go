@@ -26,6 +26,10 @@ type Project interface {
 }
 
 type Board interface {
+	// GetAll(userId, projectId string) ([]models.Board, error)
+	Create(userId int, board *models.Board) (int, error)
+	GetById(boardId int) (*models.Board, error)
+	GetPermissions(userId, boardId int) (*models.Permission, error)
 }
 
 type TaskList interface {
@@ -56,5 +60,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		User:    postgres.NewUserPg(db),
 		Project: postgres.NewProjectPg(db),
+		Board:   postgres.NewBoardPg(db),
 	}
 }

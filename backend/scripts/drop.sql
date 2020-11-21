@@ -2,9 +2,9 @@
 -- drop table task_lists;
 -- drop table labels;
 -- drop table board_users;
--- drop table boards;
+drop table boards;
 -- drop table project_users;
 -- drop table projects;
 -- drop table datetimes;
 -- drop table permissions;
-drop table users;
+-- drop table users;

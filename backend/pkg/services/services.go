@@ -22,6 +22,9 @@ type Project interface {
 }
 
 type Board interface {
+	// GetAll(userId, projectId string) *models.ApiResponse
+	Create(userId, projectId int, board *models.Board) *models.ApiResponse
+	GetById(userId, projectId, boardId int) *models.ApiResponse
 }
 
 type TaskList interface {
@@ -42,7 +45,7 @@ func NewService(repos *repositories.Repository) *Service {
 	return &Service{
 		User:     NewUserService(repos.User),
 		Project:  NewProjectService(repos.Project),
-		Board:    NewBoardService(repos.Board),
+		Board:    NewBoardService(repos.Board, repos.Project),
 		TaskList: NewTaskListService(repos.TaskList),
 		Task:     NewTaskService(repos.Task),
 	}
