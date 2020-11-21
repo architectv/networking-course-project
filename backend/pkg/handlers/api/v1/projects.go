@@ -2,10 +2,11 @@ package v1
 
 import (
 	"errors"
-	"github.com/asaskevich/govalidator"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
 	"yak/backend/pkg/models"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/gofiber/fiber/v2"
 )
 
 func (apiVX *ApiV1) registerProjectsHandlers(router fiber.Router) {
@@ -26,9 +27,9 @@ func (apiVX *ApiV1) createProject(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	var project models.Project
+	project := &models.Project{}
 
-	if err := ctx.BodyParser(&project); err != nil {
+	if err := ctx.BodyParser(project); err != nil {
 		response.Error(fiber.StatusBadRequest, err.Error())
 		return err
 	}

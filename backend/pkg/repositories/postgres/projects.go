@@ -15,7 +15,7 @@ func NewProjectPg(db *sqlx.DB) *ProjectPg {
 	return &ProjectPg{db: db}
 }
 
-func (r *ProjectPg) Create(project models.Project) (int, error) {
+func (r *ProjectPg) Create(project *models.Project) (int, error) {
 	var projectId int
 	var defPermissionId, datetimesId, permissionId int
 
@@ -49,8 +49,8 @@ func (r *ProjectPg) Create(project models.Project) (int, error) {
 	}
 
 	query = fmt.Sprintf(
-		`INSERT INTO %s (owner_id, default_permissions_id, datetimes_id, 
-			title, description)
+		`INSERT INTO %s
+		(owner_id, default_permissions_id, datetimes_id, title, description)
 		VALUES ($1, $2, $3, $4, $5) RETURNING id`, projectsTable)
 
 	row = tx.QueryRow(query, project.OwnerId, defPermissionId,

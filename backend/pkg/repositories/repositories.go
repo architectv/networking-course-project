@@ -17,7 +17,7 @@ type User interface {
 }
 
 type Project interface {
-	Create(project models.Project) (int, error)
+	Create(project *models.Project) (int, error)
 	GetAll(userId int) ([]*models.Project, error)
 	GetById(projectId int) (*models.Project, error)
 	// Delete(userId, projectId string) error

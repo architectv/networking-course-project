@@ -14,7 +14,7 @@ type User interface {
 }
 
 type Project interface {
-	Create(userId int, project models.Project) *models.ApiResponse
+	Create(userId int, project *models.Project) *models.ApiResponse
 	GetAll(userId int) *models.ApiResponse
 	GetById(userId, projectId int) *models.ApiResponse
 	// Delete(userId, projectId int)  *models.ApiResponse

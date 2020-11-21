@@ -14,7 +14,7 @@ func NewProjectService(repo repositories.Project) *ProjectService {
 	return &ProjectService{repo: repo}
 }
 
-func (s *ProjectService) Create(userId int, project models.Project) *models.ApiResponse {
+func (s *ProjectService) Create(userId int, project *models.Project) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
 	project.OwnerId = userId
