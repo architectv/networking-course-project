@@ -7,6 +7,13 @@ services:
       - backend
     ports:
       - "6379"
+  mongo:
+    image: mongo:latest
+    restart: always
+    networks:
+      - backend
+    ports:
+      - "27017"
 
   postgres:
     image: postgres:latest
@@ -47,6 +54,7 @@ services:
     depends_on:
       - redis
       - postgres
+      - mongo
     volumes:
       - ./backend:/app
 
