@@ -72,30 +72,47 @@ func (s *ProjectService) GetById(userId, projectId int) *models.ApiResponse {
 	return r
 }
 
-// func (s *ProjectService) Update(userId, projectId string, project models.Project) error {
-// 	permissions, err := s.repo.GetPermission(userId, projectId)
-// 	if err != nil {
-// 		return errors.New("Forbidden")
-// 	}
-// 	if permissions.Write == false {
-// 		return errors.New("Forbidden")
-// 	}
+func (s *ProjectService) Update(userId, projectId int, project *models.UpdateProject) *models.ApiResponse {
+	r := &models.ApiResponse{}
+	permissions, err := s.repo.GetPermissions(userId, projectId)
 
-// 	project, err = s.repo.GetById(userId)
-// 	if err != nil {
-// 		return err
-// 	}
+	if err != nil || permissions.Write == false {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
+	curTime := time.Now().Unix()
+	project.Datetimes = &models.UpdateDatetimes{
+		Updated:  &curTime,
+		Accessed: &curTime,
+	}
 
-// 	curTime := time.Now().Unix()
-// 	project.Datetimes = &models.Datetimes{
-// 		Created:  project.Datetimes.Created,
-// 		Updated:  curTime,
-// 		Accessed: curTime,
-// 	}
+	if err = s.repo.Update(projectId, project); err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
 
-// 	if err := s.repo.Update(projectId, project); err != nil {
-// 		return err
-// 	}
+	r.Set(StatusOK, "OK", Map{})
+	return r
+}
 
-// 	return nil
-// }
+func (s *ProjectService) Delete(userId, projectId int) *models.ApiResponse {
+	r := &models.ApiResponse{}
+
+	project, err := s.repo.GetById(projectId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+	if project.OwnerId != userId {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
+
+	err = s.repo.Delete(projectId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+	r.Set(StatusOK, "OK", Map{})
+	return r
+}

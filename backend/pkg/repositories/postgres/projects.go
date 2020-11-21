@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"fmt"
-	"yak/backend/pkg/models"
-
 	"github.com/jmoiron/sqlx"
+	"strings"
+	"time"
+	"yak/backend/pkg/models"
 )
 
 type ProjectPg struct {
@@ -17,55 +18,43 @@ func NewProjectPg(db *sqlx.DB) *ProjectPg {
 
 func (r *ProjectPg) Create(project *models.Project) (int, error) {
 	var projectId int
-	var defPermissionId, datetimesId, permissionId int
 
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
 	}
 
-	defPermissions := project.DefaultPermissions
+	defPermissionId, err := createPermissions(tx, project.DefaultPermissions)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	datetimesId, err := createDatetimes(tx, project.Datetimes)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
 	query := fmt.Sprintf(
-		`INSERT INTO %s (read, write, admin)
-		VALUES ($1, $2, $3) RETURNING id`, permissionsTable)
-
-	row := tx.QueryRow(query, defPermissions.Read, defPermissions.Write,
-		defPermissions.Admin)
-	if err := row.Scan(&defPermissionId); err != nil {
-		tx.Rollback()
-		return 0, err
-	}
-
-	datetimes := project.Datetimes
-	query = fmt.Sprintf(
-		`INSERT INTO %s (created, updated, accessed)
-		VALUES ($1, $2, $3) RETURNING id`, datetimesTable)
-
-	row = tx.QueryRow(query, datetimes.Created, datetimes.Updated,
-		datetimes.Accessed)
-	if err := row.Scan(&datetimesId); err != nil {
-		tx.Rollback()
-		return 0, err
-	}
-
-	query = fmt.Sprintf(
 		`INSERT INTO %s
 		(owner_id, default_permissions_id, datetimes_id, title, description)
 		VALUES ($1, $2, $3, $4, $5) RETURNING id`, projectsTable)
 
-	row = tx.QueryRow(query, project.OwnerId, defPermissionId,
+	row := tx.QueryRow(query, project.OwnerId, defPermissionId,
 		datetimesId, project.Title, project.Description)
 	if err := row.Scan(&projectId); err != nil {
 		tx.Rollback()
 		return 0, err
 	}
 
-	query = fmt.Sprintf(
-		`INSERT INTO %s (read, write, admin)
-		VALUES (true, true, true) RETURNING id`, permissionsTable)
-
-	row = tx.QueryRow(query)
-	if err := row.Scan(&permissionId); err != nil {
+	permission := &models.Permission{
+		Read:  true,
+		Write: true,
+		Admin: true,
+	}
+	permissionId, err := createPermissions(tx, permission)
+	if err != nil {
 		tx.Rollback()
 		return 0, err
 	}
@@ -89,6 +78,25 @@ func (r *ProjectPg) GetById(projectId int) (*models.Project, error) {
 	defaultPermissions := &models.Permission{}
 	datetimes := &models.Datetimes{}
 
+	tx, err := r.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	_, datetimesId, err := r.getProjectForeignKeys(projectId)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	curTime := time.Now().Unix()
+	upDatetimes := &models.UpdateDatetimes{
+		Accessed: &curTime,
+	}
+	if err = updateDatetimes(tx, datetimesId, upDatetimes); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
 	query := fmt.Sprintf(
 		`SELECT p.id, p.owner_id, dper.read, dper.write, dper.admin, 
 		d.created, d.updated, d.accessed, p.title, p.description
@@ -98,18 +106,20 @@ func (r *ProjectPg) GetById(projectId int) (*models.Project, error) {
 		WHERE p.id = $1`,
 		projectsTable, permissionsTable, datetimesTable)
 
-	row := r.db.QueryRow(query, projectId)
-	err := row.Scan(&project.Id, &project.OwnerId, &defaultPermissions.Read,
+	row := tx.QueryRow(query, projectId)
+	err = row.Scan(&project.Id, &project.OwnerId, &defaultPermissions.Read,
 		&defaultPermissions.Write, &defaultPermissions.Admin,
 		&datetimes.Created, &datetimes.Updated, &datetimes.Accessed,
 		&project.Title, &project.Description)
 
 	if err != nil {
+		tx.Rollback()
 		return nil, err
 	}
 	project.DefaultPermissions = defaultPermissions
 	project.Datetimes = datetimes
-	return project, nil
+	tx.Commit()
+	return project, err
 }
 
 func (r *ProjectPg) GetAll(userId int) ([]*models.Project, error) {
@@ -155,14 +165,91 @@ func (r *ProjectPg) GetAll(userId int) ([]*models.Project, error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-
 	return projects, nil
 }
 
-// func (r *ProjectPg) Update(projectId string, project models.Project) error {
+func (r *ProjectPg) Update(projectId int, input *models.UpdateProject) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+	argId := 1
 
-// 	return nil
-// }
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	if input.Title != nil {
+		setValues = append(setValues, fmt.Sprintf("title=$%d", argId))
+		args = append(args, *input.Title)
+		argId++
+	}
+
+	if input.Description != nil {
+		setValues = append(setValues, fmt.Sprintf("description=$%d", argId))
+		args = append(args, *input.Description)
+		argId++
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+	query := fmt.Sprintf(`UPDATE %s SET %s where id=$%d`,
+		projectsTable, setQuery, argId)
+	args = append(args, projectId)
+	_, err = tx.Exec(query, args...)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	defPermissionsId, datetimesId, err := r.getProjectForeignKeys(projectId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err = updatePermissions(tx, defPermissionsId, input.DefaultPermissions); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err = updateDatetimes(tx, datetimesId, input.Datetimes); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return err
+}
+
+func (r *ProjectPg) Delete(projectId int) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf(
+		`DELETE FROM %s AS per USING %s AS pu
+		WHERE per.id = pu.permissions_id AND pu.project_id=$1`,
+		permissionsTable, projectUsersTable)
+	_, err = tx.Exec(query, projectId)
+
+	defPermissionsId, datetimesId, err := r.getProjectForeignKeys(projectId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	fmt.Println(projectId)
+	if err = deletePermissions(tx, defPermissionsId); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err = deleteDatetimes(tx, datetimesId); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return err
+}
 
 func (r *ProjectPg) GetPermissions(userId, projectId int) (*models.Permission, error) {
 	permissions := &models.Permission{}
@@ -176,10 +263,16 @@ func (r *ProjectPg) GetPermissions(userId, projectId int) (*models.Permission, e
 
 	row := r.db.QueryRow(query, projectId, userId)
 	err := row.Scan(&permissions.Read, &permissions.Write, &permissions.Admin)
+	return permissions, err
+}
 
-	if err != nil {
-		return nil, err
-	}
+func (r *ProjectPg) getProjectForeignKeys(projectId int) (int, int, error) {
+	var defPermissionsId, datetimesId int
+	query := fmt.Sprintf(
+		`SELECT p.default_permissions_id, p.datetimes_id
+		FROM %s AS p WHERE p.id = $1`, projectsTable)
 
-	return permissions, nil
+	row := r.db.QueryRow(query, projectId)
+	err := row.Scan(&defPermissionsId, &datetimesId)
+	return defPermissionsId, datetimesId, err
 }

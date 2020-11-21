@@ -8,3 +8,10 @@ type Project struct {
 	Title              string      `json:"title" valid:"length(0|50)"`
 	Description        string      `json:"description,omitempty"`
 }
+
+type UpdateProject struct {
+	DefaultPermissions *UpdatePermission `json:"defaultPermissions,omitempty"`
+	Datetimes          *UpdateDatetimes  `json:"datetimes,omitempty"`
+	Title              *string           `json:"title" valid:"length(0|50)"`
+	Description        *string           `json:"description,omitempty"`
+}
