@@ -33,6 +33,8 @@ services:
     restart: always
     networks:
       - backend
+    depends_on:
+      - postgres
     environment:
       PGADMIN_DEFAULT_EMAIL: yak@yak.ru
       PGADMIN_DEFAULT_PASSWORD: yak
@@ -72,6 +74,7 @@ services:
     depends_on:
       - redis
       - postgres
+      - mongo
     volumes:
       - ./backend:/app
 
@@ -89,6 +92,7 @@ services:
     depends_on:
       - redis
       - postgres
+      - mongo
     volumes:
       - ./backend:/app
 
@@ -101,8 +105,6 @@ services:
       - frontend
     ports:
       - "5000"
-    depends_on:
-      - fiber_main
     volumes:
       - ./frontend:/app
   nginx:
@@ -112,6 +114,8 @@ services:
     restart: always
     depends_on:
       - fiber_main
+      - fiber_ro1
+      - fiber_ro2
       - svelte
     networks:
       - frontend
