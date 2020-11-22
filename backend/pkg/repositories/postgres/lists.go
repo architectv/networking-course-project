@@ -82,7 +82,26 @@ func (r *TaskListPg) Delete(listId int) error {
 		return err
 	}
 
-	query := fmt.Sprintf(`DELETE FROM %s WHERE id = $1`, taskListsTable)
+	var boardId, position int
+	query := fmt.Sprintf(`SELECT board_id, position FROM %s WHERE id = $1`, taskListsTable)
+	row := tx.QueryRow(query, listId)
+	err = row.Scan(&boardId, &position)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	query = fmt.Sprintf(
+		`UPDATE %s SET position = position - 1
+	WHERE board_id = $1 AND position > $2`,
+		taskListsTable)
+	_, err = tx.Exec(query, boardId, position)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	query = fmt.Sprintf(`DELETE FROM %s WHERE id = $1`, taskListsTable)
 	_, err = tx.Exec(query, listId)
 	if err != nil {
 		tx.Rollback()
