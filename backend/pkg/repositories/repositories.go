@@ -26,9 +26,11 @@ type Project interface {
 }
 
 type Board interface {
-	// GetAll(userId, projectId string) ([]models.Board, error)
 	Create(userId int, board *models.Board) (int, error)
+	GetAll(userId, projectId int) ([]*models.Board, error)
 	GetById(boardId int) (*models.Board, error)
+	Delete(boardId int) error
+	Update(boardId int, board *models.UpdateBoard) error
 	GetPermissions(userId, boardId int) (*models.Permission, error)
 }
 

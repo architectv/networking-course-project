@@ -22,9 +22,11 @@ type Project interface {
 }
 
 type Board interface {
-	// GetAll(userId, projectId string) *models.ApiResponse
 	Create(userId, projectId int, board *models.Board) *models.ApiResponse
+	GetAll(userId, projectId int) *models.ApiResponse
 	GetById(userId, projectId, boardId int) *models.ApiResponse
+	Delete(userId, projectId, boardId int) *models.ApiResponse
+	Update(userId, projectId, boardId int, board *models.UpdateBoard) *models.ApiResponse
 }
 
 type TaskList interface {

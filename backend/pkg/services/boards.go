@@ -15,16 +15,23 @@ func NewBoardService(repo repositories.Board, projectRepo repositories.Project) 
 	return &BoardService{repo: repo, projectRepo: projectRepo}
 }
 
-// func (s *BoardService) GetAll(userId, projectId string) *models.ApiResponse {
-// 	r := &models.ApiResponse{}
-// 	projects, err := s.repo.GetAll(userId, projectId)
-// 	if err != nil {
-// 		r.Error(StatusInternalServerError, err.Error())
-// 		return r
-// 	}
-// 	r.Set(StatusOK, "OK", Map{"projects": projects})
-// 	return r
-// }
+func (s *BoardService) GetAll(userId, projectId int) *models.ApiResponse {
+	r := &models.ApiResponse{}
+	permissions, err := s.projectRepo.GetPermissions(userId, projectId)
+	if err != nil || permissions.Read == false {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
+
+	boards, err := s.repo.GetAll(userId, projectId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{"boards": boards})
+	return r
+}
 
 func (s *BoardService) Create(userId, projectId int, board *models.Board) *models.ApiResponse {
 	r := &models.ApiResponse{}
@@ -34,6 +41,7 @@ func (s *BoardService) Create(userId, projectId int, board *models.Board) *model
 		return r
 	}
 
+	board.OwnerId = userId
 	board.ProjectId = projectId
 	curTime := time.Now().Unix()
 	datetimes := &models.Datetimes{
@@ -51,7 +59,6 @@ func (s *BoardService) Create(userId, projectId int, board *models.Board) *model
 		}
 	}
 
-	// TODO: добавлять админа проекта?
 	boardId, err := s.repo.Create(userId, board)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
@@ -64,12 +71,12 @@ func (s *BoardService) Create(userId, projectId int, board *models.Board) *model
 
 func (s *BoardService) GetById(userId, projectId, boardId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
-	// TODO: права для проекта?
-	// projectPermissions, err := s.projectRepo.GetPermissions(userId, projectId)
-	// if err != nil || projectPermissions.Read == false {
-	// 	r.Error(StatusForbidden, "Forbidden")
-	// 	return r
-	// }
+	// TODO: права админов и автора проекта
+	projectPermissions, err := s.projectRepo.GetPermissions(userId, projectId)
+	if err != nil || projectPermissions.Read == false {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
 
 	boardPermissions, err := s.repo.GetPermissions(userId, boardId)
 	if err != nil || boardPermissions.Read == false {
@@ -84,5 +91,58 @@ func (s *BoardService) GetById(userId, projectId, boardId int) *models.ApiRespon
 	}
 
 	r.Set(StatusOK, "OK", Map{"board": board})
+	return r
+}
+
+func (s *BoardService) Delete(userId, projectId, boardId int) *models.ApiResponse {
+	r := &models.ApiResponse{}
+
+	board, err := s.repo.GetById(boardId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+	// TODO: права админов и автора проекта
+	if board.OwnerId != userId {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
+
+	err = s.repo.Delete(boardId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{})
+	return r
+}
+
+func (s *BoardService) Update(userId, projectId, boardId int, board *models.UpdateBoard) *models.ApiResponse {
+	r := &models.ApiResponse{}
+	projectPermissions, err := s.projectRepo.GetPermissions(userId, projectId)
+	if err != nil || projectPermissions.Read == false {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
+
+	boardPermissions, err := s.repo.GetPermissions(userId, boardId)
+	if err != nil || boardPermissions.Write == false {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
+
+	curTime := time.Now().Unix()
+	board.Datetimes = &models.UpdateDatetimes{
+		Updated:  &curTime,
+		Accessed: &curTime,
+	}
+
+	if err = s.repo.Update(boardId, board); err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{})
 	return r
 }

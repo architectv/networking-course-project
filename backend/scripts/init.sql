@@ -1,3 +1,14 @@
+-- drop table tasks;
+-- drop table task_lists;
+-- drop table labels;
+DROP TABLE board_users;
+DROP TABLE boards;
+DROP TABLE project_users;
+DROP TABLE projects;
+DROP TABLE datetimes;
+DROP TABLE permissions;
+DROP TABLE users;
+
 CREATE TABLE IF NOT EXISTS users (
     id serial PRIMARY KEY,
     nickname varchar(32) UNIQUE NOT NULL,
@@ -34,6 +45,7 @@ CREATE TABLE IF NOT EXISTS project_users (
 CREATE TABLE IF NOT EXISTS boards (
     id serial PRIMARY KEY,
     project_id int REFERENCES projects (id) ON DELETE CASCADE NOT NULL,
+    owner_id int REFERENCES users (id) ON DELETE CASCADE NOT NULL,
     default_permissions_id int REFERENCES permissions (id) ON DELETE CASCADE NOT NULL,
     datetimes_id int references datetimes (id) ON DELETE CASCADE NOT NULL,
     title varchar(30) NOT NULL
@@ -65,13 +77,69 @@ CREATE TABLE IF NOT EXISTS board_users (
 -- 	datetimes int references datetimes (id) on delete cascade      not null,
 --     position smallint not null
 -- );
--- drop table tasks;
--- drop table task_lists;
--- drop table labels;
--- drop table board_users;
--- drop table boards;
--- drop table project_users;
--- drop table projects;
--- drop table datetimes;
--- drop table permissions;
--- drop table users;
+
+-- USERS
+-- 1
+INSERT INTO users (nickname, email, avatar, password)
+VALUES ('alex', 'alex@mail.ru', '', 'qwerty');
+
+-- 2
+INSERT INTO users (nickname, email, avatar, password)
+VALUES ('test_user', 'test_user@mail.ru', '', 'qwerty');
+
+-- 3
+INSERT INTO users (nickname, email, avatar, password)
+VALUES ('nick1', 'nick1@mail.ru', '', 'qwerty');
+
+-- PROJECTS
+-- 1
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, true);
+-- 2
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, false);
+
+-- 1
+INSERT INTO datetimes (created, updated, accessed)
+VALUES (1605925262, 1605925262, 1605925262);
+
+-- 1
+INSERT INTO projects (owner_id, default_permissions_id, datetimes_id, title, description)
+VALUES (1, 2, 1, 'First project', 'This is the first project');
+
+-- 1
+INSERT INTO project_users (user_id, project_id, permissions_id)
+VALUES (1, 1, 1);
+
+-- BOARDS
+-- 3
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, true);
+-- 4
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, false);
+
+-- 2
+INSERT INTO datetimes (created, updated, accessed)
+VALUES (1605925262, 1605925262, 1605925262);
+
+-- 1
+INSERT INTO boards (project_id, owner_id, default_permissions_id, datetimes_id, title)
+VALUES (1, 1, 4, 2, 'First board');
+
+-- 1
+INSERT INTO board_users (user_id, board_id, permissions_id)
+VALUES (1, 1, 3);
+
+--
+-- 5
+-- INSERT INTO permissions (read, write, admin)
+-- VALUES (true, true, true);
+
+-- -- 3
+-- INSERT INTO datetimes (created, updated, accessed)
+-- VALUES (1605925262, 1605925262, 1605925262);
+
+-- -- 2
+-- INSERT INTO project_users (user_id, project_id, permissions_id)
+-- VALUES (2, 1, 5);
