@@ -110,10 +110,42 @@ func (r *TaskListPg) Update(listId int, input *models.UpdateTaskList) error {
 	}
 
 	if input.Position != nil {
-		// TODO: обновлять позиции всех списков данной доски
-		setValues = append(setValues, fmt.Sprintf("position=$%d", argId))
-		args = append(args, *input.Position)
-		argId++
+		newPos := *input.Position
+
+		var boardId, oldPos int
+		query := fmt.Sprintf(`SELECT board_id, position FROM %s WHERE id = $1`, taskListsTable)
+		row := tx.QueryRow(query, listId)
+		err = row.Scan(&boardId, &oldPos)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		var operation string
+		var start, end int
+		if oldPos < newPos {
+			operation = "-"
+			start, end = oldPos+1, newPos
+		} else if oldPos > newPos {
+			operation = "+"
+			start, end = newPos, oldPos-1
+		}
+
+		if operation != "" {
+			setValues = append(setValues, fmt.Sprintf("position=$%d", argId))
+			args = append(args, newPos)
+			argId++
+
+			query = fmt.Sprintf(
+				`UPDATE %s SET position = position %s 1
+			WHERE board_id = $1 AND position >= $2 AND position <= $3`,
+				taskListsTable, operation)
+			_, err = tx.Exec(query, boardId, start, end)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
 	}
 
 	setQuery := strings.Join(setValues, ", ")
