@@ -16,6 +16,7 @@ const (
 	boardsTable       = "boards"
 	boardUsersTable   = "board_users"
 	taskListsTable    = "task_lists"
+	tasksTable        = "tasks"
 )
 
 type Config struct {
