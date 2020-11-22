@@ -35,6 +35,12 @@ type Board interface {
 }
 
 type TaskList interface {
+	Create(list *models.TaskList) (int, error)
+	GetAll(listId int) ([]*models.TaskList, error)
+	GetById(listId int) (*models.TaskList, error)
+	Delete(listId int) error
+	Update(listId int, list *models.UpdateTaskList) error
+	// GetPermissions(userId, boardId int) (*models.Permission, error)
 }
 
 type Task interface {
@@ -60,8 +66,10 @@ type Repository struct {
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		User:    postgres.NewUserPg(db),
-		Project: postgres.NewProjectPg(db),
-		Board:   postgres.NewBoardPg(db),
+		User:     postgres.NewUserPg(db),
+		Project:  postgres.NewProjectPg(db),
+		Board:    postgres.NewBoardPg(db),
+		TaskList: postgres.NewTaskListPg(db),
+		// Task: postgres.NewTaskPg(db),
 	}
 }

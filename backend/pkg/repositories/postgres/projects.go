@@ -2,10 +2,11 @@ package postgres
 
 import (
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"strings"
 	"time"
 	"yak/backend/pkg/models"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type ProjectPg struct {
@@ -231,13 +232,17 @@ func (r *ProjectPg) Delete(projectId int) error {
 		WHERE per.id = pu.permissions_id AND pu.project_id=$1`,
 		permissionsTable, projectUsersTable)
 	_, err = tx.Exec(query, projectId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
 	defPermissionsId, datetimesId, err := r.getProjectForeignKeys(projectId)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-	fmt.Println(projectId)
+
 	if err = deletePermissions(tx, defPermissionsId); err != nil {
 		tx.Rollback()
 		return err

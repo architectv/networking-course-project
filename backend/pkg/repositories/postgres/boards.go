@@ -207,6 +207,10 @@ func (r *BoardPg) Delete(boardId int) error {
 		WHERE per.id = bu.permissions_id AND bu.board_id=$1`,
 		permissionsTable, boardUsersTable)
 	_, err = tx.Exec(query, boardId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
 	defPermissionsId, datetimesId, err := r.getProjectForeignKeys(boardId)
 	if err != nil {

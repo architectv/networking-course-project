@@ -30,6 +30,11 @@ type Board interface {
 }
 
 type TaskList interface {
+	Create(userId, projectId, boardId int, list *models.TaskList) *models.ApiResponse
+	GetAll(userId, projectId, boardId int) *models.ApiResponse
+	GetById(userId, projectId, boardId, listId int) *models.ApiResponse
+	Delete(userId, projectId, boardId, listId int) *models.ApiResponse
+	Update(userId, projectId, boardId, listId int, list *models.UpdateTaskList) *models.ApiResponse
 }
 
 type Task interface {
@@ -48,7 +53,7 @@ func NewService(repos *repositories.Repository) *Service {
 		User:     NewUserService(repos.User),
 		Project:  NewProjectService(repos.Project),
 		Board:    NewBoardService(repos.Board, repos.Project),
-		TaskList: NewTaskListService(repos.TaskList),
-		Task:     NewTaskService(repos.Task),
+		TaskList: NewTaskListService(repos.TaskList, repos.Board, repos.Project),
+		// Task:     NewTaskService(repos.Task),
 	}
 }

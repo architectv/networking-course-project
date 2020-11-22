@@ -1,6 +1,6 @@
 -- drop table tasks;
--- drop table task_lists;
 -- drop table labels;
+DROP TABLE task_lists;
 DROP TABLE board_users;
 DROP TABLE boards;
 DROP TABLE project_users;
@@ -8,7 +8,6 @@ DROP TABLE projects;
 DROP TABLE datetimes;
 DROP TABLE permissions;
 DROP TABLE users;
-
 CREATE TABLE IF NOT EXISTS users (
     id serial PRIMARY KEY,
     nickname varchar(32) UNIQUE NOT NULL,
@@ -51,7 +50,7 @@ CREATE TABLE IF NOT EXISTS boards (
     title varchar(30) NOT NULL
 );
 CREATE TABLE IF NOT EXISTS board_users (
-    id serial NOT NULL unique,
+    id serial PRIMARY KEY,
     user_id int REFERENCES users (id) ON DELETE CASCADE NOT NULL,
     board_id int REFERENCES boards (id) ON DELETE CASCADE NOT NULL,
     permissions_id int REFERENCES permissions (id) ON DELETE CASCADE NOT NULL
@@ -61,14 +60,12 @@ CREATE TABLE IF NOT EXISTS board_users (
 --     id serial      not null unique,
 -- 	name varchar(30) not null
 -- );
--- CREATE TABLE task_lists
--- (
---     id serial      not null unique,
---     title varchar(30) not null,
---     board_id int references boards (id) on delete cascade      not null,
---     datetimes int references datetimes (id) on delete cascade      not null,
--- 	position smallint not null
--- );
+CREATE TABLE IF NOT EXISTS task_lists (
+    id serial PRIMARY KEY,
+    board_id int REFERENCES boards (id) ON DELETE CASCADE NOT NULL,
+    title varchar(30) NOT NULL,
+    position int NOT NULL
+);
 -- CREATE TABLE tasks
 -- (
 -- 	id serial      not null unique,
@@ -77,20 +74,16 @@ CREATE TABLE IF NOT EXISTS board_users (
 -- 	datetimes int references datetimes (id) on delete cascade      not null,
 --     position smallint not null
 -- );
-
 -- USERS
 -- 1
 INSERT INTO users (nickname, email, avatar, password)
 VALUES ('alex', 'alex@mail.ru', '', 'qwerty');
-
 -- 2
 INSERT INTO users (nickname, email, avatar, password)
 VALUES ('test_user', 'test_user@mail.ru', '', 'qwerty');
-
 -- 3
 INSERT INTO users (nickname, email, avatar, password)
 VALUES ('nick1', 'nick1@mail.ru', '', 'qwerty');
-
 -- PROJECTS
 -- 1
 INSERT INTO permissions (read, write, admin)
@@ -98,19 +91,27 @@ VALUES (true, true, true);
 -- 2
 INSERT INTO permissions (read, write, admin)
 VALUES (true, true, false);
-
 -- 1
 INSERT INTO datetimes (created, updated, accessed)
 VALUES (1605925262, 1605925262, 1605925262);
-
 -- 1
-INSERT INTO projects (owner_id, default_permissions_id, datetimes_id, title, description)
-VALUES (1, 2, 1, 'First project', 'This is the first project');
-
+INSERT INTO projects (
+        owner_id,
+        default_permissions_id,
+        datetimes_id,
+        title,
+        description
+    )
+VALUES (
+        1,
+        2,
+        1,
+        'First project',
+        'This is the first project'
+    );
 -- 1
 INSERT INTO project_users (user_id, project_id, permissions_id)
 VALUES (1, 1, 1);
-
 -- BOARDS
 -- 3
 INSERT INTO permissions (read, write, admin)
@@ -118,28 +119,38 @@ VALUES (true, true, true);
 -- 4
 INSERT INTO permissions (read, write, admin)
 VALUES (true, true, false);
-
 -- 2
 INSERT INTO datetimes (created, updated, accessed)
 VALUES (1605925262, 1605925262, 1605925262);
-
 -- 1
-INSERT INTO boards (project_id, owner_id, default_permissions_id, datetimes_id, title)
+INSERT INTO boards (
+        project_id,
+        owner_id,
+        default_permissions_id,
+        datetimes_id,
+        title
+    )
 VALUES (1, 1, 4, 2, 'First board');
-
 -- 1
 INSERT INTO board_users (user_id, board_id, permissions_id)
 VALUES (1, 1, 3);
-
 --
 -- 5
 -- INSERT INTO permissions (read, write, admin)
 -- VALUES (true, true, true);
-
 -- -- 3
 -- INSERT INTO datetimes (created, updated, accessed)
 -- VALUES (1605925262, 1605925262, 1605925262);
-
 -- -- 2
 -- INSERT INTO project_users (user_id, project_id, permissions_id)
 -- VALUES (2, 1, 5);
+-- LISTS
+-- 1
+INSERT INTO task_lists (board_id, title, position)
+VALUES (1, 'Not Stated', 0);
+-- 2
+INSERT INTO task_lists (board_id, title, position)
+VALUES (1, 'SSSSSSSSS', 1);
+-- 3
+INSERT INTO task_lists (board_id, title, position)
+VALUES (1, 'herbfneifj', 2);
