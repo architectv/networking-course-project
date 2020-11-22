@@ -97,6 +97,11 @@ func (apiVX *ApiV1) createList(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
+	if _, err := govalidator.ValidateStruct(input); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+
 	response = apiVX.services.TaskList.Create(userId, projectId, boardId, input)
 	return Send(ctx, response)
 }

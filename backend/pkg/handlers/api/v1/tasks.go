@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"yak/backend/pkg/models"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -84,19 +85,125 @@ func (apiVX *ApiV1) getTask(ctx *fiber.Ctx) error {
 }
 
 func (apiVX *ApiV1) createTask(ctx *fiber.Ctx) error {
-	implementMe()
-	task := models.Task{}
-	return ctx.JSON(task)
+	response := &models.ApiResponse{}
+	userId, err := getUserId(ctx)
+	if err != nil {
+		response.Error(fiber.StatusInternalServerError, err.Error())
+		return Send(ctx, response)
+	}
+
+	projectId, err := strconv.Atoi(ctx.Params("pid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
+	if err != nil || boardId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid boardId")
+		return Send(ctx, response)
+	}
+
+	listId, err := strconv.Atoi(ctx.Params("lid"))
+	if err != nil || listId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid listId")
+		return Send(ctx, response)
+	}
+
+	input := &models.Task{}
+	if err := ctx.BodyParser(input); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+
+	if _, err := govalidator.ValidateStruct(input); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+
+	response = apiVX.services.Task.Create(userId, projectId, boardId, listId, input)
+	return Send(ctx, response)
 }
 
 func (apiVX *ApiV1) updateTask(ctx *fiber.Ctx) error {
-	implementMe()
-	task := models.Task{}
-	return ctx.JSON(task)
+	response := &models.ApiResponse{}
+	userId, err := getUserId(ctx)
+	if err != nil {
+		response.Error(fiber.StatusInternalServerError, err.Error())
+		return Send(ctx, response)
+	}
+
+	task := &models.UpdateTask{}
+	if err := ctx.BodyParser(task); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+
+	if _, err := govalidator.ValidateStruct(task); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+
+	projectId, err := strconv.Atoi(ctx.Params("pid"))
+	if err != nil {
+		response.Error(fiber.StatusInternalServerError, err.Error())
+		return Send(ctx, response)
+	}
+
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
+	if err != nil || boardId == 0 {
+		response.Error(fiber.StatusBadRequest, "Empty boardId")
+		return Send(ctx, response)
+	}
+
+	listId, err := strconv.Atoi(ctx.Params("lid"))
+	if err != nil || listId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid listId")
+		return Send(ctx, response)
+	}
+
+	taskId, err := strconv.Atoi(ctx.Params("tid"))
+	if err != nil || taskId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid taskId")
+		return Send(ctx, response)
+	}
+
+	response = apiVX.services.Task.Update(userId, projectId, boardId, listId, taskId, task)
+	return Send(ctx, response)
 }
 
 func (apiVX *ApiV1) deleteTask(ctx *fiber.Ctx) error {
-	implementMe()
-	task := models.Task{}
-	return ctx.JSON(task)
+	response := &models.ApiResponse{}
+	userId, err := getUserId(ctx)
+	if err != nil {
+		response.Error(fiber.StatusInternalServerError, err.Error())
+		return Send(ctx, response)
+	}
+
+	projectId, err := strconv.Atoi(ctx.Params("pid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
+	if err != nil || boardId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid boardId")
+		return Send(ctx, response)
+	}
+
+	listId, err := strconv.Atoi(ctx.Params("lid"))
+	if err != nil || listId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid listId")
+		return Send(ctx, response)
+	}
+
+	taskId, err := strconv.Atoi(ctx.Params("tid"))
+	if err != nil || taskId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid taskId")
+		return Send(ctx, response)
+	}
+
+	response = apiVX.services.Task.Delete(userId, projectId, boardId, listId, taskId)
+	return Send(ctx, response)
 }

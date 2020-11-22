@@ -1,15 +1,16 @@
 package models
 
 type Task struct {
-	Id        string     `json:"_id,omitempty"`
-	ListId    string     `json:"listId"`
+	Id        int        `json:"_id,omitempty"`
+	ListId    int        `json:"listId"`
 	Title     string     `json:"title"`
 	Datetimes *Datetimes `json:"datetimes,omitempty"`
 	Position  int        `json:"position"`
 }
 
 type UpdateTask struct {
-	Title     *string    `json:"title"`
-	Datetimes *Datetimes `json:"datetimes,omitempty"`
-	Position  *int       `json:"position"`
+	Title     *string          `json:"title"`
+	Datetimes *UpdateDatetimes `json:"datetimes,omitempty"`
+	NewListId *int             `json:"newListId"`
+	Position  *int             `json:"position"`
 }

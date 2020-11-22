@@ -1,7 +1,9 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
+	"strings"
 	"yak/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
@@ -17,13 +19,13 @@ func NewTaskPg(db *sqlx.DB) *TaskPg {
 
 func (r *TaskPg) GetAll(listId int) ([]*models.Task, error) {
 	var tasks []*models.Task
-	// TODO: order by pos
 	query := fmt.Sprintf(
 		`SELECT t.id, t.list_id, t.title, d.created, d.updated, d.accessed, t.position
 		FROM %s AS t
 			INNER JOIN %s AS tl ON t.list_id = tl.id
 			INNER JOIN %s AS d ON t.datetimes_id = d.id
-		WHERE tl.id = $1`,
+		WHERE tl.id = $1
+		ORDER BY t.position`,
 
 		tasksTable, taskListsTable, datetimesTable)
 
@@ -75,4 +77,196 @@ func (r *TaskPg) GetById(taskId int) (*models.Task, error) {
 
 	task.Datetimes = datetimes
 	return task, nil
+}
+
+func (r *TaskPg) Create(task *models.Task) (int, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+
+	datetimesId, err := createDatetimes(tx, task.Datetimes)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	var id int
+	var position int
+
+	query := fmt.Sprintf(
+		`SELECT MAX(t.position)
+		FROM %s AS t
+			INNER JOIN %s AS tl ON tl.id = t.list_id
+		WHERE tl.id = $1;`, tasksTable, taskListsTable)
+
+	row := tx.QueryRow(query, task.ListId)
+	if err := row.Scan(&position); err != nil {
+		return 0, err
+	}
+	position++
+	fmt.Println(datetimesId)
+
+	query = fmt.Sprintf(
+		`INSERT INTO %s (list_id, title, datetimes_id, position)
+		VALUES ($1, $2, $3, $4) RETURNING id`, tasksTable)
+
+	row = tx.QueryRow(query, task.ListId, task.Title, datetimesId, position)
+	if err := row.Scan(&id); err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+	tx.Commit()
+
+	return id, nil
+}
+
+func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+	argId := 1
+
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	if input.Title != nil {
+		setValues = append(setValues, fmt.Sprintf("title=$%d", argId))
+		args = append(args, *input.Title)
+		argId++
+	}
+
+	if input.Position != nil {
+		newPos := *input.Position
+
+		var listId, oldPos int
+		query := fmt.Sprintf(`SELECT list_id, position FROM %s WHERE id = $1`, tasksTable)
+		row := tx.QueryRow(query, taskId)
+		err := row.Scan(&listId, &oldPos)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		fmt.Println("---", *input.NewListId)
+		if input.NewListId != nil {
+			newListId := *input.NewListId
+			err = r.updateTaskPosition(tx, listId, oldPos+1, "-")
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+			err = r.updateTaskPosition(tx, newListId, newPos, "+")
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+			setValues = append(setValues, fmt.Sprintf("position=$%d", argId))
+			args = append(args, newPos)
+			argId++
+
+			setValues = append(setValues, fmt.Sprintf("list_id=$%d", argId))
+			args = append(args, newListId)
+			argId++
+
+		} else {
+			var operation string
+			var start, end int
+			if oldPos < newPos {
+				operation = "-"
+				start, end = oldPos+1, newPos
+			} else if oldPos > newPos {
+				operation = "+"
+				start, end = newPos, oldPos-1
+			}
+
+			if operation != "" {
+				setValues = append(setValues, fmt.Sprintf("position=$%d", argId))
+				args = append(args, newPos)
+				argId++
+
+				query := fmt.Sprintf(
+					`UPDATE %s SET position = position %s 1
+					WHERE list_id = $1 AND position >= $2 AND position <= $3`,
+					tasksTable, operation)
+				_, err := tx.Exec(query, listId, start, end)
+				if err != nil {
+					tx.Rollback()
+					return err
+				}
+			}
+		}
+	}
+	// TODO обновление Datetimes на всех уровнях
+	setQuery := strings.Join(setValues, ", ")
+	query := fmt.Sprintf(`UPDATE %s SET %s where id=$%d`,
+		tasksTable, setQuery, argId)
+	args = append(args, taskId)
+	fmt.Println(taskId, args)
+	_, err = tx.Exec(query, args...)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return err
+}
+
+func (r *TaskPg) Delete(taskId int) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	var listId, position int
+	query := fmt.Sprintf(`SELECT list_id, position FROM %s WHERE id = $1`, tasksTable)
+	row := tx.QueryRow(query, taskId)
+	err = row.Scan(&listId, &position)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = r.updateTaskPosition(tx, listId, position, "-")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	datetimesId, err := r.getTaskForeignKey(taskId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	query = fmt.Sprintf(`DELETE FROM %s WHERE id = $1`, datetimesTable)
+	_, err = tx.Exec(query, datetimesId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return err
+}
+
+func (r *TaskPg) getTaskForeignKey(boardId int) (int, error) {
+	var datetimesId int
+	query := fmt.Sprintf(
+		`SELECT p.datetimes_id
+		FROM %s AS p WHERE p.id = $1`, tasksTable)
+
+	row := r.db.QueryRow(query, boardId)
+	err := row.Scan(&datetimesId)
+	return datetimesId, err
+}
+
+func (r *TaskPg) updateTaskPosition(tx *sql.Tx, listId, start int, operation string) error {
+	query := fmt.Sprintf(
+		`UPDATE %s SET position = position %s 1
+		WHERE list_id = $1 AND position >= $2`,
+		tasksTable, operation)
+	_, err := tx.Exec(query, listId, start)
+	return err
 }

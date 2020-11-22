@@ -18,12 +18,12 @@ func NewTaskListPg(db *sqlx.DB) *TaskListPg {
 
 func (r *TaskListPg) GetAll(boardId int) ([]*models.TaskList, error) {
 	var lists []*models.TaskList
-	// TODO: order by pos
 	query := fmt.Sprintf(
 		`SELECT tl.id, tl.board_id, tl.title, tl.position
 		FROM %s AS tl
 			INNER JOIN %s AS b ON tl.board_id = b.id
-		WHERE b.id = $1`,
+		WHERE b.id = $1
+		ORDER BY tl.position`,
 		taskListsTable, boardsTable)
 	if err := r.db.Select(&lists, query, boardId); err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (r *TaskListPg) Create(list *models.TaskList) (int, error) {
 		INNER JOIN %s AS b ON b.id = tl.board_id
 		WHERE b.id = $1;`, taskListsTable, boardsTable)
 
-	row := r.db.QueryRow(query, list.BoardId)
+	row := tx.QueryRow(query, list.BoardId)
 	if err := row.Scan(&position); err != nil {
 		return 0, err
 	}
@@ -66,7 +66,7 @@ func (r *TaskListPg) Create(list *models.TaskList) (int, error) {
 		`INSERT INTO %s (board_id, title, position)
 		VALUES ($1, $2, $3) RETURNING id`, taskListsTable)
 
-	row = r.db.QueryRow(query, list.BoardId, list.Title, position)
+	row = tx.QueryRow(query, list.BoardId, list.Title, position)
 	if err := row.Scan(&id); err != nil {
 		tx.Rollback()
 		return 0, err

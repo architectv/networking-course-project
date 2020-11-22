@@ -176,7 +176,7 @@ func (r *BoardPg) Update(boardId int, input *models.UpdateBoard) error {
 		return err
 	}
 
-	defPermissionsId, datetimesId, err := r.getProjectForeignKeys(boardId)
+	defPermissionsId, datetimesId, err := r.getBoardForeignKeys(boardId)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -212,7 +212,7 @@ func (r *BoardPg) Delete(boardId int) error {
 		return err
 	}
 
-	defPermissionsId, datetimesId, err := r.getProjectForeignKeys(boardId)
+	defPermissionsId, datetimesId, err := r.getBoardForeignKeys(boardId)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -230,7 +230,7 @@ func (r *BoardPg) Delete(boardId int) error {
 	return err
 }
 
-func (r *BoardPg) getProjectForeignKeys(boardId int) (int, int, error) {
+func (r *BoardPg) getBoardForeignKeys(boardId int) (int, int, error) {
 	var defPermissionsId, datetimesId int
 	query := fmt.Sprintf(
 		`SELECT p.default_permissions_id, p.datetimes_id

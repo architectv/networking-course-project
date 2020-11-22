@@ -66,13 +66,12 @@ CREATE TABLE IF NOT EXISTS task_lists (
     title varchar(30) NOT NULL,
     position int NOT NULL
 );
-CREATE TABLE tasks
-(
-	id serial      not null unique,
-    list_id int references task_lists (id) on delete cascade      not null,
-    title varchar(30) not null,
-	datetimes_id int references datetimes (id) on delete cascade      not null,
-    position smallint not null
+CREATE TABLE tasks (
+    id serial PRIMARY KEY,
+    list_id int REFERENCES task_lists (id) ON DELETE CASCADE NOT NULL,
+    title varchar(30) NOT NULL,
+    datetimes_id int REFERENCES datetimes (id) ON DELETE CASCADE NOT NULL,
+    position smallint NOT NULL
 );
 -- USERS
 -- 1
@@ -154,9 +153,6 @@ VALUES (1, 'SSSSSSSSS', 1);
 -- 3
 INSERT INTO task_lists (board_id, title, position)
 VALUES (1, 'herbfneifj', 2);
-
-INSERT INTO task_lists (board_id, title, position)
-VALUES (1, 'Not Stated', 0);
 -- TASKS
 -- 3
 INSERT INTO datetimes (created, updated, accessed)
@@ -169,10 +165,29 @@ INSERT INTO datetimes (created, updated, accessed)
 VALUES (1605925262, 1605925262, 1605925262);
 -- 1
 INSERT INTO tasks (list_id, title, datetimes_id, position)
-VALUES (1, 'First task', 3, 1);
+VALUES (1, 'First task', 3, 0);
 -- 2
 INSERT INTO tasks (list_id, title, datetimes_id, position)
-VALUES (1, 'Second task', 4, 2);
+VALUES (1, 'Second task', 4, 1);
 -- 3
 INSERT INTO tasks (list_id, title, datetimes_id, position)
-VALUES (1, 'Third task', 5, 3);
+VALUES (1, 'Third task', 5, 2);
+
+-- 6
+INSERT INTO datetimes (created, updated, accessed)
+VALUES (1605925262, 1605925262, 1605925262);
+-- 7
+INSERT INTO datetimes (created, updated, accessed)
+VALUES (1605925262, 1605925262, 1605925262);
+-- 8
+INSERT INTO datetimes (created, updated, accessed)
+VALUES (1605925262, 1605925262, 1605925262);
+-- 4
+INSERT INTO tasks (list_id, title, datetimes_id, position)
+VALUES (2, 'FIRST TASK', 6, 0);
+-- 5
+INSERT INTO tasks (list_id, title, datetimes_id, position)
+VALUES (2, 'SECOND TASK', 7, 1);
+-- 6
+INSERT INTO tasks (list_id, title, datetimes_id, position)
+VALUES (2, 'THIRD TASK', 8, 2);

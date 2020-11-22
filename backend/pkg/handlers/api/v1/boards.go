@@ -79,6 +79,11 @@ func (apiVX *ApiV1) createBoard(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
+	if _, err := govalidator.ValidateStruct(input); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+
 	response = apiVX.services.Board.Create(userId, projectId, input)
 	return Send(ctx, response)
 }

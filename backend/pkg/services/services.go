@@ -38,11 +38,11 @@ type TaskList interface {
 }
 
 type Task interface {
-	// Create(userId, projectId, boardId, listId int, list *models.Task) *models.ApiResponse
+	Create(userId, projectId, boardId, listId int, list *models.Task) *models.ApiResponse
 	GetAll(userId, projectId, boardId, listId int) *models.ApiResponse
 	GetById(userId, projectId, boardId, listId, taskId int) *models.ApiResponse
-	// Delete(userId, projectId, boardId, listId, taskId int) *models.ApiResponse
-	// Update(userId, projectId, boardId, listId, taskId int, list *models.UpdateTask) *models.ApiResponse
+	Delete(userId, projectId, boardId, listId, taskId int) *models.ApiResponse
+	Update(userId, projectId, boardId, listId, taskId int, list *models.UpdateTask) *models.ApiResponse
 }
 
 type Service struct {

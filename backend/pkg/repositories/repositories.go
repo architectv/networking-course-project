@@ -44,11 +44,11 @@ type TaskList interface {
 }
 
 type Task interface {
-	// Create(task *models.Task) (int, error)
+	Create(task *models.Task) (int, error)
 	GetAll(taskId int) ([]*models.Task, error)
 	GetById(taskId int) (*models.Task, error)
-	// Delete(taskId int) error
-	// Update(taskId int, task *models.UpdateTask) error
+	Delete(taskId int) error
+	Update(taskId int, task *models.UpdateTask) error
 }
 
 type Repository struct {
