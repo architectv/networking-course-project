@@ -18,6 +18,7 @@ func NewTaskService(repo repositories.Task, boardRepo repositories.Board, projec
 
 func (s *TaskService) GetAll(userId, projectId, boardId, listId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
+
 	projectPermissions, err := s.projectRepo.GetPermissions(userId, projectId)
 	if err != nil || projectPermissions.Read == false {
 		r.Error(StatusForbidden, "Forbidden")

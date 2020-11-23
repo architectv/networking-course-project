@@ -111,7 +111,7 @@ VALUES (
 -- 1
 INSERT INTO project_users (user_id, project_id, permissions_id)
 VALUES (1, 1, 1);
--- BOARDS
+-- BOARDS id=1
 -- 3
 INSERT INTO permissions (read, write, admin)
 VALUES (true, true, true);
@@ -133,6 +133,7 @@ VALUES (1, 1, 4, 2, 'First board');
 -- 1
 INSERT INTO board_users (user_id, board_id, permissions_id)
 VALUES (1, 1, 3);
+
 --
 -- 5
 -- INSERT INTO permissions (read, write, admin)
@@ -191,3 +192,26 @@ VALUES (2, 'SECOND TASK', 7, 1);
 -- 6
 INSERT INTO tasks (list_id, title, datetimes_id, position)
 VALUES (2, 'THIRD TASK', 8, 2);
+
+-- BOARDS id=2
+-- 5
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, true);
+-- 6
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, false);
+-- 9
+INSERT INTO datetimes (created, updated, accessed)
+VALUES (1605925262, 1605925262, 1605925262);
+-- 2
+INSERT INTO boards (
+        project_id,
+        owner_id,
+        default_permissions_id,
+        datetimes_id,
+        title
+    )
+VALUES (1, 1, 4, 2, 'Second board');
+-- 2
+INSERT INTO board_users (user_id, board_id, permissions_id)
+VALUES (2, 2, 5);

@@ -45,20 +45,26 @@ type Task interface {
 	Update(userId, projectId, boardId, listId, taskId int, list *models.UpdateTask) *models.ApiResponse
 }
 
+type UrlValidator interface {
+	Validation(urlIds *models.UrlIds) *models.ApiResponse
+}
+
 type Service struct {
 	User
 	Project
 	Board
 	TaskList
 	Task
+	UrlValidator
 }
 
 func NewService(repos *repositories.Repository) *Service {
 	return &Service{
-		User:     NewUserService(repos.User),
-		Project:  NewProjectService(repos.Project),
-		Board:    NewBoardService(repos.Board, repos.Project),
-		TaskList: NewTaskListService(repos.TaskList, repos.Board, repos.Project),
-		Task:     NewTaskService(repos.Task, repos.Board, repos.Project),
+		User:         NewUserService(repos.User),
+		Project:      NewProjectService(repos.Project),
+		Board:        NewBoardService(repos.Board, repos.Project),
+		TaskList:     NewTaskListService(repos.TaskList, repos.Board, repos.Project),
+		Task:         NewTaskService(repos.Task, repos.Board, repos.Project),
+		UrlValidator: NewUrlValidator(repos.Board, repos.TaskList, repos.Task),
 	}
 }

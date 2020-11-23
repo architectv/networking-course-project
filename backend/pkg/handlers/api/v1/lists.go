@@ -10,11 +10,11 @@ import (
 
 func (apiVX *ApiV1) registerListsHandlers(router fiber.Router) {
 	group := router.Group("/projects/:pid/boards/:bid/lists")
-	group.Get("/", apiVX.getLists)
-	group.Post("/", apiVX.createList)
-	group.Get("/:lid", apiVX.getList)
-	group.Put("/:lid", apiVX.updateList)
-	group.Delete("/:lid", apiVX.deleteList)
+	group.Get("/", apiVX.urlIdsValidation, apiVX.getLists)
+	group.Post("/", apiVX.urlIdsValidation, apiVX.createList)
+	group.Get("/:lid", apiVX.urlIdsValidation, apiVX.getList)
+	group.Put("/:lid", apiVX.urlIdsValidation, apiVX.updateList)
+	group.Delete("/:lid", apiVX.urlIdsValidation, apiVX.deleteList)
 }
 
 func (apiVX *ApiV1) getLists(ctx *fiber.Ctx) error {

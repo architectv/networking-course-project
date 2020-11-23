@@ -11,11 +11,11 @@ import (
 
 func (apiVX *ApiV1) registerTasksHandlers(router fiber.Router) {
 	group := router.Group("/projects/:pid/boards/:bid/lists/:lid/tasks")
-	group.Get("/", apiVX.getTasks)
-	group.Post("/", apiVX.createTask)
-	group.Get("/:tid", apiVX.getTask)
-	group.Put("/:tid", apiVX.updateTask)
-	group.Delete("/:tid", apiVX.deleteTask)
+	group.Get("/", apiVX.urlIdsValidation, apiVX.getTasks)
+	group.Post("/", apiVX.urlIdsValidation, apiVX.createTask)
+	group.Get("/:tid", apiVX.urlIdsValidation, apiVX.getTask)
+	group.Put("/:tid", apiVX.urlIdsValidation, apiVX.updateTask)
+	group.Delete("/:tid", apiVX.urlIdsValidation, apiVX.deleteTask)
 }
 
 func (apiVX *ApiV1) getTasks(ctx *fiber.Ctx) error {
@@ -28,7 +28,7 @@ func (apiVX *ApiV1) getTasks(ctx *fiber.Ctx) error {
 
 	projectId, err := strconv.Atoi(ctx.Params("pid"))
 	if err != nil || projectId == 0 {
-		response.Error(fiber.StatusBadRequest, "Empty projectId")
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
 		return Send(ctx, response)
 	}
 

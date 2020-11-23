@@ -10,11 +10,11 @@ import (
 
 func (apiVX *ApiV1) registerBoardsHandlers(router fiber.Router) {
 	group := router.Group("/projects/:pid/boards")
-	group.Get("/", apiVX.getBoards)
-	group.Post("/", apiVX.createBoard)
-	group.Get("/:bid", apiVX.getBoard)
-	group.Put("/:bid", apiVX.updateBoard)
-	group.Delete("/:bid", apiVX.deleteBoard)
+	group.Get("/", apiVX.urlIdsValidation, apiVX.getBoards)
+	group.Post("/", apiVX.urlIdsValidation, apiVX.createBoard)
+	group.Get("/:bid", apiVX.urlIdsValidation, apiVX.getBoard)
+	group.Put("/:bid", apiVX.urlIdsValidation, apiVX.updateBoard)
+	group.Delete("/:bid", apiVX.urlIdsValidation, apiVX.deleteBoard)
 }
 
 func (apiVX *ApiV1) getBoards(ctx *fiber.Ctx) error {
