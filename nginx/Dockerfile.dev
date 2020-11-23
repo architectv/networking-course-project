@@ -3,6 +3,7 @@ from nginx:latest
 WORKDIR /etc/nginx
 COPY gen-cert.sh .
 RUN ./gen-cert.sh
-COPY conf.d .
+RUN echo "include conf.d/nginx.conf;" > /etc/nginx/nginx.conf
+WORKDIR /
 EXPOSE 80
 EXPOSE 443
