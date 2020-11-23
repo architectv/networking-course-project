@@ -1,6 +1,14 @@
 
-<Card style="width: 50%; margin: 0 auto; min-width: 250px;" padded>
+<Card style="width: 50%; margin: 1em auto; min-width: 250px;" padded>
 	{@html $data}
+</Card>
+
+<Card style="width: 50%; margin: 1em auto; min-width: 250px;" padded>
+{#if $user.authorized}
+  Logged in as {$user.username}
+{:else}
+  Unauthorized
+{/if}
 </Card>
 
 <Fab on:click={reload} bind:exited class="floating">
@@ -13,9 +21,11 @@
   import Fab from '@smui/fab';
   import {Icon} from '@smui/common';
   import Card, {Content, PrimaryAction, Media, MediaContent, Actions, ActionIcons} from '@smui/card';
+  import {getUser} from './auth';
 
   const data = writable("");
   const isFetching = writable(false);
+  let user = getUser();
   export let reload;
   let exited = $isFetching || !reload;
 
