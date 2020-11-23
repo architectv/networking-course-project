@@ -62,8 +62,8 @@ func (apiVX *ApiV1) getProject(ctx *fiber.Ctx) error {
 	}
 
 	projectId, err := strconv.Atoi(ctx.Params("pid"))
-	if err != nil {
-		response.Error(fiber.StatusInternalServerError, err.Error())
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
 		return Send(ctx, response)
 	}
 
@@ -91,8 +91,8 @@ func (apiVX *ApiV1) updateProject(ctx *fiber.Ctx) error {
 	}
 
 	projectId, err := strconv.Atoi(ctx.Params("pid"))
-	if err != nil {
-		response.Error(fiber.StatusInternalServerError, err.Error())
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
 		return Send(ctx, response)
 	}
 
@@ -109,8 +109,8 @@ func (apiVX *ApiV1) deleteProject(ctx *fiber.Ctx) error {
 	}
 
 	projectId, err := strconv.Atoi(ctx.Params("pid"))
-	if err != nil {
-		response.Error(fiber.StatusInternalServerError, err.Error())
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
 		return Send(ctx, response)
 	}
 

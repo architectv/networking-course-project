@@ -70,4 +70,6 @@ const (
 	StatusLoopDetected                  = 508 // RFC 5842, 7.2
 	StatusNotExtended                   = 510 // RFC 2774, 7
 	StatusNetworkAuthenticationRequired = 511 // RFC 6585, 6
+
+	DbResultNotFound = "sql: no rows in result set"
 )

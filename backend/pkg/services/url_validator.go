@@ -12,7 +12,7 @@ type UrlValidatorService struct {
 	taskRepo    repositories.Task
 }
 
-func NewUrlValidator(boardRepo repositories.Board, listRepo repositories.TaskList,
+func NewUrlValidatorService(boardRepo repositories.Board, listRepo repositories.TaskList,
 	taskRepo repositories.Task) *UrlValidatorService {
 	return &UrlValidatorService{
 		boardRepo: boardRepo,
@@ -32,7 +32,7 @@ func (s *UrlValidatorService) Validation(urlIds *models.UrlIds) *models.ApiRespo
 		}
 
 		if urlIds.ProjectId != projectId {
-			r.Error(StatusBadRequest, "There is no requested board inside the project")
+			r.Error(StatusNotFound, "There is no requested board inside the project")
 			return r
 		}
 	}
@@ -45,7 +45,7 @@ func (s *UrlValidatorService) Validation(urlIds *models.UrlIds) *models.ApiRespo
 		}
 
 		if urlIds.BoardId != boardId {
-			r.Error(StatusBadRequest, "There is no requested list inside the board")
+			r.Error(StatusNotFound, "There is no requested list inside the board")
 			return r
 		}
 	}
@@ -58,7 +58,7 @@ func (s *UrlValidatorService) Validation(urlIds *models.UrlIds) *models.ApiRespo
 		}
 
 		if urlIds.ListId != listId {
-			r.Error(StatusBadRequest, "There is no requested task inside the list")
+			r.Error(StatusNotFound, "There is no requested task inside the list")
 			return r
 		}
 	}

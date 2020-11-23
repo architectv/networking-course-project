@@ -83,7 +83,7 @@ VALUES ('test_user', 'test_user@mail.ru', '', 'qwerty');
 -- 3
 INSERT INTO users (nickname, email, avatar, password)
 VALUES ('nick1', 'nick1@mail.ru', '', 'qwerty');
--- PROJECTS
+-- PROJECTS id=1
 -- 1
 INSERT INTO permissions (read, write, admin)
 VALUES (true, true, true);
@@ -215,3 +215,75 @@ VALUES (1, 1, 4, 2, 'Second board');
 -- 2
 INSERT INTO board_users (user_id, board_id, permissions_id)
 VALUES (2, 2, 5);
+
+-- PROJECT id=2
+-- 7
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, true);
+-- 8
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, false);
+-- 10
+INSERT INTO datetimes (created, updated, accessed)
+VALUES (1605925262, 1605925262, 1605925262);
+-- 2
+INSERT INTO projects (
+        owner_id,
+        default_permissions_id,
+        datetimes_id,
+        title,
+        description
+    )
+VALUES (
+        2,
+        8,
+        10,
+        'Second project',
+        'This is the second project'
+    );
+-- 2
+INSERT INTO project_users (user_id, project_id, permissions_id)
+VALUES (2, 2, 7);
+-- PROJECT_USERS id=3
+-- 9
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, false);
+-- 3
+INSERT INTO project_users (user_id, project_id, permissions_id)
+VALUES (1, 2, 9);
+-- PROJECT id=2
+-- 10
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, true);
+-- 11
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, false);
+-- 11
+INSERT INTO datetimes (created, updated, accessed)
+VALUES (1605925262, 1605925262, 1605925262);
+-- 3
+INSERT INTO projects (
+        owner_id,
+        default_permissions_id,
+        datetimes_id,
+        title,
+        description
+    )
+VALUES (
+        3,
+        11,
+        11,
+        'Third project',
+        'This is the thrd project'
+    );
+-- 4
+INSERT INTO project_users (user_id, project_id, permissions_id)
+VALUES (3, 3, 10);
+
+-- PROJECT_USERS id=4
+-- 12
+INSERT INTO permissions (read, write, admin)
+VALUES (true, false, false);
+-- 3
+INSERT INTO project_users (user_id, project_id, permissions_id)
+VALUES (2, 1, 12);

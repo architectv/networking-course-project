@@ -1,7 +1,7 @@
 package models
 
 type Board struct {
-	Id                 string      `json:"id,omitempty"`
+	Id                 int         `json:"id,omitempty"`
 	ProjectId          int         `json:"projectId"`
 	OwnerId            int         `json:"ownerId,omitempty"`
 	DefaultPermissions *Permission `json:"defaultPermissions,omitempty"`

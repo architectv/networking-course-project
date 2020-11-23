@@ -51,12 +51,20 @@ type Task interface {
 	Update(taskId int, task *models.UpdateTask) error
 }
 
+type ProjectPerms interface {
+	Create(projectId, memberId int, permissions *models.Permission) (int, error)
+	Get(projectId, userId int) (*models.Permission, error)
+	Delete(projectId, memberId int) error
+	// Update(projectId, memberId int, permissions *models.Permission) error
+}
+
 type Repository struct {
 	User
 	Project
 	Board
 	TaskList
 	Task
+	ProjectPerms
 }
 
 // func NewRepository(db *mongo.Database) *Repository {
@@ -71,10 +79,11 @@ type Repository struct {
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		User:     postgres.NewUserPg(db),
-		Project:  postgres.NewProjectPg(db),
-		Board:    postgres.NewBoardPg(db),
-		TaskList: postgres.NewTaskListPg(db),
-		Task:     postgres.NewTaskPg(db),
+		User:         postgres.NewUserPg(db),
+		Project:      postgres.NewProjectPg(db),
+		Board:        postgres.NewBoardPg(db),
+		TaskList:     postgres.NewTaskListPg(db),
+		Task:         postgres.NewTaskPg(db),
+		ProjectPerms: postgres.NewProjectPermsPg(db),
 	}
 }
