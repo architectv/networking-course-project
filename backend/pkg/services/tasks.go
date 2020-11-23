@@ -99,6 +99,17 @@ func (s *TaskService) Create(userId, projectId, boardId, listId int, task *model
 
 func (s *TaskService) Update(userId, projectId, boardId, listId, taskId int, task *models.UpdateTask) *models.ApiResponse {
 	r := &models.ApiResponse{}
+
+	if task.Position != nil && *task.Position < 0 {
+		r.Error(StatusBadRequest, "Task position out of bounds")
+		return r
+	}
+
+	if task.ListId != nil && *task.ListId < 1 {
+		r.Error(StatusBadRequest, "New list id out of bounds")
+		return r
+	}
+
 	// TODO: права projectId = read ?
 	projectPermissions, err := s.projectRepo.GetPermissions(userId, projectId)
 	if err != nil || projectPermissions.Read == false {

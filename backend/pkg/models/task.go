@@ -5,12 +5,12 @@ type Task struct {
 	ListId    int        `json:"listId"`
 	Title     string     `json:"title"`
 	Datetimes *Datetimes `json:"datetimes,omitempty"`
-	Position  int        `json:"position"`
+	Position  int        `json:"position" valid:"type(int)"`
 }
 
 type UpdateTask struct {
 	Title     *string          `json:"title"`
+	ListId    *int             `json:"listId" valid:"type(*int)"`
 	Datetimes *UpdateDatetimes `json:"datetimes,omitempty"`
-	NewListId *int             `json:"newListId"`
-	Position  *int             `json:"position"`
+	Position  *int             `json:"position" valid:"type(*int)"`
 }

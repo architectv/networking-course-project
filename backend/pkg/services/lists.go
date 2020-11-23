@@ -115,6 +115,12 @@ func (s *TaskListService) Delete(userId, projectId, boardId, listId int) *models
 
 func (s *TaskListService) Update(userId, projectId, boardId, listId int, list *models.UpdateTaskList) *models.ApiResponse {
 	r := &models.ApiResponse{}
+
+	if list.Position != nil && *list.Position < 0 {
+		r.Error(StatusBadRequest, "List position out of bounds")
+		return r
+	}
+
 	// TODO: права projectId = read ?
 	projectPermissions, err := s.projectRepo.GetPermissions(userId, projectId)
 	if err != nil || projectPermissions.Read == false {

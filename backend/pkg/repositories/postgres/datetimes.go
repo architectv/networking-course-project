@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"yak/backend/pkg/models"
@@ -20,33 +21,38 @@ func createDatetimes(tx *sql.Tx, permissions *models.Datetimes) (int, error) {
 }
 
 func updateDatetimes(tx *sql.Tx, datetimesId int, input *models.UpdateDatetimes) error {
-	setValues := make([]string, 0)
-	args := make([]interface{}, 0)
-	argId := 1
+	var err error
+	if input != nil {
+		setValues := make([]string, 0)
+		args := make([]interface{}, 0)
+		argId := 1
 
-	if input.Created != nil {
-		setValues = append(setValues, fmt.Sprintf("created=$%d", argId))
-		args = append(args, *input.Created)
-		argId++
+		if input.Created != nil {
+			setValues = append(setValues, fmt.Sprintf("created=$%d", argId))
+			args = append(args, *input.Created)
+			argId++
+		}
+
+		if input.Updated != nil {
+			setValues = append(setValues, fmt.Sprintf("updated=$%d", argId))
+			args = append(args, *input.Updated)
+			argId++
+		}
+
+		if input.Accessed != nil {
+			setValues = append(setValues, fmt.Sprintf("accessed=$%d", argId))
+			args = append(args, *input.Accessed)
+			argId++
+		}
+
+		setQuery := strings.Join(setValues, ", ")
+		query := fmt.Sprintf(`UPDATE %s SET %s where id=$%d`,
+			datetimesTable, setQuery, argId)
+		args = append(args, datetimesId)
+		_, err = tx.Exec(query, args...)
+	} else {
+		err = errors.New("Datetimes in request body not found")
 	}
-
-	if input.Updated != nil {
-		setValues = append(setValues, fmt.Sprintf("updated=$%d", argId))
-		args = append(args, *input.Updated)
-		argId++
-	}
-
-	if input.Accessed != nil {
-		setValues = append(setValues, fmt.Sprintf("accessed=$%d", argId))
-		args = append(args, *input.Accessed)
-		argId++
-	}
-
-	setQuery := strings.Join(setValues, ", ")
-	query := fmt.Sprintf(`UPDATE %s SET %s where id=$%d`,
-		datetimesTable, setQuery, argId)
-	args = append(args, datetimesId)
-	_, err := tx.Exec(query, args...)
 	return err
 }
 

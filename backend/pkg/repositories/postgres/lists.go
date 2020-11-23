@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"yak/backend/pkg/models"
@@ -131,6 +133,12 @@ func (r *TaskListPg) Update(listId int, input *models.UpdateTaskList) error {
 	if input.Position != nil {
 		newPos := *input.Position
 
+		err = checkListOutOfBounds(tx, newPos, listId)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
 		var boardId, oldPos int
 		query := fmt.Sprintf(`SELECT board_id, position FROM %s WHERE id = $1`, taskListsTable)
 		row := tx.QueryRow(query, listId)
@@ -178,5 +186,41 @@ func (r *TaskListPg) Update(listId int, input *models.UpdateTaskList) error {
 	}
 
 	tx.Commit()
+	return err
+}
+
+func getListMaxPosition(tx *sql.Tx, boardId int) (int, error) {
+	var position int
+	query := fmt.Sprintf(
+		`SELECT MAX(tl.position)
+		FROM %s AS tl
+			INNER JOIN %s AS b ON b.id = tl.board_id
+		WHERE b.id = $1;`, taskListsTable, boardsTable)
+
+	row := tx.QueryRow(query, boardId)
+	err := row.Scan(&position)
+	return position, err
+}
+
+func checkListOutOfBounds(tx *sql.Tx, newPos, listId int) error {
+	var boardId int
+	query := fmt.Sprintf(`SELECT board_id FROM %s WHERE id = $1`, taskListsTable)
+	row := tx.QueryRow(query, listId)
+	err := row.Scan(&boardId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	maxPos, err := getListMaxPosition(tx, boardId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	fmt.Println(newPos, maxPos, boardId)
+	if newPos > maxPos {
+		tx.Rollback()
+		return errors.New("List position out of bounds")
+	}
 	return err
 }

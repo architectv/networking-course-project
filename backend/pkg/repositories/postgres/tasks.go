@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"yak/backend/pkg/models"
@@ -92,26 +93,18 @@ func (r *TaskPg) Create(task *models.Task) (int, error) {
 	}
 
 	var id int
-	var position int
-
-	query := fmt.Sprintf(
-		`SELECT MAX(t.position)
-		FROM %s AS t
-			INNER JOIN %s AS tl ON tl.id = t.list_id
-		WHERE tl.id = $1;`, tasksTable, taskListsTable)
-
-	row := tx.QueryRow(query, task.ListId)
-	if err := row.Scan(&position); err != nil {
+	position, err := getTaskMaxPosition(tx, task.ListId)
+	if err != nil {
+		tx.Rollback()
 		return 0, err
 	}
 	position++
-	fmt.Println(datetimesId)
 
-	query = fmt.Sprintf(
+	query := fmt.Sprintf(
 		`INSERT INTO %s (list_id, title, datetimes_id, position)
 		VALUES ($1, $2, $3, $4) RETURNING id`, tasksTable)
 
-	row = tx.QueryRow(query, task.ListId, task.Title, datetimesId, position)
+	row := tx.QueryRow(query, task.ListId, task.Title, datetimesId, position)
 	if err := row.Scan(&id); err != nil {
 		tx.Rollback()
 		return 0, err
@@ -136,7 +129,6 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 		args = append(args, *input.Title)
 		argId++
 	}
-
 	if input.Position != nil {
 		newPos := *input.Position
 
@@ -148,9 +140,22 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 			tx.Rollback()
 			return err
 		}
-		fmt.Println("---", *input.NewListId)
-		if input.NewListId != nil {
-			newListId := *input.NewListId
+
+		if input.ListId != nil && *input.ListId != listId {
+			newListId := *input.ListId
+
+			err = checkListOutOfBounds(tx, newListId, listId)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			err = checkTaskOutOfBounds(tx, newPos, newListId, true)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
 			err = r.updateTaskPosition(tx, listId, oldPos+1, "-")
 			if err != nil {
 				tx.Rollback()
@@ -172,6 +177,14 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 		} else {
 			var operation string
 			var start, end int
+
+			err = checkTaskOutOfBounds(tx, newPos, listId, false)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+			fmt.Println(err)
+
 			if oldPos < newPos {
 				operation = "-"
 				start, end = oldPos+1, newPos
@@ -202,7 +215,7 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 	query := fmt.Sprintf(`UPDATE %s SET %s where id=$%d`,
 		tasksTable, setQuery, argId)
 	args = append(args, taskId)
-	fmt.Println(taskId, args)
+	fmt.Println(query)
 	_, err = tx.Exec(query, args...)
 	if err != nil {
 		tx.Rollback()
@@ -268,5 +281,34 @@ func (r *TaskPg) updateTaskPosition(tx *sql.Tx, listId, start int, operation str
 		WHERE list_id = $1 AND position >= $2`,
 		tasksTable, operation)
 	_, err := tx.Exec(query, listId, start)
+	return err
+}
+
+func getTaskMaxPosition(tx *sql.Tx, listId int) (int, error) {
+	var position int
+	query := fmt.Sprintf(
+		`SELECT MAX(t.position)
+		FROM %s AS t
+			INNER JOIN %s AS tl ON tl.id = t.list_id
+		WHERE tl.id = $1;`, tasksTable, taskListsTable)
+
+	row := tx.QueryRow(query, listId)
+	err := row.Scan(&position)
+	return position, err
+}
+
+func checkTaskOutOfBounds(tx *sql.Tx, newPos, newListId int, is_insert bool) error {
+	maxPos, err := getTaskMaxPosition(tx, newListId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	if is_insert == true {
+		maxPos++
+	}
+	if newPos > maxPos {
+		tx.Rollback()
+		return errors.New("Task position out of bounds")
+	}
 	return err
 }
