@@ -1,30 +1,26 @@
+<div class="{theme} main">
+  <Navbar bind:dark_theme={dark_theme} bind:section={section} bind:reload={reload} />
+  <div class="main-content app">
+    {#if section == "Docs"}
+      <Docs/>
+    {:else if section == "Admin"}
+      <Admin/>
+    {:else if section == "Status"}
+      <Status bind:reload={reload} />
+    {:else}
+      <Main/>
+    {/if}
+  </div>
+</div>
+
 <script>
-	export let name;
+  import Navbar from './Navbar.svelte';
+  import Main from './Main.svelte';
+  import Docs from './Docs.svelte';
+  import Status from './Status.svelte';
+  import Admin from './Admin.svelte';
+  let dark_theme = true;
+  $: theme = dark_theme ? "dark-theme" : "light-theme";
+  let section;
+  let reload;
 </script>
-
-<main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
-</main>
-
-<style>
-	main {
-		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
-	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
-
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
-	}
-</style>
