@@ -18,7 +18,7 @@ servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/vovac12/kanbanman/1.0.0
   - description: Local dev server
-    url: https://localhost/api/v1
+    url: http://localhost/api/v1
 tags:
   - name: user
     description: Operations about users
@@ -50,9 +50,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-
+                  
       tags:
         - user
+  /users/signup:
     post:
       summary: Create user
       description: This can only be done by anyone (should add captcha).
@@ -71,7 +72,7 @@ paths:
           description: user exists
       tags:
         - user
-  /users/login:
+  /users/signin:
     post:
       tags:
         - user
@@ -102,7 +103,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
-  /users/logout:
+  /users/signout:
     get:
       tags:
         - user
@@ -111,7 +112,33 @@ paths:
       responses:
         default:
           description: successful operation
-
+  # /users/{userId}:
+  #   put:
+  #     tags:
+  #       - user
+  #     summary: Update user
+  #     operationId: updateUser
+  #     parameters:
+  #       - in: path
+  #         name: userId
+  #         schema:
+  #           type: integer
+  #         required: true
+  #     requestBody:
+  #       description: User to update
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/User'
+  #     responses:
+  #       '200':
+  #         description: successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/User'
+          
   /projects:
     get:
       tags:
@@ -226,7 +253,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
-
+          
   /projects/{projectId}/boards:
     get:
       tags:
@@ -368,6 +395,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+  /projects/{projectId}/permissions:
+    get:
+      tags:
+        - project
+      summary: Get a list of all projects
+      description: This can only be done by the logged in user.
+      operationId: getProjectPermissons
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
   /projects/{projectId}/boards/{boardId}/lists:
     get:
       tags:
@@ -707,7 +756,7 @@ paths:
           description: successful operation
         '403':
           description: forbidden operation
-
+  
 components:
   schemas:
     User:
@@ -746,7 +795,7 @@ components:
           type: string
         message:
           type: string
-
+          
     Project:
       type: object
       properties:
@@ -772,7 +821,7 @@ components:
           type: string
       required:
         - title
-
+        
     Board:
       type: object
       properties:
@@ -781,7 +830,7 @@ components:
           format: int64
           readOnly: true
         title:
-          type: string
+          type: string 
         projectId:
           type: integer
           format: int64
@@ -794,7 +843,7 @@ components:
       required:
         - title
         - projectId
-
+        
     TaskList:
       type: object
       properties:
@@ -803,7 +852,7 @@ components:
           format: int64
           readOnly: true
         title:
-          type: string
+          type: string 
         boardId:
           type: integer
           format: int64
@@ -815,7 +864,7 @@ components:
         - title
         - boardId
         - position
-
+        
     Task:
       type: object
       properties:
@@ -843,8 +892,8 @@ components:
         - title
         - boardId
         - listId
-
-    Datetimes:
+          
+    Datetimes: 
       type: object
       properties:
         created:
@@ -853,11 +902,11 @@ components:
           $ref: '#/components/schemas/Datetime'
         accessed:
           $ref: '#/components/schemas/Datetime'
-
+          
     Datetime:
       type: integer
       format: int64
-
+          
     Permission:
       type: object
       properties:
@@ -867,7 +916,7 @@ components:
           type: boolean
         access:
           type: boolean
-
+    
     Label:
       type: object
       properties:
@@ -879,7 +928,7 @@ components:
           type: string
       required:
         - name
-
+    
     Content:
       type: object
       properties:
@@ -890,10 +939,10 @@ components:
       required:
         - content_type
         - data
-
+        
     ContentType:
       type: integer
-
+          
   securitySchemes:
     api_key:
       type: apiKey
