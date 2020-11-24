@@ -13,7 +13,7 @@ func (apiVX *ApiV1) registerListsHandlers(router fiber.Router) {
 	group.Get("/", apiVX.urlIdsValidation, apiVX.getLists)
 	group.Post("/", apiVX.urlIdsValidation, apiVX.createList)
 	group.Get("/:lid", apiVX.urlIdsValidation, apiVX.getList)
-	group.Put("/:lid", apiVX.urlIdsValidation, apiVX.updateList)
+	group.Patch("/:lid", apiVX.urlIdsValidation, apiVX.updateList)
 	group.Delete("/:lid", apiVX.urlIdsValidation, apiVX.deleteList)
 }
 
