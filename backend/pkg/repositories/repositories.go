@@ -12,8 +12,8 @@ type User interface {
 	Create(user *models.User) (int, error)
 	Get(nickname, password string) (*models.User, error)
 	GetByNickname(nickname string) (*models.User, error)
-	// SignOut(token string) error
-	// FindToken(token string) error
+	SignOut(token string) (int, error)
+	FindToken(token string) error
 }
 
 type Project interface {

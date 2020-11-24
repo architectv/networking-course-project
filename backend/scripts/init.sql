@@ -1,4 +1,4 @@
-drop table tasks;
+DROP TABLE tasks;
 -- drop table labels;
 DROP TABLE task_lists;
 DROP TABLE board_users;
@@ -66,12 +66,16 @@ CREATE TABLE IF NOT EXISTS task_lists (
     title varchar(30) NOT NULL,
     position int NOT NULL
 );
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
     id serial PRIMARY KEY,
     list_id int REFERENCES task_lists (id) ON DELETE CASCADE NOT NULL,
     title varchar(30) NOT NULL,
     datetimes_id int REFERENCES datetimes (id) ON DELETE CASCADE NOT NULL,
     position smallint NOT NULL
+);
+CREATE TABLE IF NOT EXISTS tokens (
+    id serial PRIMARY KEY,
+    jwt text NOT NULL
 );
 -- USERS
 -- 1

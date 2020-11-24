@@ -10,7 +10,7 @@ import (
 )
 
 func (apiVX *ApiV1) registerTasksHandlers(router fiber.Router) {
-	group := router.Group("/projects/:pid/boards/:bid/lists/:lid/tasks")
+	group := router.Group("/projects/:pid/boards/:bid/lists/:lid/tasks", apiVX.userIdentity)
 	group.Get("/", apiVX.urlIdsValidation, apiVX.getTasks)
 	group.Post("/", apiVX.urlIdsValidation, apiVX.createTask)
 	group.Get("/:tid", apiVX.urlIdsValidation, apiVX.getTask)

@@ -55,3 +55,29 @@ func (r *UserPg) GetByNickname(nickname string) (*models.User, error) {
 
 	return user, err
 }
+
+func (r *UserPg) SignOut(token string) (int, error) {
+	var id int
+	query := fmt.Sprintf(
+		`INSERT INTO %s (jwt)
+		VALUES ($1) RETURNING id`, tokensTable)
+
+	row := r.db.QueryRow(query, token)
+	if err := row.Scan(&id); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (r *UserPg) FindToken(input string) error {
+	type tokenDB struct {
+		Id  int    `json:"id"`
+		Jwt string `json:"jwt"`
+	}
+	token := &tokenDB{}
+	query := fmt.Sprintf(`SELECT * FROM %s WHERE jwt = $1`, tokensTable)
+	err := r.db.Get(token, query, input)
+
+	return err
+}

@@ -9,7 +9,7 @@ import (
 )
 
 func (apiVX *ApiV1) registerListsHandlers(router fiber.Router) {
-	group := router.Group("/projects/:pid/boards/:bid/lists")
+	group := router.Group("/projects/:pid/boards/:bid/lists", apiVX.userIdentity)
 	group.Get("/", apiVX.urlIdsValidation, apiVX.getLists)
 	group.Post("/", apiVX.urlIdsValidation, apiVX.createList)
 	group.Get("/:lid", apiVX.urlIdsValidation, apiVX.getList)

@@ -9,7 +9,7 @@ import (
 )
 
 func (apiVX *ApiV1) registerProjectsHandlers(router fiber.Router) {
-	group := router.Group("/projects")
+	group := router.Group("/projects", apiVX.userIdentity)
 	group.Get("/", apiVX.getProjects)
 	group.Post("/", apiVX.createProject)
 	group.Get("/:pid", apiVX.getProject)
