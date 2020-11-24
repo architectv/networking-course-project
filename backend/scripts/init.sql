@@ -1,13 +1,13 @@
-DROP TABLE tasks;
--- drop table labels;
-DROP TABLE task_lists;
-DROP TABLE board_users;
-DROP TABLE boards;
-DROP TABLE project_users;
-DROP TABLE projects;
-DROP TABLE datetimes;
-DROP TABLE permissions;
-DROP TABLE users;
+DROP TABLE IF EXISTS tasks CASCADE;
+DROP TABLE IF EXISTS labels CASCADE;
+DROP TABLE IF EXISTS task_lists CASCADE;
+DROP TABLE IF EXISTS board_users CASCADE;
+DROP TABLE IF EXISTS boards CASCADE;
+DROP TABLE IF EXISTS project_users CASCADE;
+DROP TABLE IF EXISTS projects CASCADE;
+DROP TABLE IF EXISTS datetimes CASCADE;
+DROP TABLE IF EXISTS permissions CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE IF NOT EXISTS users (
     id serial PRIMARY KEY,
     nickname varchar(32) UNIQUE NOT NULL,
