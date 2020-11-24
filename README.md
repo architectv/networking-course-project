@@ -10,7 +10,6 @@
 * Добавление участника в проект
 * Удаление участника из проекта
 * Просмотр прав пользователя
-* Редактирование прав пользователя в проекте
 
 ## Use-case диаграмма
 ![Изображение](https://github.com/architectv/networking-course-project/blob/docs/doc/img/use_case.jpg)
