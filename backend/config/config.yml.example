@@ -12,8 +12,8 @@ mongo:
 
 db:
     username: "postgres"
-    password: "1234"
-    host: "localhost"
+    password: "docker"
+    host: "postgres"
     port: "5432"
-    dbname: "yak_test_db"
+    dbname: "yak"
     sslmode: "disable"
