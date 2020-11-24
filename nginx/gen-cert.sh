@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 commonname="yak"
 country="RU"
