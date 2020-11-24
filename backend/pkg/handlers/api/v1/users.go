@@ -2,21 +2,20 @@ package v1
 
 import (
 	"errors"
-	"net/http"
+	"strconv"
 	"strings"
 	"yak/backend/pkg/models"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
-	"github.com/sirupsen/logrus"
 )
 
 func (apiVX *ApiV1) registerUsersHandlers(router fiber.Router) {
 	group := router.Group("/users")
 	group.Get("/", apiVX.getUsers)
-	group.Post("/", apiVX.createUser)
-	group.Get("/:uid", apiVX.getUser)
-	group.Get("/login", apiVX.loginUser)
-	group.Get("/logout", apiVX.logoutUser)
+	group.Post("/signup", apiVX.signUp)
+	group.Post("/signin", apiVX.signIn)
+	group.Get("/signout", apiVX.userIdentity, apiVX.signOut)
 }
 
 func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
@@ -27,62 +26,59 @@ func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
 	return ctx.JSON(users)
 }
 
-type signInInput struct {
-	Username string `json:"username,required"`
-	Password string `json:"password,required"`
-}
-
-func (apiVX *ApiV1) getUser(ctx *fiber.Ctx) error {
+func (apiVX *ApiV1) signIn(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+	type signInInput struct {
+		Nickname string `json:"nickname" valid:"length(3|32)"`
+		Password string `json:"password" valid:"length(6|32)"`
+	}
 	var input signInInput
 
 	if err := ctx.BodyParser(&input); err != nil {
-		logrus.Println("Bad Request")
-		return ctx.SendStatus(http.StatusBadRequest)
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
 	}
-	if input.Username == "" || input.Password == "" {
-		logrus.Println("Bad Request")
-		return ctx.SendStatus(http.StatusBadRequest)
+	if _, err := govalidator.ValidateStruct(input); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
 	}
 
-	token, err := apiVX.services.User.GenerateToken(input.Username, input.Password)
+	response = apiVX.services.User.GenerateToken(input.Nickname, input.Password)
+	return Send(ctx, response)
+}
+
+func (apiVX *ApiV1) signUp(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+	input := &models.User{}
+
+	if err := ctx.BodyParser(input); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+	if _, err := govalidator.ValidateStruct(input); err != nil {
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+	response = apiVX.services.User.Create(input)
+	return Send(ctx, response)
+}
+
+func (apiVX *ApiV1) signOut(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+	_, err := getUserId(ctx)
 	if err != nil {
-		logrus.Println("Internal Server Error")
-		return ctx.SendStatus(http.StatusInternalServerError)
+		response.Error(fiber.StatusUnauthorized, err.Error())
+		return Send(ctx, response)
 	}
 
-	return ctx.JSON(fiber.Map{
-		"token": token,
-	})
-}
-
-func (apiVX *ApiV1) createUser(ctx *fiber.Ctx) error {
-	var input models.User
-
-	if err := ctx.BodyParser(&input); err != nil {
-		logrus.Println("Bad Request")
-		return ctx.SendStatus(http.StatusBadRequest)
-	}
-
-	id, err := apiVX.services.User.Create(input)
+	token, err := getToken(ctx)
 	if err != nil {
-		logrus.Println("Internal Server Error")
-		return ctx.SendStatus(http.StatusInternalServerError)
+		response.Error(fiber.StatusUnauthorized, err.Error())
+		return Send(ctx, response)
 	}
 
-	return ctx.JSON(fiber.Map{
-		"_id": id,
-	})
-}
-
-func (apiVX *ApiV1) loginUser(ctx *fiber.Ctx) error {
-	implementMe()
-	user := models.User{}
-	return ctx.JSON(user)
-}
-
-func (apiVX *ApiV1) logoutUser(ctx *fiber.Ctx) error {
-	implementMe()
-	return ctx.Send([]byte{})
+	response = apiVX.services.User.SignOut(token)
+	return Send(ctx, response)
 }
 
 const (
@@ -90,36 +86,53 @@ const (
 	userCtx             = "_id"
 )
 
-func (apiVX *ApiV1) userIdentity(ctx *fiber.Ctx) error {
+func getToken(ctx *fiber.Ctx) (string, error) {
 	header := ctx.Get(authorizationHeader)
 	if header == "" {
-		return ctx.SendStatus(http.StatusUnauthorized)
+		return "", errors.New("Empty auth header")
 	}
 
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-		return ctx.SendStatus(http.StatusUnauthorized)
+		return "", errors.New("Invalid token")
 	}
 
 	if len(headerParts[1]) == 0 {
-		return ctx.SendStatus(http.StatusUnauthorized)
+		return "", errors.New("Empty token")
 	}
 
-	userId, err := apiVX.services.User.ParseToken(headerParts[1])
-	if err != nil {
-		return ctx.SendStatus(http.StatusUnauthorized)
-	}
-
-	return ctx.JSON(fiber.Map{
-		userCtx: userId,
-	})
+	return headerParts[1], nil
 }
 
-func (apiVX *ApiV1) getUserId(ctx *fiber.Ctx) (string, error) {
-	id := ctx.Params(userCtx)
-	if id == "" {
-		return "", errors.New("user id not found")
+func (apiVX *ApiV1) userIdentity(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+
+	token, err := getToken(ctx)
+	if err != nil {
+		response.Error(fiber.StatusUnauthorized, err.Error())
+		return Send(ctx, response)
 	}
 
-	return id, nil
+	userId, err := apiVX.services.User.ParseToken(token)
+	if err != nil {
+		response.Error(fiber.StatusUnauthorized, err.Error())
+		return Send(ctx, response)
+	}
+
+	ctx.Request().Header.Set(userCtx, strconv.Itoa(userId))
+	return ctx.Next()
+}
+
+func getUserId(ctx *fiber.Ctx) (int, error) {
+	id := ctx.Get(userCtx)
+	if id == "" {
+		return 0, errors.New("user id not found")
+	}
+
+	intId, err := strconv.Atoi(id)
+	if err != nil {
+		return 0, errors.New("user id is of invalid type")
+	}
+
+	return intId, nil
 }

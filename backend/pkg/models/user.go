@@ -1,11 +1,9 @@
 package models
 
 type User struct {
-	Id string `json:"_id,omitempty" bson:"_id,omitempty"`
-	Username string `json:"username" bson:"username"`
-	FirstName string `json:"firstName,omitempty" bson:"firstName,omitempty"`
-	LastName string `json:"lastName,omitempty" bson:"lastName,omitempty"`
-	Email string `json:"email" bson:"email"`
-	Password string `json:"password" bson:"password"`
-	Phone string `json:"phone,omitempty" bson:"phone,omitempty"`
+	Id       int    `json:"id,omitempty"`
+	Nickname string `json:"nickname" valid:"length(3|32)"`
+	Email    string `json:"email" valid:"email"`
+	Password string `json:"password" valid:"length(6|32)"`
+	Avatar   string `json:"avatar"`
 }

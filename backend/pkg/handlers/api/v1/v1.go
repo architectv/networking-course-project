@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"runtime"
+	"yak/backend/pkg/models"
 	"yak/backend/pkg/services"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,12 +23,16 @@ func NewApiV1(services *services.Service) *ApiV1 {
 }
 
 func (apiVX *ApiV1) RegisterHandlers(router fiber.Router) {
-	v1 := router.Group("/v1", apiVX.userIdentity)
+	v1 := router.Group("/v1")
 	apiVX.registerBoardsHandlers(v1)
 	apiVX.registerListsHandlers(v1)
+	apiVX.registerProjectPermsHandlers(v1)
 	apiVX.registerProjectsHandlers(v1)
 	apiVX.registerTasksHandlers(v1)
+	apiVX.registerUsersHandlers(v1)
+}
 
-	auth := router.Group("/auth")
-	apiVX.registerUsersHandlers(auth)
+func Send(ctx *fiber.Ctx, r *models.ApiResponse) error {
+	ctx.Status(r.Code)
+	return ctx.JSON(r)
 }
