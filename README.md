@@ -13,6 +13,6 @@
 * Редактирование прав пользователя в проекте
 
 ## Use-case диаграмма
-[ссылка](https://github.com/architectv/networking-course-project/tree/docs/img/use_case.pdf)
+[ссылка](https://github.com/architectv/networking-course-project/blob/docs/doc/img/use_case.pdf)
 ## Er диаграмма
-[ссылка](https://github.com/architectv/networking-course-project/tree/docs/img/erd.pdf)
+![Изображение](https://github.com/architectv/networking-course-project/blob/docs/doc/img/erd.pdf)
