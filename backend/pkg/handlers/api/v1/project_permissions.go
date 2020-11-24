@@ -9,7 +9,7 @@ import (
 )
 
 func (apiVX *ApiV1) registerProjectPermsHandlers(router fiber.Router) {
-	group := router.Group("/projects/:pid/permissions")
+	group := router.Group("/projects/:pid/permissions", apiVX.userIdentity)
 	group.Post("/", apiVX.createProjectPerms)
 	group.Get("/", apiVX.getProjectPerms)
 	// group.Put("/", apiVX.updateProjectPerms)

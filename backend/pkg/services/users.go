@@ -102,10 +102,11 @@ func (s *UserService) ParseToken(accessToken string) (int, error) {
 		return 0, errors.New("token claims are not of type *tokenClaims")
 	}
 
-	// err = s.repo.FindToken(ctx, accessToken)
-	// if err == nil {
-	// 	return "", errors.New("Invalid token")
-	// }
+	err = s.repo.FindToken(accessToken)
+	// logrus.Println(err.Error())
+	if err == nil {
+		return 0, errors.New("Invalid token")
+	}
 
 	return claims.UserId, nil
 }
@@ -117,14 +118,14 @@ func generatePasswordHash(password string) string {
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
 
-// func (s *UserService) SignOut(token string) *models.ApiResponse {
-// 	r := &models.ApiResponse{}
-// 	err := s.repo.SignOut(token)
-// 	if err != nil {
-// 		r.Error(StatusInternalServerError, err.Error())
-// 		return r
-// 	}
+func (s *UserService) SignOut(token string) *models.ApiResponse {
+	r := &models.ApiResponse{}
+	_, err := s.repo.SignOut(token)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
 
-// 	r.Set(StatusOK, "OK", nil)
-// 	return r
-// }
+	r.Set(StatusOK, "OK", nil)
+	return r
+}

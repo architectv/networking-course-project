@@ -10,7 +10,7 @@ type User interface {
 	Create(user *models.User) *models.ApiResponse
 	GenerateToken(username, password string) *models.ApiResponse
 	ParseToken(token string) (int, error)
-	// SignOut(token string) *models.ApiResponse
+	SignOut(token string) *models.ApiResponse
 }
 
 type Project interface {

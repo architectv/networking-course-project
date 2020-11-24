@@ -13,12 +13,9 @@ import (
 func (apiVX *ApiV1) registerUsersHandlers(router fiber.Router) {
 	group := router.Group("/users")
 	group.Get("/", apiVX.getUsers)
-	// group.Post("/", apiVX.createUser)
-	// group.Get("/:uid", apiVX.getUser)
-
 	group.Post("/signup", apiVX.signUp)
 	group.Post("/signin", apiVX.signIn)
-	// group.Get("/signout", apiVX.userIdentity, apiVX.signOut)
+	group.Get("/signout", apiVX.userIdentity, apiVX.signOut)
 }
 
 func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
@@ -28,11 +25,6 @@ func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(users)
 }
-
-// type signInInput struct {
-// 	Nickname string `json:"username" valid:"length(3|32)"`
-// 	Password string `json:"password" valid:"length(6|32)"`
-// }
 
 func (apiVX *ApiV1) signIn(ctx *fiber.Ctx) error {
 	response := &models.ApiResponse{}
@@ -71,23 +63,23 @@ func (apiVX *ApiV1) signUp(ctx *fiber.Ctx) error {
 	return Send(ctx, response)
 }
 
-// func (apiVX *ApiV1) signOut(ctx *fiber.Ctx) error {
-// 	response := &models.ApiResponse{}
-// 	_, err := getUserId(ctx)
-// 	if err != nil {
-// 		response.Error(fiber.StatusUnauthorized, err.Error())
-// 		return Send(ctx, response)
-// 	}
+func (apiVX *ApiV1) signOut(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+	_, err := getUserId(ctx)
+	if err != nil {
+		response.Error(fiber.StatusUnauthorized, err.Error())
+		return Send(ctx, response)
+	}
 
-// 	token, err := getToken(ctx)
-// 	if err != nil {
-// 		response.Error(fiber.StatusUnauthorized, err.Error())
-// 		return Send(ctx, response)
-// 	}
+	token, err := getToken(ctx)
+	if err != nil {
+		response.Error(fiber.StatusUnauthorized, err.Error())
+		return Send(ctx, response)
+	}
 
-// 	response = apiVX.services.User.SignOut(token)
-// 	return Send(ctx, response)
-// }
+	response = apiVX.services.User.SignOut(token)
+	return Send(ctx, response)
+}
 
 const (
 	authorizationHeader = "Authorization"
