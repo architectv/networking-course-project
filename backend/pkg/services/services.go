@@ -56,6 +56,13 @@ type ProjectPerms interface {
 	Update(userId, projectId, memberId int, list *models.UpdatePermission) *models.ApiResponse
 }
 
+type BoardPerms interface {
+	// Create(userId, projectId, boardId, memberId int, permissions *models.Permission) *models.ApiResponse
+	Get(userId, projectId, boardId, memberId int) *models.ApiResponse
+	// Delete(userId, projectId, boardId, memberId int) *models.ApiResponse
+	// Update(userId, projectId, boardId, memberId int, list *models.UpdatePermission) *models.ApiResponse
+}
+
 type Service struct {
 	User
 	Project
@@ -64,6 +71,7 @@ type Service struct {
 	Task
 	UrlValidator
 	ProjectPerms
+	BoardPerms
 }
 
 func NewService(repos *repositories.Repository) *Service {
@@ -75,5 +83,6 @@ func NewService(repos *repositories.Repository) *Service {
 		Task:         NewTaskService(repos.Task, repos.Board, repos.Project),
 		UrlValidator: NewUrlValidatorService(repos.Board, repos.TaskList, repos.Task),
 		ProjectPerms: NewProjectPermsService(repos.ProjectPerms, repos.Project),
+		BoardPerms:   NewBoardPermsService(repos.ProjectPerms, repos.Board),
 	}
 }

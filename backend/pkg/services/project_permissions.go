@@ -1,8 +1,14 @@
 package services
 
 import (
+	"errors"
 	"yak/backend/pkg/models"
 	"yak/backend/pkg/repositories"
+)
+
+const (
+	PROJECT = 1
+	BOARD   = 2
 )
 
 type ProjectPermsService struct {
@@ -17,7 +23,7 @@ func NewProjectPermsService(repo repositories.ProjectPerms, projectRepo reposito
 func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	_, err := s.repo.Get(projectId, userId)
+	_, err := s.repo.Get(projectId, userId, PROJECT)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -27,7 +33,7 @@ func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiRe
 		return r
 	}
 
-	permissions, err := s.repo.Get(projectId, memberId)
+	permissions, err := s.repo.Get(projectId, memberId, PROJECT)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Member permissions not found")
@@ -44,7 +50,12 @@ func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiRe
 func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPerms *models.Permission) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	permissions, err := s.repo.Get(projectId, userId)
+	if err := permsValidation(projectPerms); err != nil {
+		r.Error(StatusBadRequest, err.Error())
+		return r
+	}
+
+	permissions, err := s.repo.Get(projectId, userId, PROJECT)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -72,7 +83,7 @@ func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPer
 func (s *ProjectPermsService) Delete(userId, projectId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	permissions, err := s.repo.Get(projectId, userId)
+	permissions, err := s.repo.Get(projectId, userId, PROJECT)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -87,7 +98,7 @@ func (s *ProjectPermsService) Delete(userId, projectId, memberId int) *models.Ap
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId)
+	_, err = s.repo.Get(projectId, memberId, PROJECT)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Excluding user is not project member")
@@ -117,10 +128,15 @@ func (s *ProjectPermsService) Delete(userId, projectId, memberId int) *models.Ap
 	return r
 }
 
-func (s *ProjectPermsService) Update(userId, projectId, memberId int, ProjectPerms *models.UpdatePermission) *models.ApiResponse {
+func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPerms *models.UpdatePermission) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	permissions, err := s.repo.Get(projectId, userId)
+	if err := updatePermsValidation(projectPerms); err != nil {
+		r.Error(StatusBadRequest, err.Error())
+		return r
+	}
+
+	permissions, err := s.repo.Get(projectId, userId, PROJECT)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -135,10 +151,10 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, ProjectPer
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId)
+	_, err = s.repo.Get(projectId, memberId, PROJECT)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
-			r.Error(StatusNotFound, "Excluding user is not project member")
+			r.Error(StatusNotFound, "Updating user is not project member")
 			return r
 		}
 		r.Error(StatusInternalServerError, err.Error())
@@ -151,11 +167,11 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, ProjectPer
 		return r
 	}
 	if project.OwnerId == memberId {
-		r.Error(StatusBadRequest, "You can't exclude project owner")
+		r.Error(StatusBadRequest, "You can't update project owner permissions")
 		return r
 	}
 
-	err = s.repo.Update(projectId, memberId, ProjectPerms)
+	err = s.repo.Update(projectId, memberId, projectPerms)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -163,4 +179,50 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, ProjectPer
 
 	r.Set(StatusOK, "OK", Map{})
 	return r
+}
+
+func updatePermsValidation(updPerms *models.UpdatePermission) error {
+	if updPerms != nil {
+		switch {
+		case updPerms.Read != nil && updPerms.Write != nil && updPerms.Admin != nil:
+			perms := &models.Permission{
+				Read:  *updPerms.Read,
+				Write: *updPerms.Write,
+				Admin: *updPerms.Admin,
+			}
+			return permsValidation(perms)
+		case updPerms.Read != nil && updPerms.Write != nil:
+			perms := &models.Permission{
+				Read:  *updPerms.Read,
+				Write: *updPerms.Write,
+				Admin: false,
+			}
+			return permsValidation(perms)
+		case updPerms.Read != nil:
+			perms := &models.Permission{
+				Read:  *updPerms.Read,
+				Write: false,
+				Admin: false,
+			}
+			return permsValidation(perms)
+		default:
+			return errors.New("Permissions are set incorrectly")
+		}
+	} else {
+		return errors.New("Permissions is not defined")
+	}
+}
+
+func permsValidation(perms *models.Permission) error {
+	if perms != nil {
+		if perms.Read == true && perms.Write == false && perms.Admin == false ||
+			perms.Read == true && perms.Write == true && perms.Admin == false ||
+			perms.Read == true && perms.Write == true && perms.Admin == true {
+			return nil
+		} else {
+			return errors.New("Permissions are set incorrectly")
+		}
+	} else {
+		return errors.New("Permissions is not defined")
+	}
 }

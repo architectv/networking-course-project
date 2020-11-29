@@ -53,7 +53,7 @@ type Task interface {
 
 type ProjectPerms interface {
 	Create(projectId, memberId int, permissions *models.Permission) (int, error)
-	Get(projectId, userId int) (*models.Permission, error)
+	Get(projectId, userId, objectType int) (*models.Permission, error)
 	Delete(projectId, memberId int) error
 	Update(projectId, memberId int, permissions *models.UpdatePermission) error
 }
