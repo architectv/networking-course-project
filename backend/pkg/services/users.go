@@ -34,6 +34,25 @@ func (s *UserService) GetAll() ([]*models.User, error) {
 	return s.repo.GetAll()
 }
 
+func (s *UserService) Update(id int, profile *models.UpdateUser) *models.ApiResponse {
+	r := &models.ApiResponse{}
+	if profile.Nickname != nil {
+		if err := s.checkByNickname(*profile.Nickname); err == nil {
+			r.Error(StatusConflict, "User already exists")
+			return r
+		}
+	}
+
+	err := s.repo.Update(id, profile)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{})
+	return r
+}
+
 func (s *UserService) Create(user *models.User) *models.ApiResponse {
 	r := &models.ApiResponse{}
 	if err := s.checkByNickname(user.Nickname); err == nil {
