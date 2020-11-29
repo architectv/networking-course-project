@@ -166,7 +166,7 @@ func (r *ProjectPg) GetAll(userId int) ([]*models.Project, error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return projects, nil
+	return projects, err
 }
 
 func (r *ProjectPg) Update(projectId int, input *models.UpdateProject) error {

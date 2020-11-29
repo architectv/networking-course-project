@@ -53,7 +53,7 @@ type ProjectPerms interface {
 	Create(userId, projectId, memberId int, permissions *models.Permission) *models.ApiResponse
 	Get(userId, projectId, memberId int) *models.ApiResponse
 	Delete(userId, projectId, memberId int) *models.ApiResponse
-	// Update(userId, projectId, memberId int, list *models.Permission) *models.ApiResponse
+	Update(userId, projectId, memberId int, list *models.UpdatePermission) *models.ApiResponse
 }
 
 type Service struct {
