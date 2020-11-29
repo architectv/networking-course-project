@@ -10,6 +10,8 @@ import (
 
 const (
 	DbResultNotFound = "sql: no rows in result set"
+	PROJECT          = 1
+	BOARD            = 2
 )
 
 type ProjectPermsPg struct {
@@ -20,19 +22,30 @@ func NewProjectPermsPg(db *sqlx.DB) *ProjectPermsPg {
 	return &ProjectPermsPg{db: db}
 }
 
-func (r *ProjectPermsPg) Get(projectId, userId int) (*models.Permission, error) {
-	permissions := &models.Permission{}
+func (r *ProjectPermsPg) Get(objectId, userId, objectType int) (*models.Permission, error) {
+	var objectIdTitle, objectTable string
+	switch objectType {
+	case PROJECT:
+		objectIdTitle = "project_id"
+		objectTable = projectUsersTable
+	case BOARD:
+		objectIdTitle = "board_id"
+		objectTable = boardUsersTable
+	default:
+		return nil, errors.New("Object type is not defined")
+	}
 
+	permissions := &models.Permission{}
 	query := fmt.Sprintf(
 		`SELECT per.read, per.write, per.admin 
 		FROM %s AS pu
 			INNER JOIN %s AS per ON pu.permissions_id = per.id
-		WHERE pu.project_id = $1 AND pu.user_id = $2`,
-		projectUsersTable, permissionsTable)
+		WHERE pu.%s = $1 AND pu.user_id = $2`,
+		objectTable, permissionsTable, objectIdTitle)
 
-	row := r.db.QueryRow(query, projectId, userId)
+	row := r.db.QueryRow(query, objectId, userId)
 	err := row.Scan(&permissions.Read, &permissions.Write, &permissions.Admin)
-	fmt.Println(projectId, userId, permissions)
+	fmt.Println(objectId, userId, permissions)
 	return permissions, err
 }
 
@@ -43,7 +56,7 @@ func (r *ProjectPermsPg) Create(projectId, memberId int, permissions *models.Per
 		return 0, err
 	}
 
-	_, err = r.Get(projectId, memberId)
+	_, err = r.Get(projectId, memberId, PROJECT)
 	if err != nil && err.Error() != DbResultNotFound {
 		return 0, err
 	} else if err == nil {
@@ -92,7 +105,7 @@ func (r *ProjectPermsPg) Update(projectId, memberId int, permissions *models.Upd
 
 	var projectPermsId int
 	query := fmt.Sprintf(
-		`SELECT per.id 
+		`SELECT pu.permissions_id 
 		FROM %s AS pu
 		WHERE pu.project_id = $1 AND pu.user_id = $2`,
 		projectUsersTable)
