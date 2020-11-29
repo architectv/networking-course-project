@@ -1,0 +1,11 @@
+FROM golang:latest
+
+RUN go get -v -u github.com/gofiber/cli/fiber
+COPY go.mod go.sum ./app/
+WORKDIR app
+RUN go mod download -x
+WORKDIR /app
+RUN rm -rf /go/app
+EXPOSE 8001
+
+CMD fiber dev

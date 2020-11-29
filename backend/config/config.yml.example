@@ -1,0 +1,19 @@
+port: ":8001"
+
+mongo:
+    uri: "mongodb://localhost:27017"
+    name: "testdb"
+    userCollection: "users"
+    projectCollection: "projects"
+    boardCollection: "boards"
+    taskListCollection: "taskLists"
+    taskCollection: "tasks"
+    tokenCollection: "tokenOut"
+
+db:
+    username: "postgres"
+    password: "docker"
+    host: "postgres"
+    port: "5432"
+    dbname: "yak"
+    sslmode: "disable"
