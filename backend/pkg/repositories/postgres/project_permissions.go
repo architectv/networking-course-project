@@ -72,7 +72,7 @@ func (r *ProjectPermsPg) Create(projectId, memberId int, permissions *models.Per
 	}
 
 	tx.Commit()
-	return projectPermsId, nil
+	return projectPermsId, err
 }
 
 func (r *ProjectPermsPg) Delete(projectId, memberId int) error {
@@ -82,4 +82,29 @@ func (r *ProjectPermsPg) Delete(projectId, memberId int) error {
 		permissionsTable, projectUsersTable)
 	_, err := r.db.Exec(query, projectId, memberId)
 	return err
+}
+
+func (r *ProjectPermsPg) Update(projectId, memberId int, permissions *models.UpdatePermission) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	var projectPermsId int
+	query := fmt.Sprintf(
+		`SELECT per.id 
+		FROM %s AS pu
+		WHERE pu.project_id = $1 AND pu.user_id = $2`,
+		projectUsersTable)
+
+	row := tx.QueryRow(query, projectId, memberId)
+	err = row.Scan(&projectPermsId)
+
+	if err = updatePermissions(tx, projectPermsId, permissions); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }
