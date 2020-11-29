@@ -17,6 +17,8 @@ const (
 	boardUsersTable   = "board_users"
 	taskListsTable    = "task_lists"
 	tasksTable        = "tasks"
+	labelsTable       = "labels"
+	taskLabelsTable   = "task_labels"
 	tokensTable       = "tokens"
 )
 
