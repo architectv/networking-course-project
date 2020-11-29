@@ -7,3 +7,9 @@ type User struct {
 	Password string `json:"password" valid:"length(6|32)"`
 	Avatar   string `json:"avatar"`
 }
+
+type UpdateUser struct {
+	Nickname *string `json:"nickname" valid:"length(3|32)"`
+	Email    *string `json:"email" valid:"email"`
+	Avatar   *string `json:"avatar"`
+}

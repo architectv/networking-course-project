@@ -14,6 +14,7 @@ type User interface {
 	GetByNickname(nickname string) (*models.User, error)
 	SignOut(token string) (int, error)
 	FindToken(token string) error
+	Update(id int, profile *models.UpdateUser) error
 }
 
 type Project interface {

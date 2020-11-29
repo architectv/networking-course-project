@@ -11,6 +11,7 @@ type User interface {
 	GenerateToken(username, password string) *models.ApiResponse
 	ParseToken(token string) (int, error)
 	SignOut(token string) *models.ApiResponse
+	Update(id int, profile *models.UpdateUser) *models.ApiResponse
 }
 
 type Project interface {
