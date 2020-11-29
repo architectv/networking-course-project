@@ -51,6 +51,17 @@ type Task interface {
 	Update(taskId int, task *models.UpdateTask) error
 }
 
+type Label interface {
+	Create(label *models.Label) (int, error)
+	CreateInTask(taskId, labelId int) (int, error)
+	GetAllInTask(taskId int) ([]*models.Label, error)
+	GetAll(boardId int) ([]*models.Label, error)
+	GetById(labelId int) (*models.Label, error)
+	DeleteInTask(taskId, labelId int) error
+	Delete(labelId int) error
+	Update(labelId int, label *models.UpdateLabel) error
+}
+
 type ProjectPerms interface {
 	Create(projectId, memberId int, permissions *models.Permission) (int, error)
 	Get(projectId, userId int) (*models.Permission, error)
@@ -64,6 +75,7 @@ type Repository struct {
 	Board
 	TaskList
 	Task
+	Label
 	ProjectPerms
 }
 
@@ -84,6 +96,7 @@ func NewRepository(db *sqlx.DB) *Repository {
 		Board:        postgres.NewBoardPg(db),
 		TaskList:     postgres.NewTaskListPg(db),
 		Task:         postgres.NewTaskPg(db),
+		Label:        postgres.NewLabelPg(db),
 		ProjectPerms: postgres.NewProjectPermsPg(db),
 	}
 }

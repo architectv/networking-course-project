@@ -30,6 +30,7 @@ func (apiVX *ApiV1) RegisterHandlers(router fiber.Router) {
 	apiVX.registerProjectsHandlers(v1)
 	apiVX.registerTasksHandlers(v1)
 	apiVX.registerUsersHandlers(v1)
+	apiVX.registerLabelsHandlers(v1)
 }
 
 func Send(ctx *fiber.Ctx, r *models.ApiResponse) error {
