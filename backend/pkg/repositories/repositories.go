@@ -33,6 +33,7 @@ type Board interface {
 	Delete(boardId int) error
 	Update(boardId int, board *models.UpdateBoard) error
 	GetPermissions(userId, boardId int) (*models.Permission, error)
+	GetCountByOwnerId(projectId, ownerId int) (int, error)
 }
 
 type TaskList interface {
@@ -64,9 +65,9 @@ type Label interface {
 }
 
 type ProjectPerms interface {
-	Create(projectId, memberId int, permissions *models.Permission) (int, error)
-	Get(projectId, userId, objectType int) (*models.Permission, error)
-	Delete(projectId, memberId int) error
+	Create(projectId, memberId, objectType int, permissions *models.Permission) (int, error)
+	Get(projectId, memberId, objectType int) (*models.Permission, error)
+	Delete(projectId, oldOwnerId, newOwnerId, ownerProjectId int) error
 	Update(projectId, memberId int, permissions *models.UpdatePermission) error
 }
 

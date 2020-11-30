@@ -60,6 +60,12 @@ func (apiVX *ApiV1) createBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
 	memberId, err := strconv.Atoi(ctx.Query("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
@@ -77,7 +83,7 @@ func (apiVX *ApiV1) createBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	response = apiVX.services.ProjectPerms.Create(userId, projectId, memberId,
+	response = apiVX.services.BoardPerms.Create(userId, projectId, boardId, memberId,
 		permissions)
 	return Send(ctx, response)
 }
@@ -96,13 +102,19 @@ func (apiVX *ApiV1) deleteBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
 	memberId, err := strconv.Atoi(ctx.Query("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
 		return Send(ctx, response)
 	}
 
-	response = apiVX.services.ProjectPerms.Delete(userId, projectId, memberId)
+	response = apiVX.services.BoardPerms.Delete(userId, projectId, boardId, memberId)
 	return Send(ctx, response)
 }
 

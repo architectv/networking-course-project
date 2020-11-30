@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 	"yak/backend/pkg/models"
@@ -258,4 +259,57 @@ func (r *BoardPg) GetPermissions(userId, boardId int) (*models.Permission, error
 	}
 
 	return permissions, nil
+}
+
+func (r *BoardPg) GetCountByOwnerId(projectId, ownerId int) (int, error) { // TODO не работает
+	var boardIds []int
+
+	query := fmt.Sprintf(
+		`SELECT b.id 
+		FROM boards AS b
+		WHERE b.project_id = $1 AND b.owner_id = $2`,
+		boardsTable)
+	fmt.Println(query)
+
+	rows, err := r.db.Query(query, projectId, ownerId)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var boardId int
+		if err := rows.Scan(&boardId); err != nil {
+			return 0, err
+		}
+		boardIds = append(boardIds, boardId)
+	}
+
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+	return len(boardIds), nil
+}
+
+// TODO не работает, но лучше сделать так
+// func (r *BoardPg) GetCountByOwnerId(projectId, ownerId int) (int, error) {
+// 	var count int
+
+// 	query := fmt.Sprintf(
+// 		`SELECT COUNT(*)
+// 		FROM %s AS b
+// 		WHERE b.project_id = $1 AND b.owner_id = $2`,
+// 		boardsTable)
+
+// 	fmt.Println(count, projectId, ownerId)
+// 	err := r.db.Select(&count, query, projectId, ownerId)
+// 	return count, err
+// }
+
+func updateOwnerId(tx *sql.Tx, projectId, oldOwnerId, newOwnerId int) error {
+	query := fmt.Sprintf(`UPDATE %s SET owner_id=$1
+		WHERE b.project_id = $2 AND b.owner_id = $3`,
+		boardsTable)
+	_, err := tx.Exec(query, newOwnerId, projectId, oldOwnerId)
+	return err
 }
