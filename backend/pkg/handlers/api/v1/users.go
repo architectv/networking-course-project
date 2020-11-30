@@ -14,7 +14,8 @@ import (
 
 func (apiVX *ApiV1) registerUsersHandlers(router fiber.Router) {
 	group := router.Group("/users")
-	group.Get("/", apiVX.getUsers)
+	group.Get("/", apiVX.userIdentity, apiVX.getUser)
+	// group.Get("/", apiVX.getUsers)
 	group.Post("/signup", apiVX.signUp)
 	group.Post("/signin", apiVX.signIn)
 	group.Get("/signout", apiVX.userIdentity, apiVX.signOut)
@@ -27,6 +28,18 @@ func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
 		return err
 	}
 	return ctx.JSON(users)
+}
+
+func (apiVX *ApiV1) getUser(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+	id, err := getUserId(ctx)
+	if err != nil {
+		response.Error(fiber.StatusUnauthorized, err.Error())
+		return Send(ctx, response)
+	}
+
+	response = apiVX.services.User.Get(id)
+	return Send(ctx, response)
 }
 
 func (apiVX *ApiV1) update(ctx *fiber.Ctx) error {

@@ -30,6 +30,18 @@ func NewUserService(repo repositories.User) *UserService {
 	return &UserService{repo: repo}
 }
 
+func (s *UserService) Get(id int) *models.ApiResponse {
+	r := &models.ApiResponse{}
+	user, err := s.repo.GetById(id)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{"user": user})
+	return r
+}
+
 func (s *UserService) GetAll() ([]*models.User, error) {
 	return s.repo.GetAll()
 }

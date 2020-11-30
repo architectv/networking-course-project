@@ -16,6 +16,22 @@ func NewUserPg(db *sqlx.DB) *UserPg {
 	return &UserPg{db: db}
 }
 
+func (r *UserPg) GetById(id int) (*models.User, error) {
+	user := &models.User{}
+
+	query := fmt.Sprintf(
+		`SELECT u.id, u.nickname, u.email, u.avatar
+		FROM %s AS u
+		WHERE u.id = $1`,
+		usersTable)
+
+	if err := r.db.Get(user, query, id); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *UserPg) Update(id int, profile *models.UpdateUser) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)

@@ -9,6 +9,7 @@ import (
 
 type User interface {
 	GetAll() ([]*models.User, error)
+	GetById(id int) (*models.User, error)
 	Create(user *models.User) (int, error)
 	Get(nickname, password string) (*models.User, error)
 	GetByNickname(nickname string) (*models.User, error)
