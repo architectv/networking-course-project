@@ -7,6 +7,7 @@ import (
 
 type User interface {
 	GetAll() ([]*models.User, error)
+	Get(id int) *models.ApiResponse
 	Create(user *models.User) *models.ApiResponse
 	GenerateToken(username, password string) *models.ApiResponse
 	ParseToken(token string) (int, error)
