@@ -29,6 +29,7 @@ func NewBoardBuilder() *BoardBuilder {
 			Updated:  1,
 			Accessed: 1,
 		},
+		Title: "Default Title",
 	}
 	return &BoardBuilder{Board: board}
 }
