@@ -17,6 +17,15 @@
   background-color: var(--mdc-theme-background, #fff) !important;
 }
 
+table {
+  color: var(--mdc-theme-text-primary-on-background, black) !important;
+}
+
+th, td, table, thead, tbody {
+  color: var(--mdc-theme-text-primary-on-background, black) !important;
+  background-color: var(--mdc-theme-surface, #fff) !important;
+}
+
 .mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
   color: var(--mdc-theme-text-primary-on-background, black) !important;
 }
