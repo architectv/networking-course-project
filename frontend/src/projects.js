@@ -5,7 +5,8 @@ const projects = writable({});
 const user = getUser();
 
 export function getProjects(onUnsetCurrent) {
-  const { subscribe, set, update } = projects;
+  let { subscribe, set, update } = projects;
+  let prevUser = {};
   async function refresh() {
     let token = localStorage.token;
     if (!token) {
@@ -48,7 +49,19 @@ export function getProjects(onUnsetCurrent) {
     });
   }
 
-  refresh();
+  function release() {
+    set({});
+  }
+
+  user.subscribe((value) => {
+    if (!value.authorized) {
+      release();
+    }
+    if (user != prevUser) {
+      prevUser = user;
+      refresh();
+    }
+  });
 
   return {
     subscribe,

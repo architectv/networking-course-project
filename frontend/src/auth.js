@@ -140,6 +140,10 @@ export function getUser() {
       localStorage.removeItem("token");
       set({authorized: false, error: "Unauthorized"});
     }
+    
+    if (localStorage.token) {
+      set({authorized: true, token: localStorage.token});
+    }
 
     return {
       subscribe,
