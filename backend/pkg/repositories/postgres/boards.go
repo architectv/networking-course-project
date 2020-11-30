@@ -266,7 +266,7 @@ func (r *BoardPg) GetCountByOwnerId(projectId, ownerId int) (int, error) { // TO
 
 	query := fmt.Sprintf(
 		`SELECT b.id 
-		FROM boards AS b
+		FROM %s AS b
 		WHERE b.project_id = $1 AND b.owner_id = $2`,
 		boardsTable)
 	fmt.Println(query)
