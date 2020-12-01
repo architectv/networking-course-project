@@ -24,6 +24,7 @@ type Project interface {
 	Delete(projectId int) error
 	Update(projectId int, project *models.UpdateProject) error
 	GetPermissions(userId, projectId int) (*models.Permission, error)
+	GetMembers(projectId int) ([]*models.Member, error)
 }
 
 type Board interface {
@@ -34,6 +35,7 @@ type Board interface {
 	Update(boardId int, board *models.UpdateBoard) error
 	GetPermissions(userId, boardId int) (*models.Permission, error)
 	GetBoardsCountByOwnerId(projectId, ownerId int) (int, error)
+	GetMembers(projectId int) ([]*models.Member, error)
 }
 
 type TaskList interface {

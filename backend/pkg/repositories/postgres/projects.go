@@ -281,3 +281,45 @@ func (r *ProjectPg) getProjectForeignKeys(projectId int) (int, int, error) {
 	err := row.Scan(&defPermissionsId, &datetimesId)
 	return defPermissionsId, datetimesId, err
 }
+
+func (r *ProjectPg) GetMembers(projectId int) ([]*models.Member, error) {
+	var members []*models.Member
+
+	query := fmt.Sprintf(
+		`SELECT u.nickname, u.avatar, per.read, per.write, per.admin,
+		CASE p.owner_id
+		WHEN user_id THEN true
+		ELSE false
+		END AS isOwner
+		FROM %s AS pu
+			INNER JOIN %s AS per ON pu.permissions_id = per.id
+			INNER JOIN %s AS u ON pu.user_id = u.id
+			INNER JOIN %s AS p ON pu.project_id = p.id
+		WHERE pu.project_id = $1`,
+		projectUsersTable, permissionsTable, usersTable, projectsTable)
+
+	rows, err := r.db.Query(query, projectId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		member := &models.Member{}
+		permissions := &models.Permission{}
+
+		err := rows.Scan(&member.Nickname, &member.Avatar, &permissions.Read,
+			&permissions.Write, &permissions.Admin, &member.IsOwner)
+		if err != nil {
+			return nil, err
+		}
+
+		member.Permissions = permissions
+		members = append(members, member)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return members, err
+}
