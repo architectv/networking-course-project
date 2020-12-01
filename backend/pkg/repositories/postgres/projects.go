@@ -286,7 +286,7 @@ func (r *ProjectPg) GetMembers(projectId int) ([]*models.Member, error) {
 	var members []*models.Member
 
 	query := fmt.Sprintf(
-		`SELECT u.nickname, u.avatar, per.read, per.write, per.admin,
+		`SELECT u.id, u.nickname, u.avatar, per.read, per.write, per.admin,
 		CASE p.owner_id
 		WHEN user_id THEN true
 		ELSE false
@@ -308,7 +308,7 @@ func (r *ProjectPg) GetMembers(projectId int) ([]*models.Member, error) {
 		member := &models.Member{}
 		permissions := &models.Permission{}
 
-		err := rows.Scan(&member.Nickname, &member.Avatar, &permissions.Read,
+		err := rows.Scan(&member.Id, &member.Nickname, &member.Avatar, &permissions.Read,
 			&permissions.Write, &permissions.Admin, &member.IsOwner)
 		if err != nil {
 			return nil, err
