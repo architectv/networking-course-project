@@ -146,3 +146,28 @@ func (s *BoardService) Update(userId, projectId, boardId int, board *models.Upda
 	r.Set(StatusOK, "OK", Map{})
 	return r
 }
+
+func (s *BoardService) GetMembers(userId, projectId, boardId int) *models.ApiResponse {
+	r := &models.ApiResponse{}
+
+	projectPermissions, err := s.projectRepo.GetPermissions(userId, projectId)
+	if err != nil || projectPermissions.Read == false {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
+
+	boardPermissions, err := s.repo.GetPermissions(userId, boardId)
+	if err != nil || boardPermissions.Read == false {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
+
+	members, err := s.repo.GetMembers(boardId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{"members": members})
+	return r
+}

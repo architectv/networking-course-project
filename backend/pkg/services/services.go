@@ -21,6 +21,7 @@ type Project interface {
 	GetById(userId, projectId int) *models.ApiResponse
 	Delete(userId, projectId int) *models.ApiResponse
 	Update(userId, projectId int, project *models.UpdateProject) *models.ApiResponse
+	GetMembers(userId, projectId int) *models.ApiResponse
 }
 
 type Board interface {
@@ -29,6 +30,7 @@ type Board interface {
 	GetById(userId, projectId, boardId int) *models.ApiResponse
 	Delete(userId, projectId, boardId int) *models.ApiResponse
 	Update(userId, projectId, boardId int, board *models.UpdateBoard) *models.ApiResponse
+	GetMembers(userId, projectId, boardId int) *models.ApiResponse
 }
 
 type TaskList interface {

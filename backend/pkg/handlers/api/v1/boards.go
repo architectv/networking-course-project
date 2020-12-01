@@ -13,6 +13,7 @@ func (apiVX *ApiV1) registerBoardsHandlers(router fiber.Router) {
 	group.Get("/", apiVX.urlIdsValidation, apiVX.getBoards)
 	group.Post("/", apiVX.urlIdsValidation, apiVX.createBoard)
 	group.Get("/:bid", apiVX.urlIdsValidation, apiVX.getBoard)
+	group.Get("/:bid/members", apiVX.urlIdsValidation, apiVX.getBoardMembers)
 	group.Put("/:bid", apiVX.urlIdsValidation, apiVX.updateBoard)
 	group.Delete("/:bid", apiVX.urlIdsValidation, apiVX.deleteBoard)
 }
@@ -45,13 +46,13 @@ func (apiVX *ApiV1) getBoard(ctx *fiber.Ctx) error {
 
 	projectId, err := strconv.Atoi(ctx.Params("pid"))
 	if err != nil || projectId == 0 {
-		response.Error(fiber.StatusBadRequest, "Empty projectId")
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
 		return Send(ctx, response)
 	}
 
 	boardId, err := strconv.Atoi(ctx.Params("bid"))
 	if err != nil || boardId == 0 {
-		response.Error(fiber.StatusBadRequest, "Empty boardId")
+		response.Error(fiber.StatusBadRequest, "Invalid boardId")
 		return Send(ctx, response)
 	}
 
@@ -69,7 +70,7 @@ func (apiVX *ApiV1) createBoard(ctx *fiber.Ctx) error {
 
 	projectId, err := strconv.Atoi(ctx.Params("pid"))
 	if err != nil || projectId == 0 {
-		response.Error(fiber.StatusBadRequest, "Empty projectId")
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
 		return Send(ctx, response)
 	}
 
@@ -115,7 +116,7 @@ func (apiVX *ApiV1) updateBoard(ctx *fiber.Ctx) error {
 
 	boardId, err := strconv.Atoi(ctx.Params("bid"))
 	if err != nil || boardId == 0 {
-		response.Error(fiber.StatusBadRequest, "Empty boardId")
+		response.Error(fiber.StatusBadRequest, "Invalid boardId")
 		return Send(ctx, response)
 	}
 
@@ -139,10 +140,34 @@ func (apiVX *ApiV1) deleteBoard(ctx *fiber.Ctx) error {
 
 	boardId, err := strconv.Atoi(ctx.Params("bid"))
 	if err != nil || boardId == 0 {
-		response.Error(fiber.StatusBadRequest, "Empty boardId")
+		response.Error(fiber.StatusBadRequest, "Invalid boardId")
 		return Send(ctx, response)
 	}
 
 	response = apiVX.services.Board.Delete(userId, projectId, boardId)
+	return Send(ctx, response)
+}
+
+func (apiVX *ApiV1) getBoardMembers(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+	userId, err := getUserId(ctx)
+	if err != nil {
+		response.Error(fiber.StatusInternalServerError, err.Error())
+		return Send(ctx, response)
+	}
+
+	projectId, err := strconv.Atoi(ctx.Params("pid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
+	if err != nil || boardId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid boardId")
+		return Send(ctx, response)
+	}
+
+	response = apiVX.services.Board.GetMembers(userId, projectId, boardId)
 	return Send(ctx, response)
 }

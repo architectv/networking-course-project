@@ -292,3 +292,45 @@ func updateOwnerIdByBoardId(tx *sql.Tx, boardId, oldOwnerId, newOwnerId int) err
 	_, err := tx.Exec(query, newOwnerId, boardId, oldOwnerId)
 	return err
 }
+
+func (r *BoardPg) GetMembers(boardId int) ([]*models.Member, error) {
+	var members []*models.Member
+
+	query := fmt.Sprintf(
+		`SELECT u.nickname, u.avatar, per.read, per.write, per.admin,
+		CASE b.owner_id
+		WHEN user_id THEN true
+		ELSE false
+		END AS isOwner
+		FROM %s AS pu
+			INNER JOIN %s AS per ON pu.permissions_id = per.id
+			INNER JOIN %s AS u ON pu.user_id = u.id
+			INNER JOIN %s AS b ON pu.board_id = b.id
+		WHERE pu.board_id = $1`,
+		boardUsersTable, permissionsTable, usersTable, boardsTable)
+
+	rows, err := r.db.Query(query, boardId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		member := &models.Member{}
+		permissions := &models.Permission{}
+
+		err := rows.Scan(&member.Nickname, &member.Avatar, &permissions.Read,
+			&permissions.Write, &permissions.Admin, &member.IsOwner)
+		if err != nil {
+			return nil, err
+		}
+
+		member.Permissions = permissions
+		members = append(members, member)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return members, err
+}
