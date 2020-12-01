@@ -78,6 +78,21 @@ func (mr *MockBoardMockRecorder) GetAll(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockBoard)(nil).GetAll), arg0, arg1)
 }
 
+// GetBoardsCountByOwnerId mocks base method.
+func (m *MockBoard) GetBoardsCountByOwnerId(arg0, arg1 int) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBoardsCountByOwnerId", arg0, arg1)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBoardsCountByOwnerId indicates an expected call of GetBoardsCountByOwnerId.
+func (mr *MockBoardMockRecorder) GetBoardsCountByOwnerId(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBoardsCountByOwnerId", reflect.TypeOf((*MockBoard)(nil).GetBoardsCountByOwnerId), arg0, arg1)
+}
+
 // GetById mocks base method.
 func (m *MockBoard) GetById(arg0 int) (*models.Board, error) {
 	m.ctrl.T.Helper()
@@ -93,19 +108,19 @@ func (mr *MockBoardMockRecorder) GetById(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockBoard)(nil).GetById), arg0)
 }
 
-// GetCountByOwnerId mocks base method.
-func (m *MockBoard) GetCountByOwnerId(arg0, arg1 int) (int, error) {
+// GetMembers mocks base method.
+func (m *MockBoard) GetMembers(arg0 int) ([]*models.Member, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCountByOwnerId", arg0, arg1)
-	ret0, _ := ret[0].(int)
+	ret := m.ctrl.Call(m, "GetMembers", arg0)
+	ret0, _ := ret[0].([]*models.Member)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetCountByOwnerId indicates an expected call of GetCountByOwnerId.
-func (mr *MockBoardMockRecorder) GetCountByOwnerId(arg0, arg1 interface{}) *gomock.Call {
+// GetMembers indicates an expected call of GetMembers.
+func (mr *MockBoardMockRecorder) GetMembers(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountByOwnerId", reflect.TypeOf((*MockBoard)(nil).GetCountByOwnerId), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMembers", reflect.TypeOf((*MockBoard)(nil).GetMembers), arg0)
 }
 
 // GetPermissions mocks base method.
