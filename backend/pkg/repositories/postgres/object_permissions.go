@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"yak/backend/pkg/models"
@@ -14,7 +15,7 @@ const (
 	IsBoard          = 2
 )
 
-type ProjectPermsPg struct {
+type ObjectPermsPg struct {
 	db *sqlx.DB
 }
 
@@ -24,11 +25,11 @@ type ObjectParams struct {
 	Table   string
 }
 
-func NewProjectPermsPg(db *sqlx.DB) *ProjectPermsPg {
-	return &ProjectPermsPg{db: db}
+func NewObjectPermsPg(db *sqlx.DB) *ObjectPermsPg {
+	return &ObjectPermsPg{db: db}
 }
 
-func (r *ProjectPermsPg) Get(objectId, memberId, objectType int) (*models.Permission, error) {
+func (r *ObjectPermsPg) Get(objectId, memberId, objectType int) (*models.Permission, error) {
 	permissions := &models.Permission{}
 	objParams, err := getObjectParams(objectType)
 	if err != nil {
@@ -48,7 +49,7 @@ func (r *ProjectPermsPg) Get(objectId, memberId, objectType int) (*models.Permis
 	return permissions, err
 }
 
-func (r *ProjectPermsPg) Create(objectId, memberId, objectType int, permissions *models.Permission) (int, error) {
+func (r *ObjectPermsPg) Create(objectId, memberId, objectType int, permissions *models.Permission) (int, error) {
 	fmt.Println(objectId, memberId, objectType)
 	objParams, err := getObjectParams(objectType)
 	if err != nil {
@@ -93,7 +94,7 @@ func (r *ProjectPermsPg) Create(objectId, memberId, objectType int, permissions 
 	return objectPermsId, err
 }
 
-func (r *ProjectPermsPg) Delete(objectId, memberId, ownerProjectId, objectType int) error {
+func (r *ObjectPermsPg) Delete(objectId, memberId, ownerProjectId, objectType int) error {
 	objParams, err := getObjectParams(objectType)
 	if err != nil {
 		return err
@@ -104,11 +105,27 @@ func (r *ProjectPermsPg) Delete(objectId, memberId, ownerProjectId, objectType i
 		return err
 	}
 
-	if objectType == IsBoard && ownerProjectId != 0 {
-		err := updateOwnerId(tx, objectId, memberId, ownerProjectId)
-		if err != nil {
-			tx.Rollback()
-			return err
+	if ownerProjectId != 0 {
+		if objectType == IsProject {
+			err = deleteMemberFromAllBoardsInProject(tx, objectId, memberId)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			err := updateOwnerIdByProjectId(tx, objectId, memberId, ownerProjectId)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		} else if objectType == IsBoard {
+			err := updateOwnerIdByBoardId(tx, objectId, memberId, ownerProjectId)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		} else {
+			return errors.New("Object type is not defined")
 		}
 	}
 
@@ -126,23 +143,47 @@ func (r *ProjectPermsPg) Delete(objectId, memberId, ownerProjectId, objectType i
 	return err
 }
 
-func (r *ProjectPermsPg) Update(projectId, memberId int, permissions *models.UpdatePermission) error {
+func (r *ObjectPermsPg) Update(objectId, memberId, ownerProjectId, objectType int, permissions *models.UpdatePermission) error {
+	objParams, err := getObjectParams(objectType)
+	if err != nil {
+		return err
+	}
+
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
 	}
 
-	var projectPermsId int
+	if ownerProjectId != 0 {
+		if objectType == IsProject {
+			err := updateOwnerIdByProjectId(tx, objectId, memberId, ownerProjectId)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		} else if objectType == IsBoard {
+			err := updateOwnerIdByBoardId(tx, objectId, memberId, ownerProjectId)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		} else {
+			return errors.New("Object type is not defined")
+		}
+	}
+
+	var objectPermsId int
 	query := fmt.Sprintf(
-		`SELECT pu.permissions_id 
-		FROM %s AS pu
-		WHERE pu.project_id = $1 AND pu.user_id = $2`,
-		projectUsersTable)
+		`SELECT obj.permissions_id 
+		FROM %s AS obj
+		WHERE obj.%s = $1 AND obj.user_id = $2`,
+		objParams.Table, objParams.IdTitle)
 
-	row := tx.QueryRow(query, projectId, memberId)
-	err = row.Scan(&projectPermsId)
+	row := tx.QueryRow(query, objectId, memberId)
+	err = row.Scan(&objectPermsId)
+	fmt.Println(objectPermsId)
 
-	if err = updatePermissions(tx, projectPermsId, permissions); err != nil {
+	if err = updatePermissions(tx, objectPermsId, permissions); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -171,4 +212,16 @@ func getObjectParams(objectType int) (*ObjectParams, error) {
 		return &objParams, errors.New("Object type is not defined")
 	}
 	return &objParams, nil
+}
+
+func deleteMemberFromAllBoardsInProject(tx *sql.Tx, projectId, memberId int) error {
+	query := fmt.Sprintf(`DELETE FROM %s WHERE id IN (
+			SELECT bu.permissions_id
+			FROM %s AS bu
+				INNER JOIN %s AS b ON bu.board_id = b.id
+			WHERE b.project_id = $1 AND b.owner_id = $2 AND bu.user_id = b.owner_id)`,
+		permissionsTable, boardUsersTable, boardsTable)
+	fmt.Println(query, projectId, memberId)
+	_, err := tx.Exec(query, projectId, memberId)
+	return err
 }

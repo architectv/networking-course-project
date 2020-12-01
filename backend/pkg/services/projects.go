@@ -56,8 +56,8 @@ func (s *ProjectService) GetAll(userId int) *models.ApiResponse {
 
 func (s *ProjectService) GetById(userId, projectId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
-	permissions, err := s.repo.GetPermissions(userId, projectId)
 
+	permissions, err := s.repo.GetPermissions(userId, projectId)
 	if err != nil || permissions.Read == false {
 		r.Error(StatusForbidden, "Forbidden")
 		return r
@@ -114,5 +114,24 @@ func (s *ProjectService) Delete(userId, projectId int) *models.ApiResponse {
 		return r
 	}
 	r.Set(StatusOK, "OK", Map{})
+	return r
+}
+
+func (s *ProjectService) GetMembers(userId, projectId int) *models.ApiResponse {
+	r := &models.ApiResponse{}
+
+	permissions, err := s.repo.GetPermissions(userId, projectId)
+	if err != nil || permissions.Read == false {
+		r.Error(StatusForbidden, "Forbidden")
+		return r
+	}
+
+	members, err := s.repo.GetMembers(projectId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{"members": members})
 	return r
 }
