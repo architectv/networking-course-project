@@ -43,7 +43,7 @@ func (p *PermsBuilder) withPerm(r, w, a bool) *PermsBuilder {
 	return p
 }
 
-func TestBoardPermsService_Create(t *testing.T) {
+func TestProjectPermsService_Create(t *testing.T) {
 	type args struct {
 		userId     int
 		projectId  int
