@@ -74,7 +74,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 				r.Error(StatusInternalServerError, err.Error())
 				return r
 			}
-			if board.DefaultPermissions == nil { // TODO права по умолчанию должны обязательно указываться при создании проекта или доски
+			if board.DefaultPermissions == nil {
 				r.Error(StatusInternalServerError, "Default permissions is not defined")
 				return r
 			}
