@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProjectPermsService_Create(t *testing.T) {
+func TestBoardPermsService_Create(t *testing.T) {
 	type args struct {
 		userId      int
 		projectId   int
