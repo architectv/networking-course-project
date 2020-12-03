@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"testing"
+	"yak/backend/pkg/builders"
 	"yak/backend/pkg/models"
 
 	mock_repositories "yak/backend/pkg/repositories/mocks"
@@ -10,38 +11,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
-
-type ListBuilder struct {
-	List *models.TaskList
-}
-
-func NewListBuilder() *ListBuilder {
-	list := &models.TaskList{
-		BoardId:  1,
-		Title:    "Default List Title",
-		Position: 1,
-	}
-	return &ListBuilder{List: list}
-}
-
-func (b *ListBuilder) build() *models.TaskList {
-	return b.List
-}
-
-func (b *ListBuilder) withTitle(title string) *ListBuilder {
-	b.List.Title = title
-	return b
-}
-
-func (b *ListBuilder) withBoard(id int) *ListBuilder {
-	b.List.BoardId = id
-	return b
-}
-
-func (b *ListBuilder) withPos(id int) *ListBuilder {
-	b.List.Position = id
-	return b
-}
 
 func TestTaskListService_Create(t *testing.T) {
 	type args struct {
@@ -68,7 +37,7 @@ func TestTaskListService_Create(t *testing.T) {
 				userId:    1,
 				projectId: 1,
 				boardId:   1,
-				list:      NewListBuilder().withTitle("List Builder").build(),
+				list:      builders.NewListBuilder().WithTitle("List Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(&models.Permission{true, true, true}, nil)
@@ -90,7 +59,7 @@ func TestTaskListService_Create(t *testing.T) {
 				userId:    1,
 				projectId: 1,
 				boardId:   1,
-				list:      NewListBuilder().withTitle("List Builder").build(),
+				list:      builders.NewListBuilder().WithTitle("List Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(nil, errors.New("Forbidden"))
@@ -107,7 +76,7 @@ func TestTaskListService_Create(t *testing.T) {
 				userId:    1,
 				projectId: 1,
 				boardId:   1,
-				list:      NewListBuilder().withTitle("List Builder").build(),
+				list:      builders.NewListBuilder().WithTitle("List Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(&models.Permission{true, true, true}, nil)
@@ -126,7 +95,7 @@ func TestTaskListService_Create(t *testing.T) {
 				userId:    1,
 				projectId: 1,
 				boardId:   1,
-				list:      NewListBuilder().withTitle("List Builder").build(),
+				list:      builders.NewListBuilder().WithTitle("List Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(&models.Permission{true, true, true}, nil)

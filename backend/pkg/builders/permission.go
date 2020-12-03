@@ -1,4 +1,4 @@
-package data_builders
+package builders
 
 import (
 	"yak/backend/pkg/models"
@@ -12,7 +12,7 @@ func NewPermsBuilder() *PermsBuilder {
 	perms := &models.Permission{
 		Read:  true,
 		Write: true,
-		Admin: true,
+		Admin: false,
 	}
 	return &PermsBuilder{Perms: perms}
 }
