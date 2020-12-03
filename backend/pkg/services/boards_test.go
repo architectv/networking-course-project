@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"testing"
+	"yak/backend/pkg/builders"
 	"yak/backend/pkg/models"
 
 	mock_repositories "yak/backend/pkg/repositories/mocks"
@@ -10,73 +11,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
-
-type BoardBuilder struct {
-	Board *models.Board
-}
-
-func NewBoardBuilder() *BoardBuilder {
-	board := &models.Board{
-		ProjectId: 1,
-		OwnerId:   1,
-		DefaultPermissions: &models.Permission{
-			Read:  true,
-			Write: true,
-			Admin: false,
-		},
-		Datetimes: &models.Datetimes{
-			Created:  1,
-			Updated:  1,
-			Accessed: 1,
-		},
-		Title: "Default Title",
-	}
-	return &BoardBuilder{Board: board}
-}
-
-func (b *BoardBuilder) build() *models.Board {
-	return b.Board
-}
-
-func (b *BoardBuilder) withTitle(title string) *BoardBuilder {
-	b.Board.Title = title
-	return b
-}
-
-func (b *BoardBuilder) withoutPerm() *BoardBuilder {
-	b.Board.DefaultPermissions = nil
-	return b
-}
-
-func (b *BoardBuilder) withOwner(id int) *BoardBuilder {
-	b.Board.OwnerId = id
-	return b
-}
-
-func (b *BoardBuilder) withProject(id int) *BoardBuilder {
-	b.Board.ProjectId = id
-	return b
-}
-
-func (b *BoardBuilder) withPerm(r, w, a bool) *BoardBuilder {
-	perm := &models.Permission{
-		Read:  r,
-		Write: w,
-		Admin: a,
-	}
-	b.Board.DefaultPermissions = perm
-	return b
-}
-
-func (b *BoardBuilder) withDate(c, u, a int64) *BoardBuilder {
-	date := &models.Datetimes{
-		Created:  c,
-		Updated:  u,
-		Accessed: a,
-	}
-	b.Board.Datetimes = date
-	return b
-}
 
 func TestBoardService_Create(t *testing.T) {
 	type args struct {
@@ -112,7 +46,7 @@ func TestBoardService_Create(t *testing.T) {
 				// 	},
 				// 	Title: "New Test Board",
 				// },
-				board: NewBoardBuilder().withTitle("Board Builder").build(),
+				board: builders.NewBoardBuilder().WithTitle("Board Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(&models.Permission{true, true, true}, nil)
@@ -129,7 +63,7 @@ func TestBoardService_Create(t *testing.T) {
 			name: "Forbidden",
 			input: args{
 				userId: 1,
-				board:  NewBoardBuilder().withTitle("Board Builder").build(),
+				board:  builders.NewBoardBuilder().WithTitle("Board Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(nil, errors.New("Forbidden"))
@@ -143,7 +77,7 @@ func TestBoardService_Create(t *testing.T) {
 			name: "Null Default Permissions",
 			input: args{
 				userId: 1,
-				board:  NewBoardBuilder().withTitle("Board Builder").withoutPerm().build(),
+				board:  builders.NewBoardBuilder().WithTitle("Board Builder").WithoutPerm().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(&models.Permission{true, true, true}, nil)
@@ -160,7 +94,7 @@ func TestBoardService_Create(t *testing.T) {
 			name: "Board Repo Error",
 			input: args{
 				userId: 1,
-				board:  NewBoardBuilder().withTitle("Board Builder").withoutPerm().build(),
+				board:  builders.NewBoardBuilder().WithTitle("Board Builder").WithoutPerm().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(&models.Permission{true, true, true}, nil)

@@ -3,7 +3,7 @@ package postgres
 import (
 	"errors"
 	"testing"
-	"yak/backend/pkg/data_builders"
+	"yak/backend/pkg/builders"
 	"yak/backend/pkg/models"
 
 	"github.com/stretchr/testify/assert"
@@ -40,7 +40,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 				objectId:   1,
 				memberId:   1,
 				objectType: IsProject,
-				perms:      data_builders.NewPermsBuilder().Build(),
+				perms:      builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
@@ -74,7 +74,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 				objectId:   1,
 				memberId:   1,
 				objectType: IsBoard,
-				perms:      data_builders.NewPermsBuilder().Build(),
+				perms:      builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
@@ -108,7 +108,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 				objectId:   1,
 				memberId:   1,
 				objectType: 0,
-				perms:      data_builders.NewPermsBuilder().Build(),
+				perms:      builders.NewPermsBuilder().Build(),
 			},
 			mock:    func(args args) {},
 			wantErr: true,
@@ -119,7 +119,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 				objectId:   1,
 				memberId:   1,
 				objectType: IsProject,
-				perms:      data_builders.NewPermsBuilder().Build(),
+				perms:      builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
@@ -129,6 +129,8 @@ func TestObjectpermsPg_Create(t *testing.T) {
 					AddRow(true, true, true)
 				mock.ExpectQuery("SELECT (.+) FROM project_users").
 					WithArgs(args.objectId, args.memberId).WillReturnRows(rows)
+
+				mock.ExpectRollback()
 			},
 			wantErr: true,
 		},
@@ -138,7 +140,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 				objectId:   1,
 				memberId:   1,
 				objectType: IsBoard,
-				perms:      data_builders.NewPermsBuilder().Build(),
+				perms:      builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
@@ -156,7 +158,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 					WithArgs(perms.Read, perms.Write, perms.Admin).
 					WillReturnRows(defPermRows)
 
-				mock.ExpectCommit()
+				mock.ExpectRollback()
 			},
 			wantErr: true,
 		},
@@ -166,7 +168,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 				objectId:   1,
 				memberId:   1,
 				objectType: IsBoard,
-				perms:      data_builders.NewPermsBuilder().Build(),
+				perms:      builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
@@ -191,7 +193,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 					WithArgs(args.memberId, args.objectId, permId).
 					WillReturnRows(dateRows)
 
-				mock.ExpectCommit()
+				mock.ExpectRollback()
 			},
 			wantErr: true,
 		},
