@@ -162,7 +162,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{ //TODO не отображается в покрытии тестов
+		{
 			name: "repo error for create in project_users",
 			input: args{
 				objectId:   1,
