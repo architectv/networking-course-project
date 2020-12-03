@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"testing"
+	"yak/backend/pkg/builders"
 	"yak/backend/pkg/models"
 
 	mock_repositories "yak/backend/pkg/repositories/mocks"
@@ -10,38 +11,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
-
-type LabelBuilder struct {
-	Label *models.Label
-}
-
-func NewLabelBuilder() *LabelBuilder {
-	label := &models.Label{
-		BoardId: 1,
-		Name:    "Default Label Name",
-		Color:   255,
-	}
-	return &LabelBuilder{Label: label}
-}
-
-func (b *LabelBuilder) build() *models.Label {
-	return b.Label
-}
-
-func (b *LabelBuilder) withName(name string) *LabelBuilder {
-	b.Label.Name = name
-	return b
-}
-
-func (b *LabelBuilder) withBoard(id int) *LabelBuilder {
-	b.Label.BoardId = id
-	return b
-}
-
-func (b *LabelBuilder) withColor(color uint32) *LabelBuilder {
-	b.Label.Color = color
-	return b
-}
 
 func TestLabelService_Create(t *testing.T) {
 	type args struct {
@@ -68,7 +37,7 @@ func TestLabelService_Create(t *testing.T) {
 				userId:    1,
 				projectId: 1,
 				boardId:   1,
-				label:     NewLabelBuilder().withName("Label Builder").build(),
+				label:     builders.NewLabelBuilder().WithName("Label Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(&models.Permission{true, true, true}, nil)
@@ -90,7 +59,7 @@ func TestLabelService_Create(t *testing.T) {
 				userId:    1,
 				projectId: 1,
 				boardId:   1,
-				label:     NewLabelBuilder().withName("Label Builder").build(),
+				label:     builders.NewLabelBuilder().WithName("Label Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(nil, errors.New("Forbidden"))
@@ -107,7 +76,7 @@ func TestLabelService_Create(t *testing.T) {
 				userId:    1,
 				projectId: 1,
 				boardId:   1,
-				label:     NewLabelBuilder().withName("Label Builder").build(),
+				label:     builders.NewLabelBuilder().WithName("Label Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(&models.Permission{true, true, true}, nil)
@@ -126,7 +95,7 @@ func TestLabelService_Create(t *testing.T) {
 				userId:    1,
 				projectId: 1,
 				boardId:   1,
-				label:     NewLabelBuilder().withName("Label Builder").build(),
+				label:     builders.NewLabelBuilder().WithName("Label Builder").Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, userId, projectId int) {
 				r.EXPECT().GetPermissions(userId, projectId).Return(&models.Permission{true, true, true}, nil)

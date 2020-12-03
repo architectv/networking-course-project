@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"testing"
+	"yak/backend/pkg/builders"
 	"yak/backend/pkg/models"
 
 	mock_repositories "yak/backend/pkg/repositories/mocks"
@@ -48,8 +49,8 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().build(),
-				defPerms:    NewPermsBuilder().build(),
+				perms:       builders.NewPermsBuilder().Build(),
+				defPerms:    builders.NewPermsBuilder().Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {},
 			getCallerProjectPerm: func(r *mock_repositories.MockObjectPerms, projectId, userId, projectType int) {
@@ -78,8 +79,8 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().withPerm(false, false, false).build(),
-				defPerms:    NewPermsBuilder().withPerm(true, true, false).build(),
+				perms:       builders.NewPermsBuilder().WithPerm(false, false, false).Build(),
+				defPerms:    builders.NewPermsBuilder().WithPerm(true, true, false).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(&models.Board{1, 1, 1, &models.Permission{true, true, false},
@@ -111,7 +112,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().withPerm(false, false, false).build(),
+				perms:       builders.NewPermsBuilder().WithPerm(false, false, false).Build(),
 				defPerms:    nil,
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
@@ -135,7 +136,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().withPerm(false, false, false).build(),
+				perms:       builders.NewPermsBuilder().WithPerm(false, false, false).Build(),
 				defPerms:    nil,
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
@@ -160,7 +161,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().withPerm(true, false, true).build(),
+				perms:       builders.NewPermsBuilder().WithPerm(true, false, true).Build(),
 				defPerms:    nil,
 			},
 			boardMock:            func(r *mock_repositories.MockBoard, boardId int) {},
@@ -182,7 +183,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().build(),
+				perms:       builders.NewPermsBuilder().Build(),
 				defPerms:    nil,
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {},
@@ -206,7 +207,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().build(),
+				perms:       builders.NewPermsBuilder().Build(),
 				defPerms:    nil,
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {},
@@ -230,7 +231,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().build(),
+				perms:       builders.NewPermsBuilder().Build(),
 				defPerms:    nil,
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {},
@@ -256,7 +257,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().build(),
+				perms:       builders.NewPermsBuilder().Build(),
 				defPerms:    nil,
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {},
@@ -282,7 +283,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().build(),
+				perms:       builders.NewPermsBuilder().Build(),
 				defPerms:    nil,
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {},
@@ -308,7 +309,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().build(),
+				perms:       builders.NewPermsBuilder().Build(),
 				defPerms:    nil,
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {},
@@ -336,7 +337,7 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().build(),
+				perms:       builders.NewPermsBuilder().Build(),
 				defPerms:    nil,
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {},
@@ -365,8 +366,8 @@ func TestBoardPermsService_Create(t *testing.T) {
 				memberId:    2,
 				boardType:   IsBoard,
 				projectType: IsProject,
-				perms:       NewPermsBuilder().build(),
-				defPerms:    NewPermsBuilder().build(),
+				perms:       builders.NewPermsBuilder().Build(),
+				defPerms:    builders.NewPermsBuilder().Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {},
 			getCallerProjectPerm: func(r *mock_repositories.MockObjectPerms, projectId, userId, projectType int) {

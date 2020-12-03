@@ -85,10 +85,6 @@ func (r *ObjectPermsPg) Create(objectId, memberId, objectType int, permissions *
 		tx.Rollback()
 		return 0, err
 	}
-	if err != nil {
-		tx.Rollback()
-		return 0, err
-	}
 
 	tx.Commit()
 	return objectPermsId, err

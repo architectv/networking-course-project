@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"testing"
+	"yak/backend/pkg/builders"
 	"yak/backend/pkg/models"
 
 	mock_repositories "yak/backend/pkg/repositories/mocks"
@@ -10,38 +11,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
-
-type PermsBuilder struct {
-	Perms *models.Permission
-}
-
-func NewPermsBuilder() *PermsBuilder {
-	perms := &models.Permission{
-		Read:  true,
-		Write: true,
-		Admin: true,
-	}
-	return &PermsBuilder{Perms: perms}
-}
-
-func (p *PermsBuilder) build() *models.Permission {
-	return p.Perms
-}
-
-func (p *PermsBuilder) withoutPerm() *PermsBuilder {
-	p.Perms = nil
-	return p
-}
-
-func (p *PermsBuilder) withPerm(r, w, a bool) *PermsBuilder {
-	perm := &models.Permission{
-		Read:  r,
-		Write: w,
-		Admin: a,
-	}
-	p.Perms = perm
-	return p
-}
 
 func TestProjectPermsService_Create(t *testing.T) {
 	type args struct {
@@ -72,8 +41,8 @@ func TestProjectPermsService_Create(t *testing.T) {
 				projectId:  1,
 				memberId:   2,
 				objectType: IsProject,
-				perms:      NewPermsBuilder().build(),
-				defPerms:   NewPermsBuilder().build(),
+				perms:      builders.NewPermsBuilder().Build(),
+				defPerms:   builders.NewPermsBuilder().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, projectId int) {},
 			getMock: func(r *mock_repositories.MockObjectPerms, projectId, userId, objectType int) {
@@ -94,8 +63,8 @@ func TestProjectPermsService_Create(t *testing.T) {
 				projectId:  1,
 				memberId:   2,
 				objectType: IsProject,
-				perms:      NewPermsBuilder().withPerm(false, false, false).build(),
-				defPerms:   NewPermsBuilder().withPerm(true, true, false).build(),
+				perms:      builders.NewPermsBuilder().WithPerm(false, false, false).Build(),
+				defPerms:   builders.NewPermsBuilder().WithPerm(true, true, false).Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, projectId int) {
 				r.EXPECT().GetById(projectId).Return(&models.Project{1, 1, &models.Permission{true, true, false},
@@ -119,8 +88,8 @@ func TestProjectPermsService_Create(t *testing.T) {
 				projectId:  1,
 				memberId:   2,
 				objectType: IsProject,
-				perms:      NewPermsBuilder().withPerm(false, false, false).build(),
-				defPerms:   NewPermsBuilder().build(),
+				perms:      builders.NewPermsBuilder().WithPerm(false, false, false).Build(),
+				defPerms:   builders.NewPermsBuilder().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, projectId int) {
 				r.EXPECT().GetById(projectId).Return(nil, errors.New("some error"))
@@ -139,8 +108,8 @@ func TestProjectPermsService_Create(t *testing.T) {
 				projectId:  1,
 				memberId:   2,
 				objectType: IsProject,
-				perms:      NewPermsBuilder().withPerm(false, false, false).build(),
-				defPerms:   NewPermsBuilder().build(),
+				perms:      builders.NewPermsBuilder().WithPerm(false, false, false).Build(),
+				defPerms:   builders.NewPermsBuilder().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, projectId int) {
 				r.EXPECT().GetById(projectId).Return(&models.Project{1, 1, nil,
@@ -160,8 +129,8 @@ func TestProjectPermsService_Create(t *testing.T) {
 				projectId:  1,
 				memberId:   2,
 				objectType: IsProject,
-				perms:      NewPermsBuilder().withPerm(true, false, true).build(),
-				defPerms:   NewPermsBuilder().build(),
+				perms:      builders.NewPermsBuilder().WithPerm(true, false, true).Build(),
+				defPerms:   builders.NewPermsBuilder().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, projectId int) {},
 			getMock:     func(r *mock_repositories.MockObjectPerms, projectId, userId, objectType int) {},
@@ -178,8 +147,8 @@ func TestProjectPermsService_Create(t *testing.T) {
 				projectId:  1,
 				memberId:   2,
 				objectType: IsProject,
-				perms:      NewPermsBuilder().build(),
-				defPerms:   NewPermsBuilder().build(),
+				perms:      builders.NewPermsBuilder().Build(),
+				defPerms:   builders.NewPermsBuilder().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, projectId int) {},
 			getMock: func(r *mock_repositories.MockObjectPerms, projectId, userId, objectType int) {
@@ -198,8 +167,8 @@ func TestProjectPermsService_Create(t *testing.T) {
 				projectId:  1,
 				memberId:   2,
 				objectType: IsProject,
-				perms:      NewPermsBuilder().build(),
-				defPerms:   NewPermsBuilder().build(),
+				perms:      builders.NewPermsBuilder().Build(),
+				defPerms:   builders.NewPermsBuilder().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, projectId int) {},
 			getMock: func(r *mock_repositories.MockObjectPerms, projectId, userId, objectType int) {
@@ -218,8 +187,8 @@ func TestProjectPermsService_Create(t *testing.T) {
 				projectId:  1,
 				memberId:   2,
 				objectType: IsProject,
-				perms:      NewPermsBuilder().build(),
-				defPerms:   NewPermsBuilder().build(),
+				perms:      builders.NewPermsBuilder().Build(),
+				defPerms:   builders.NewPermsBuilder().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, projectId int) {},
 			getMock: func(r *mock_repositories.MockObjectPerms, projectId, userId, objectType int) {
@@ -238,8 +207,8 @@ func TestProjectPermsService_Create(t *testing.T) {
 				projectId:  1,
 				memberId:   2,
 				objectType: IsProject,
-				perms:      NewPermsBuilder().build(),
-				defPerms:   NewPermsBuilder().build(),
+				perms:      builders.NewPermsBuilder().Build(),
+				defPerms:   builders.NewPermsBuilder().Build(),
 			},
 			projectMock: func(r *mock_repositories.MockProject, projectId int) {},
 			getMock: func(r *mock_repositories.MockObjectPerms, projectId, userId, objectType int) {
