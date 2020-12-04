@@ -12,10 +12,10 @@
 
 <script>
   import Card, {Content, Actions} from '@smui/card';
-  import {getUser} from './auth';
+  import {user} from './auth';
   import Projects from './Projects.svelte';
   import Login from './Login.svelte';
-  let user = getUser();
+  import FieldsTest from './FieldsTest.svelte';
   $: userJson = JSON.stringify($user);
 </script>
 

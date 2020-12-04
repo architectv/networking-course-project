@@ -1,6 +1,7 @@
 import {writable} from 'svelte/store';
+import {validate, validate_prop} from './utils.js';
 
-const user = writable({});
+const user_store = writable({});
 
 let validators = {
   nickname: (value) => {
@@ -29,32 +30,8 @@ let validators = {
   }
 };
 
-export function getUser() {
-  const { subscribe, set, update } = user;
-  function validate_prop(prop, value) {
-    console.log("Validate", prop, value)
-    if (validators[prop]) {
-      return validators[prop](value);
-    }
-    return null;
-  }
-
-  function validate(data) {
-    let res = {};
-    let flag = false;
-    for (const key in data) {
-      let ret = validate_prop(key, data[key]);
-      if (ret) {
-        res[key] = ret;
-        flag = true;
-      }
-    }
-    if (flag) {
-      return res;
-    }
-    return null;
-  }
-
+function getUser() {
+  const { subscribe, set, update } = user_store;
     async function register(data) {
       let success = await fetch("api/v1/users/signup", {
         method: "POST",
@@ -114,7 +91,7 @@ export function getUser() {
       let success = await fetch("api/v1/users/signout", {
         method: "GET",
         headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem("token")
+          'Authorization': 'Bearer ' + token
         }
       }).then((response) => {
         if (response.status == 401) {
@@ -147,11 +124,13 @@ export function getUser() {
 
     return {
       subscribe,
-      validate,
       login,
       register,
       logout,
-      validate_prop,
-      unauthorized
+      unauthorized,
+      validate: (data) => validate(validators, data),
+      validate_prop: (prop, val) => validate_prop(validators, prop, val)
     };
   }
+
+export const user = getUser();
