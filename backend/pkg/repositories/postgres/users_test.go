@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"errors"
 	"testing"
 	"yak/backend/pkg/models"
 
@@ -50,6 +51,21 @@ func TestUserPg_Create(t *testing.T) {
 				Nickname: "TestName",
 				Email:    "test@test.com",
 				Password: "",
+				Avatar:   "avatar",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Not Unique Name",
+			mock: func() {
+				mock.ExpectQuery("INSERT INTO users").
+					WithArgs("NotUniqueName", "test@test.com", "password", "avatar").
+					WillReturnError(errors.New("some error"))
+			},
+			input: &models.User{
+				Nickname: "NotUniqueName",
+				Email:    "test@test.com",
+				Password: "password",
 				Avatar:   "avatar",
 			},
 			wantErr: true,

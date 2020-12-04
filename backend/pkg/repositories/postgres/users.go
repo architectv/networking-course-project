@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"strings"
 	"yak/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
@@ -13,6 +14,64 @@ type UserPg struct {
 
 func NewUserPg(db *sqlx.DB) *UserPg {
 	return &UserPg{db: db}
+}
+
+func (r *UserPg) GetById(id int) (*models.User, error) {
+	user := &models.User{}
+
+	query := fmt.Sprintf(
+		`SELECT u.id, u.nickname, u.email, u.avatar
+		FROM %s AS u
+		WHERE u.id = $1`,
+		usersTable)
+
+	if err := r.db.Get(user, query, id); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *UserPg) Update(id int, profile *models.UpdateUser) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+	argId := 1
+
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	if profile.Nickname != nil {
+		setValues = append(setValues, fmt.Sprintf("nickname=$%d", argId))
+		args = append(args, *profile.Nickname)
+		argId++
+	}
+
+	if profile.Email != nil {
+		setValues = append(setValues, fmt.Sprintf("email=$%d", argId))
+		args = append(args, *profile.Email)
+		argId++
+	}
+
+	if profile.Avatar != nil {
+		setValues = append(setValues, fmt.Sprintf("avatar=$%d", argId))
+		args = append(args, *profile.Avatar)
+		argId++
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+	query := fmt.Sprintf(`UPDATE %s SET %s where id=$%d`,
+		usersTable, setQuery, argId)
+	args = append(args, id)
+	_, err = tx.Exec(query, args...)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return err
 }
 
 func (r *UserPg) GetAll() ([]*models.User, error) {
