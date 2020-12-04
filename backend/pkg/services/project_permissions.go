@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"yak/backend/pkg/models"
 	"yak/backend/pkg/repositories"
 )
@@ -14,12 +15,13 @@ const (
 )
 
 type ProjectPermsService struct {
-	repo        repositories.ProjectPerms
+	repo        repositories.ObjectPerms
 	projectRepo repositories.Project
+	boardRepo   repositories.Board
 }
 
-func NewProjectPermsService(repo repositories.ProjectPerms, projectRepo repositories.Project) *ProjectPermsService {
-	return &ProjectPermsService{repo: repo, projectRepo: projectRepo}
+func NewProjectPermsService(repo repositories.ObjectPerms, projectRepo repositories.Project, boardRepo repositories.Board) *ProjectPermsService {
+	return &ProjectPermsService{repo: repo, projectRepo: projectRepo, boardRepo: boardRepo}
 }
 
 func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiResponse {
@@ -133,7 +135,23 @@ func (s *ProjectPermsService) Delete(userId, projectId, memberId int) *models.Ap
 		return r
 	}
 
-	err = s.repo.Delete(projectId, memberId, 0, IsProject)
+	var projectOwnerId int
+	boardsCount, err := s.boardRepo.GetBoardsCountByOwnerId(projectId, memberId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	if boardsCount != 0 {
+		if project.OwnerId != userId {
+			r.Error(StatusBadRequest, "Exclude board owner from project can only be project owner")
+			return r
+		} else {
+			projectOwnerId = userId
+		}
+	}
+
+	err = s.repo.Delete(projectId, memberId, projectOwnerId, IsProject)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -176,7 +194,7 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	project, err := s.projectRepo.GetById(projectId) // TODO изменение прав автора
+	project, err := s.projectRepo.GetById(projectId)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -186,7 +204,23 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	err = s.repo.Update(projectId, memberId, projectPerms)
+	var projectOwnerId int
+	boardsCount, err := s.boardRepo.GetBoardsCountByOwnerId(projectId, memberId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	if boardsCount != 0 {
+		if project.OwnerId != userId {
+			r.Error(StatusBadRequest, "Update board owner from project can only be project owner")
+			return r
+		} else {
+			projectOwnerId = userId
+		}
+	}
+	fmt.Println(projectId, memberId, projectOwnerId, IsProject, projectPerms)
+	err = s.repo.Update(projectId, memberId, projectOwnerId, IsProject, projectPerms)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -243,5 +277,13 @@ func permsValidation(perms *models.Permission) error {
 		}
 	} else {
 		return errors.New(ErrPermsIncor)
+	}
+}
+
+func memberIsAdmin(perms *models.UpdatePermission) bool {
+	if perms != nil && perms.Admin != nil && *perms.Admin == false {
+		return false
+	} else {
+		return true
 	}
 }

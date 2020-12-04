@@ -261,55 +261,34 @@ func (r *BoardPg) GetPermissions(userId, boardId int) (*models.Permission, error
 	return permissions, nil
 }
 
-func (r *BoardPg) GetCountByOwnerId(projectId, ownerId int) (int, error) { // TODO не работает
-	var boardIds []int
+func (r *BoardPg) GetBoardsCountByOwnerId(projectId, ownerId int) (int, error) {
+	var count int
 
 	query := fmt.Sprintf(
-		`SELECT b.id 
+		`SELECT COUNT(*)
 		FROM %s AS b
 		WHERE b.project_id = $1 AND b.owner_id = $2`,
 		boardsTable)
-	fmt.Println(query)
-
-	rows, err := r.db.Query(query, projectId, ownerId)
-	if err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var boardId int
-		if err := rows.Scan(&boardId); err != nil {
-			return 0, err
-		}
-		boardIds = append(boardIds, boardId)
-	}
-
-	if err := rows.Err(); err != nil {
-		return 0, err
-	}
-	return len(boardIds), nil
+	err := r.db.QueryRow(query, projectId, ownerId).Scan(&count)
+	return count, err
 }
 
-// TODO не работает, но лучше сделать так
-// func (r *BoardPg) GetCountByOwnerId(projectId, ownerId int) (int, error) {
-// 	var count int
-
-// 	query := fmt.Sprintf(
-// 		`SELECT COUNT(*)
-// 		FROM %s AS b
-// 		WHERE b.project_id = $1 AND b.owner_id = $2`,
-// 		boardsTable)
-
-// 	fmt.Println(count, projectId, ownerId)
-// 	err := r.db.Select(&count, query, projectId, ownerId)
-// 	return count, err
-// }
-
-func updateOwnerId(tx *sql.Tx, projectId, oldOwnerId, newOwnerId int) error {
+func updateOwnerIdByProjectId(tx *sql.Tx, projectId, oldOwnerId, newOwnerId int) error {
 	query := fmt.Sprintf(`UPDATE %s SET owner_id=$1
-		WHERE b.project_id = $2 AND b.owner_id = $3`,
-		boardsTable)
+		WHERE project_id = (
+			SELECT project_id from %s WHERE id=$2
+		) AND owner_id = $3`,
+		boardsTable, boardsTable)
+	fmt.Println(newOwnerId, projectId, oldOwnerId)
 	_, err := tx.Exec(query, newOwnerId, projectId, oldOwnerId)
+	return err
+}
+
+func updateOwnerIdByBoardId(tx *sql.Tx, boardId, oldOwnerId, newOwnerId int) error {
+	query := fmt.Sprintf(`UPDATE %s SET owner_id=$1
+		WHERE id = $2 AND owner_id = $3`,
+		boardsTable)
+	fmt.Println(newOwnerId, boardId, oldOwnerId)
+	_, err := tx.Exec(query, newOwnerId, boardId, oldOwnerId)
 	return err
 }

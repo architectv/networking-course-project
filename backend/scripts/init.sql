@@ -223,7 +223,7 @@ INSERT INTO boards (
 VALUES (1, 2, 6, 2, 'Second board');
 -- 2
 INSERT INTO board_users (user_id, board_id, permissions_id)
-VALUES (1, 2, 5);
+VALUES (2, 2, 5);
 -- PROJECT id=2
 -- 7
 INSERT INTO permissions (read, write, admin)
@@ -333,3 +333,10 @@ VALUES (2, 3, 16);
 -- USERS id=4
 INSERT INTO users (nickname, email, avatar, password)
 VALUES ('ivan', 'ivan@mail.ru', '', 'qwerty');
+-- PROJECT_USERS id=5
+-- 17
+INSERT INTO permissions (read, write, admin)
+VALUES (true, false, false);
+-- 3
+INSERT INTO project_users (user_id, project_id, permissions_id)
+VALUES (4, 1, 17);
