@@ -8,15 +8,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (apiVX *ApiV1) registerProjectPermsHandlers(router fiber.Router) {
-	group := router.Group("/projects/:pid/permissions", apiVX.userIdentity)
-	group.Post("/", apiVX.createProjectPerms)
-	group.Get("/", apiVX.getProjectPerms)
-	group.Put("/", apiVX.updateProjectPerms)
-	group.Delete("/", apiVX.deleteProjectPerms)
+func (apiVX *ApiV1) registerBoardPermsHandlers(router fiber.Router) {
+	group := router.Group("/projects/:pid/boards/:bid/permissions", apiVX.userIdentity)
+	group.Post("/", apiVX.urlIdsValidation, apiVX.createBoardPerms)
+	group.Get("/", apiVX.urlIdsValidation, apiVX.getBoardPerms)
+	group.Put("/", apiVX.urlIdsValidation, apiVX.updateBoardPerms)
+	group.Delete("/", apiVX.urlIdsValidation, apiVX.deleteBoardPerms)
 }
 
-func (apiVX *ApiV1) getProjectPerms(ctx *fiber.Ctx) error {
+func (apiVX *ApiV1) getBoardPerms(ctx *fiber.Ctx) error {
 	response := &models.ApiResponse{}
 	userId, err := getUserId(ctx)
 	if err != nil {
@@ -30,17 +30,23 @@ func (apiVX *ApiV1) getProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
 	memberId, err := strconv.Atoi(ctx.Query("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
 		return Send(ctx, response)
 	}
 
-	response = apiVX.services.ProjectPerms.Get(userId, projectId, memberId)
+	response = apiVX.services.BoardPerms.Get(userId, projectId, boardId, memberId)
 	return Send(ctx, response)
 }
 
-func (apiVX *ApiV1) createProjectPerms(ctx *fiber.Ctx) error {
+func (apiVX *ApiV1) createBoardPerms(ctx *fiber.Ctx) error {
 	response := &models.ApiResponse{}
 	userId, err := getUserId(ctx)
 	if err != nil {
@@ -49,6 +55,12 @@ func (apiVX *ApiV1) createProjectPerms(ctx *fiber.Ctx) error {
 	}
 
 	projectId, err := strconv.Atoi(ctx.Params("pid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
 	if err != nil || projectId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid projectId")
 		return Send(ctx, response)
@@ -71,12 +83,12 @@ func (apiVX *ApiV1) createProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	response = apiVX.services.ProjectPerms.Create(userId, projectId, memberId,
+	response = apiVX.services.BoardPerms.Create(userId, projectId, boardId, memberId,
 		permissions)
 	return Send(ctx, response)
 }
 
-func (apiVX *ApiV1) deleteProjectPerms(ctx *fiber.Ctx) error {
+func (apiVX *ApiV1) deleteBoardPerms(ctx *fiber.Ctx) error {
 	response := &models.ApiResponse{}
 	userId, err := getUserId(ctx)
 	if err != nil {
@@ -90,17 +102,23 @@ func (apiVX *ApiV1) deleteProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
 	memberId, err := strconv.Atoi(ctx.Query("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
 		return Send(ctx, response)
 	}
 
-	response = apiVX.services.ProjectPerms.Delete(userId, projectId, memberId)
+	response = apiVX.services.BoardPerms.Delete(userId, projectId, boardId, memberId)
 	return Send(ctx, response)
 }
 
-func (apiVX *ApiV1) updateProjectPerms(ctx *fiber.Ctx) error {
+func (apiVX *ApiV1) updateBoardPerms(ctx *fiber.Ctx) error {
 	response := &models.ApiResponse{}
 	userId, err := getUserId(ctx)
 	if err != nil {
@@ -109,6 +127,12 @@ func (apiVX *ApiV1) updateProjectPerms(ctx *fiber.Ctx) error {
 	}
 
 	projectId, err := strconv.Atoi(ctx.Params("pid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
 	if err != nil || projectId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid projectId")
 		return Send(ctx, response)
@@ -131,7 +155,7 @@ func (apiVX *ApiV1) updateProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	response = apiVX.services.ProjectPerms.Update(userId, projectId, memberId,
+	response = apiVX.services.BoardPerms.Update(userId, projectId, boardId, memberId,
 		permissions)
 	return Send(ctx, response)
 }

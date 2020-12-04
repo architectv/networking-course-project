@@ -9,17 +9,18 @@ import (
 	sqlmock "github.com/zhashkevych/go-sqlxmock"
 )
 
-func TestProjectPg_Create(t *testing.T) {
+func TestBoardPg_Create(t *testing.T) {
 	db, mock, err := sqlmock.Newx()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
 
-	r := NewProjectPg(db)
+	r := NewBoardPg(db)
 
 	type args struct {
-		project *models.Project
+		userId int
+		board  *models.Board
 	}
 	type mockBehavior func(args args, id int)
 
@@ -33,20 +34,19 @@ func TestProjectPg_Create(t *testing.T) {
 		{
 			name: "Ok",
 			input: args{
-				project: &models.Project{
-					OwnerId: 1,
+				board: &models.Board{
+					ProjectId: 1,
 					DefaultPermissions: &models.Permission{
 						Read:  true,
 						Write: true,
-						Admin: true,
+						Admin: false,
 					},
 					Datetimes: &models.Datetimes{
 						Created:  1,
 						Updated:  1,
 						Accessed: 1,
 					},
-					Title:       "New Test Project",
-					Description: "Some Description",
+					Title: "New Test Board",
 				},
 			},
 			want: 1,
@@ -56,23 +56,23 @@ func TestProjectPg_Create(t *testing.T) {
 				defPermissionId := 1
 				datetimesId := 1
 
-				defPerm := args.project.DefaultPermissions
+				defPerm := args.board.DefaultPermissions
 				defPermRows := sqlmock.NewRows([]string{"id"}).AddRow(defPermissionId)
 				mock.ExpectQuery("INSERT INTO permissions").
 					WithArgs(defPerm.Read, defPerm.Write, defPerm.Admin).
 					WillReturnRows(defPermRows)
 
-				datetimes := args.project.Datetimes
+				datetimes := args.board.Datetimes
 				dateRows := sqlmock.NewRows([]string{"id"}).AddRow(datetimesId)
 				mock.ExpectQuery("INSERT INTO datetimes").
 					WithArgs(datetimes.Created, datetimes.Updated, datetimes.Accessed).
 					WillReturnRows(dateRows)
 
-				project := args.project
-				projectRows := sqlmock.NewRows([]string{"id"}).AddRow(id)
-				mock.ExpectQuery("INSERT INTO projects").WithArgs(project.OwnerId, defPermissionId,
-					datetimesId, project.Title, project.Description).
-					WillReturnRows(projectRows)
+				board := args.board
+				boardRows := sqlmock.NewRows([]string{"id"}).AddRow(id)
+				mock.ExpectQuery("INSERT INTO boards").WithArgs(board.ProjectId, board.OwnerId,
+					defPermissionId, datetimesId, board.Title).
+					WillReturnRows(boardRows)
 
 				perm := &models.Permission{
 					Read:  true,
@@ -85,7 +85,7 @@ func TestProjectPg_Create(t *testing.T) {
 					WithArgs(perm.Read, perm.Write, perm.Admin).
 					WillReturnRows(permRows)
 
-				mock.ExpectExec("INSERT INTO project_users").WithArgs(project.OwnerId, id, permissionId).
+				mock.ExpectExec("INSERT INTO board_users").WithArgs(args.userId, id, permissionId).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 
 				mock.ExpectCommit()
@@ -94,20 +94,19 @@ func TestProjectPg_Create(t *testing.T) {
 		{
 			name: "Empty Fields",
 			input: args{
-				project: &models.Project{
-					OwnerId: 1,
+				board: &models.Board{
+					ProjectId: 1,
 					DefaultPermissions: &models.Permission{
 						Read:  true,
 						Write: true,
-						Admin: true,
+						Admin: false,
 					},
 					Datetimes: &models.Datetimes{
 						Created:  1,
 						Updated:  1,
 						Accessed: 1,
 					},
-					Title:       "",
-					Description: "Some Description",
+					Title: "New Test Board",
 				},
 			},
 			mock: func(args args, id int) {
@@ -116,23 +115,37 @@ func TestProjectPg_Create(t *testing.T) {
 				defPermissionId := 1
 				datetimesId := 1
 
-				defPerm := args.project.DefaultPermissions
+				defPerm := args.board.DefaultPermissions
 				defPermRows := sqlmock.NewRows([]string{"id"}).AddRow(defPermissionId)
 				mock.ExpectQuery("INSERT INTO permissions").
 					WithArgs(defPerm.Read, defPerm.Write, defPerm.Admin).
 					WillReturnRows(defPermRows)
 
-				datetimes := args.project.Datetimes
+				datetimes := args.board.Datetimes
 				dateRows := sqlmock.NewRows([]string{"id"}).AddRow(datetimesId)
 				mock.ExpectQuery("INSERT INTO datetimes").
 					WithArgs(datetimes.Created, datetimes.Updated, datetimes.Accessed).
 					WillReturnRows(dateRows)
 
-				project := args.project
-				projectRows := sqlmock.NewRows([]string{"id"}).AddRow(id).RowError(0, errors.New("insert error"))
-				mock.ExpectQuery("INSERT INTO projects").WithArgs(project.OwnerId, defPermissionId,
-					datetimesId, project.Title, project.Description).
-					WillReturnRows(projectRows)
+				board := args.board
+				boardRows := sqlmock.NewRows([]string{"id"}).AddRow(id)
+				mock.ExpectQuery("INSERT INTO boards").WithArgs(board.ProjectId, board.OwnerId,
+					defPermissionId, datetimesId, board.Title).
+					WillReturnRows(boardRows)
+
+				perm := &models.Permission{
+					Read:  true,
+					Write: true,
+					Admin: true,
+				}
+				permissionId := defPermissionId + 1
+				permRows := sqlmock.NewRows([]string{"id"}).AddRow(id).RowError(0, errors.New("insert error"))
+				mock.ExpectQuery("INSERT INTO permissions").
+					WithArgs(perm.Read, perm.Write, perm.Admin).
+					WillReturnRows(permRows)
+
+				mock.ExpectExec("INSERT INTO board_users").WithArgs(args.userId, id, permissionId).
+					WillReturnResult(sqlmock.NewResult(1, 1))
 
 				mock.ExpectRollback()
 			},
@@ -141,20 +154,19 @@ func TestProjectPg_Create(t *testing.T) {
 		{
 			name: "Failed Insert",
 			input: args{
-				project: &models.Project{
-					OwnerId: 1,
+				board: &models.Board{
+					ProjectId: 1,
 					DefaultPermissions: &models.Permission{
 						Read:  true,
 						Write: true,
-						Admin: true,
+						Admin: false,
 					},
 					Datetimes: &models.Datetimes{
 						Created:  1,
 						Updated:  1,
 						Accessed: 1,
 					},
-					Title:       "New Test Project",
-					Description: "Some Description",
+					Title: "New Test Board",
 				},
 			},
 			mock: func(args args, id int) {
@@ -162,7 +174,7 @@ func TestProjectPg_Create(t *testing.T) {
 
 				defPermissionId := 1
 
-				defPerm := args.project.DefaultPermissions
+				defPerm := args.board.DefaultPermissions
 				defPermRows := sqlmock.NewRows([]string{"id"}).AddRow(defPermissionId).RowError(0, errors.New("insert error"))
 				mock.ExpectQuery("INSERT INTO permissions").
 					WithArgs(defPerm.Read, defPerm.Write, defPerm.Admin).
@@ -178,7 +190,7 @@ func TestProjectPg_Create(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mock(tt.input, tt.want)
 
-			got, err := r.Create(tt.input.project)
+			got, err := r.Create(tt.input.userId, tt.input.board)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

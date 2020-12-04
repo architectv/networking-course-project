@@ -2,20 +2,24 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"yak/backend/pkg/models"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
+	"github.com/sirupsen/logrus"
 )
 
 func (apiVX *ApiV1) registerUsersHandlers(router fiber.Router) {
 	group := router.Group("/users")
-	group.Get("/", apiVX.getUsers)
+	group.Get("/", apiVX.userIdentity, apiVX.getUser)
+	// group.Get("/", apiVX.getUsers)
 	group.Post("/signup", apiVX.signUp)
 	group.Post("/signin", apiVX.signIn)
 	group.Get("/signout", apiVX.userIdentity, apiVX.signOut)
+	group.Put("/update", apiVX.userIdentity, apiVX.update)
 }
 
 func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
@@ -24,6 +28,59 @@ func (apiVX *ApiV1) getUsers(ctx *fiber.Ctx) error {
 		return err
 	}
 	return ctx.JSON(users)
+}
+
+func (apiVX *ApiV1) getUser(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+	id, err := getUserId(ctx)
+	if err != nil {
+		response.Error(fiber.StatusUnauthorized, err.Error())
+		return Send(ctx, response)
+	}
+
+	response = apiVX.services.User.Get(id)
+	return Send(ctx, response)
+}
+
+func (apiVX *ApiV1) update(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+	id, err := getUserId(ctx)
+	if err != nil {
+		response.Error(fiber.StatusUnauthorized, err.Error())
+		return Send(ctx, response)
+	}
+
+	input := &models.UpdateUser{}
+	if err := ctx.BodyParser(&input); err != nil {
+		logrus.Println("body parser!")
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+	if _, err := govalidator.ValidateStruct(input); err != nil {
+		logrus.Println("govalid!")
+		response.Error(fiber.StatusBadRequest, err.Error())
+		return Send(ctx, response)
+	}
+
+	if input.Avatar != nil {
+		// TODO: check file extension
+		file, err := ctx.FormFile("document")
+		if err != nil {
+			response.Error(fiber.StatusBadRequest, err.Error())
+			return Send(ctx, response)
+		}
+		// TODO: media dir
+		avatar := fmt.Sprintf("./media/%s", file.Filename)
+		err = ctx.SaveFile(file, avatar)
+		if err != nil {
+			response.Error(fiber.StatusBadRequest, err.Error())
+			return Send(ctx, response)
+		}
+		input.Avatar = &avatar
+	}
+
+	response = apiVX.services.User.Update(id, input)
+	return Send(ctx, response)
 }
 
 func (apiVX *ApiV1) signIn(ctx *fiber.Ctx) error {

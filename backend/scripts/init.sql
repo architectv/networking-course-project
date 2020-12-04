@@ -1,5 +1,6 @@
-DROP TABLE IF EXISTS tasks CASCADE;
+DROP TABLE IF EXISTS task_labels CASCADE;
 DROP TABLE IF EXISTS labels CASCADE;
+DROP TABLE IF EXISTS tasks CASCADE;
 DROP TABLE IF EXISTS task_lists CASCADE;
 DROP TABLE IF EXISTS board_users CASCADE;
 DROP TABLE IF EXISTS boards CASCADE;
@@ -8,6 +9,7 @@ DROP TABLE IF EXISTS projects CASCADE;
 DROP TABLE IF EXISTS datetimes CASCADE;
 DROP TABLE IF EXISTS permissions CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS tokens CASCADE;
 CREATE TABLE IF NOT EXISTS users (
     id serial PRIMARY KEY,
     nickname varchar(32) UNIQUE NOT NULL,
@@ -47,7 +49,7 @@ CREATE TABLE IF NOT EXISTS boards (
     owner_id int REFERENCES users (id) ON DELETE CASCADE NOT NULL,
     default_permissions_id int REFERENCES permissions (id) ON DELETE CASCADE NOT NULL,
     datetimes_id int references datetimes (id) ON DELETE CASCADE NOT NULL,
-    title varchar(30) NOT NULL
+    title varchar(50) NOT NULL
 );
 CREATE TABLE IF NOT EXISTS board_users (
     id serial PRIMARY KEY,
@@ -55,11 +57,6 @@ CREATE TABLE IF NOT EXISTS board_users (
     board_id int REFERENCES boards (id) ON DELETE CASCADE NOT NULL,
     permissions_id int REFERENCES permissions (id) ON DELETE CASCADE NOT NULL
 );
--- CREATE TABLE labels
--- (
---     id serial      not null unique,
--- 	name varchar(30) not null
--- );
 CREATE TABLE IF NOT EXISTS task_lists (
     id serial PRIMARY KEY,
     board_id int REFERENCES boards (id) ON DELETE CASCADE NOT NULL,
@@ -76,6 +73,17 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE TABLE IF NOT EXISTS tokens (
     id serial PRIMARY KEY,
     jwt text NOT NULL
+);
+CREATE TABLE IF NOT EXISTS labels (
+    id serial PRIMARY KEY,
+    board_id int REFERENCES boards (id) ON DELETE CASCADE NOT NULL,
+    name varchar(30) NOT NULL,
+    color int NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS task_labels (
+    id serial PRIMARY KEY,
+    task_id int REFERENCES tasks (id) ON DELETE CASCADE NOT NULL,
+    label_id int REFERENCES labels (id) ON DELETE CASCADE NOT NULL
 );
 -- USERS
 -- 1
@@ -115,7 +123,7 @@ VALUES (
 -- 1
 INSERT INTO project_users (user_id, project_id, permissions_id)
 VALUES (1, 1, 1);
--- BOARDS id=1
+-- BOARD id=1
 -- 3
 INSERT INTO permissions (read, write, admin)
 VALUES (true, true, true);
@@ -137,7 +145,6 @@ VALUES (1, 1, 4, 2, 'First board');
 -- 1
 INSERT INTO board_users (user_id, board_id, permissions_id)
 VALUES (1, 1, 3);
-
 --
 -- 5
 -- INSERT INTO permissions (read, write, admin)
@@ -177,7 +184,6 @@ VALUES (1, 'Second task', 4, 1);
 -- 3
 INSERT INTO tasks (list_id, title, datetimes_id, position)
 VALUES (1, 'Third task', 5, 2);
-
 -- 6
 INSERT INTO datetimes (created, updated, accessed)
 VALUES (1605925262, 1605925262, 1605925262);
@@ -196,8 +202,7 @@ VALUES (2, 'SECOND TASK', 7, 1);
 -- 6
 INSERT INTO tasks (list_id, title, datetimes_id, position)
 VALUES (2, 'THIRD TASK', 8, 2);
-
--- BOARDS id=2
+-- BOARD id=2
 -- 5
 INSERT INTO permissions (read, write, admin)
 VALUES (true, true, true);
@@ -215,11 +220,10 @@ INSERT INTO boards (
         datetimes_id,
         title
     )
-VALUES (1, 1, 4, 2, 'Second board');
+VALUES (1, 2, 6, 2, 'Second board');
 -- 2
 INSERT INTO board_users (user_id, board_id, permissions_id)
 VALUES (2, 2, 5);
-
 -- PROJECT id=2
 -- 7
 INSERT INTO permissions (read, write, admin)
@@ -254,8 +258,8 @@ INSERT INTO permissions (read, write, admin)
 VALUES (true, true, false);
 -- 3
 INSERT INTO project_users (user_id, project_id, permissions_id)
-VALUES (1, 2, 9);
--- PROJECT id=2
+VALUES (2, 1, 9);
+-- PROJECT id=3
 -- 10
 INSERT INTO permissions (read, write, admin)
 VALUES (true, true, true);
@@ -283,11 +287,56 @@ VALUES (
 -- 4
 INSERT INTO project_users (user_id, project_id, permissions_id)
 VALUES (3, 3, 10);
-
 -- PROJECT_USERS id=4
 -- 12
 INSERT INTO permissions (read, write, admin)
 VALUES (true, false, false);
 -- 3
 INSERT INTO project_users (user_id, project_id, permissions_id)
-VALUES (2, 1, 12);
+VALUES (3, 1, 12);
+-- BOARDS id=3
+-- 13
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, true);
+-- 14
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, false);
+-- 12
+INSERT INTO datetimes (created, updated, accessed)
+VALUES (1605925262, 1605925262, 1605925262);
+-- 3
+INSERT INTO boards (
+        project_id,
+        owner_id,
+        default_permissions_id,
+        datetimes_id,
+        title
+    )
+VALUES (1, 3, 14, 12, 'First board in the second project');
+-- 3
+INSERT INTO board_users (user_id, board_id, permissions_id)
+VALUES (3, 3, 13);
+-- BOARD_USERS id=3
+-- 15
+INSERT INTO permissions (read, write, admin)
+VALUES (true, true, true);
+-- 4
+INSERT INTO board_users (user_id, board_id, permissions_id) -- автор проекта
+VALUES (1, 3, 15);
+-- BOARD_USERS id=4
+-- 16
+INSERT INTO permissions (read, write, admin)
+VALUES (true, false, false);
+-- 5
+INSERT INTO board_users (user_id, board_id, permissions_id)
+VALUES (2, 3, 16);
+-- USERS id=4
+INSERT INTO users (nickname, email, avatar, password)
+VALUES ('ivan', 'ivan@mail.ru', '', 'qwerty');
+-- PROJECT_USERS id=5
+-- 17
+INSERT INTO permissions (read, write, admin)
+VALUES (true, false, false);
+-- 3
+INSERT INTO project_users (user_id, project_id, permissions_id)
+VALUES (4, 1, 17);

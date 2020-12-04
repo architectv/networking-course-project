@@ -9,11 +9,13 @@ import (
 
 type User interface {
 	GetAll() ([]*models.User, error)
+	GetById(id int) (*models.User, error)
 	Create(user *models.User) (int, error)
 	Get(nickname, password string) (*models.User, error)
 	GetByNickname(nickname string) (*models.User, error)
 	SignOut(token string) (int, error)
 	FindToken(token string) error
+	Update(id int, profile *models.UpdateUser) error
 }
 
 type Project interface {
@@ -23,6 +25,7 @@ type Project interface {
 	Delete(projectId int) error
 	Update(projectId int, project *models.UpdateProject) error
 	GetPermissions(userId, projectId int) (*models.Permission, error)
+	GetMembers(projectId int) ([]*models.Member, error)
 }
 
 type Board interface {
@@ -32,6 +35,8 @@ type Board interface {
 	Delete(boardId int) error
 	Update(boardId int, board *models.UpdateBoard) error
 	GetPermissions(userId, boardId int) (*models.Permission, error)
+	GetBoardsCountByOwnerId(projectId, ownerId int) (int, error)
+	GetMembers(projectId int) ([]*models.Member, error)
 }
 
 type TaskList interface {
@@ -51,11 +56,22 @@ type Task interface {
 	Update(taskId int, task *models.UpdateTask) error
 }
 
-type ProjectPerms interface {
-	Create(projectId, memberId int, permissions *models.Permission) (int, error)
-	Get(projectId, userId int) (*models.Permission, error)
-	Delete(projectId, memberId int) error
-	// Update(projectId, memberId int, permissions *models.Permission) error
+type Label interface {
+	Create(label *models.Label) (int, error)
+	CreateInTask(taskId, labelId int) (int, error)
+	GetAllInTask(taskId int) ([]*models.Label, error)
+	GetAll(boardId int) ([]*models.Label, error)
+	GetById(labelId int) (*models.Label, error)
+	DeleteInTask(taskId, labelId int) error
+	Delete(labelId int) error
+	Update(labelId int, label *models.UpdateLabel) error
+}
+
+type ObjectPerms interface {
+	Create(objectId, memberId, objectType int, permissions *models.Permission) (int, error)
+	Get(objectId, memberId, objectType int) (*models.Permission, error)
+	Delete(objectId, oldOwnerId, newOwnerId, objectType int) error
+	Update(objectId, oldOwnerId, newOwnerId, objectType int, permissions *models.UpdatePermission) error
 }
 
 type Repository struct {
@@ -64,7 +80,8 @@ type Repository struct {
 	Board
 	TaskList
 	Task
-	ProjectPerms
+	Label
+	ObjectPerms
 }
 
 // func NewRepository(db *mongo.Database) *Repository {
@@ -79,11 +96,12 @@ type Repository struct {
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		User:         postgres.NewUserPg(db),
-		Project:      postgres.NewProjectPg(db),
-		Board:        postgres.NewBoardPg(db),
-		TaskList:     postgres.NewTaskListPg(db),
-		Task:         postgres.NewTaskPg(db),
-		ProjectPerms: postgres.NewProjectPermsPg(db),
+		User:        postgres.NewUserPg(db),
+		Project:     postgres.NewProjectPg(db),
+		Board:       postgres.NewBoardPg(db),
+		TaskList:    postgres.NewTaskListPg(db),
+		Task:        postgres.NewTaskPg(db),
+		Label:       postgres.NewLabelPg(db),
+		ObjectPerms: postgres.NewObjectPermsPg(db),
 	}
 }

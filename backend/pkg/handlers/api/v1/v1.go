@@ -24,12 +24,14 @@ func NewApiV1(services *services.Service) *ApiV1 {
 
 func (apiVX *ApiV1) RegisterHandlers(router fiber.Router) {
 	v1 := router.Group("/v1")
+	apiVX.registerBoardPermsHandlers(v1)
 	apiVX.registerBoardsHandlers(v1)
 	apiVX.registerListsHandlers(v1)
 	apiVX.registerProjectPermsHandlers(v1)
 	apiVX.registerProjectsHandlers(v1)
 	apiVX.registerTasksHandlers(v1)
 	apiVX.registerUsersHandlers(v1)
+	apiVX.registerLabelsHandlers(v1)
 }
 
 func Send(ctx *fiber.Ctx, r *models.ApiResponse) error {
