@@ -60,7 +60,9 @@ func (r *TaskListPg) Create(list *models.TaskList) (int, error) {
 
 	row := tx.QueryRow(query, list.BoardId)
 	if err := row.Scan(&position); err != nil {
-		return 0, err
+		// TODO: to use int pointer?
+		position = 0
+		// return 0, err
 	}
 	position++
 
