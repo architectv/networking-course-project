@@ -8,6 +8,7 @@ require (
 	github.com/daixiang0/gci v0.2.5 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
+	github.com/go-testfixtures/testfixtures/v3 v3.4.1
 	github.com/gofiber/fiber/v2 v2.1.2
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/mock v1.4.4

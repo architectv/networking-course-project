@@ -1,93 +1,82 @@
 package services
 
 import (
-	"errors"
+	"fmt"
 	"testing"
+	"yak/backend/pkg/builders"
 	"yak/backend/pkg/models"
+	"yak/backend/pkg/repositories/postgres"
 
-	mock_repositories "yak/backend/pkg/repositories/mocks"
-
-	"github.com/golang/mock/gomock"
+	"github.com/go-testfixtures/testfixtures/v3"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
 
-type UserBuilder struct {
-	User *models.User
+const (
+	UsernameTestDB = "postgres"
+	PasswordTestDB = "123matan123"
+	HostTestDB     = "localhost"
+	PortTestDB     = "5432"
+	DBnameTestDB   = "yak_test_real_db"
+	SslmodeTestDB  = "disable"
+)
+
+func openTestDatabase() (*sqlx.DB, error) {
+	db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
+		HostTestDB, PortTestDB, UsernameTestDB, DBnameTestDB, PasswordTestDB, SslmodeTestDB))
+	return db, err
 }
 
-func NewUserBuilder() *UserBuilder {
-	user := &models.User{
-		Nickname: "Dafault Nickname",
-		Email:    "Default Email",
-		Password: "Default Password",
-		Avatar:   "Default Avatar",
+func prepareTestDatabase() (*sqlx.DB, error) {
+	db, err := openTestDatabase()
+	if err != nil {
+		return nil, err
 	}
-	return &UserBuilder{User: user}
-}
 
-func (b *UserBuilder) build() *models.User {
-	return b.User
-}
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db.DB),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Directory("fixtures"),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-func (b *UserBuilder) withNickname(nickname string) *UserBuilder {
-	b.User.Nickname = nickname
-	return b
-}
-
-func (b *UserBuilder) withEmail(email string) *UserBuilder {
-	b.User.Email = email
-	return b
-}
-
-func (b *UserBuilder) withPassword(password string) *UserBuilder {
-	b.User.Password = password
-	return b
-}
-
-func (b *UserBuilder) withAvatar(avatar string) *UserBuilder {
-	b.User.Avatar = avatar
-	return b
+	err = fixtures.Load()
+	return db, err
 }
 
 func TestUserService_Create(t *testing.T) {
+	db, err := prepareTestDatabase()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
 	type args struct {
 		user *models.User
 	}
-	type mockCheck func(r *mock_repositories.MockUser, nickname string)
-	type mockCreate func(r *mock_repositories.MockUser, user *models.User)
 
 	tests := []struct {
 		name                string
 		input               args
-		mockCheck           mockCheck
-		mockCreate          mockCreate
 		expectedApiResponse *models.ApiResponse
 	}{
 		{
 			name: "Ok",
 			input: args{
-				user: NewUserBuilder().withNickname("User Builder").build(),
-			},
-			mockCheck: func(r *mock_repositories.MockUser, nickname string) {
-				r.EXPECT().GetByNickname(nickname).Return(nil, errors.New("new nickname"))
-			},
-			mockCreate: func(r *mock_repositories.MockUser, user *models.User) {
-				r.EXPECT().Create(user).Return(1, nil)
+				user: builders.NewUserBuilder().WithNickname("User Builder").Build(),
 			},
 			expectedApiResponse: &models.ApiResponse{
 				Code: StatusOK,
-				Data: Map{"uid": 1},
+				Data: Map{"uid": 10001},
 			},
 		},
 		{
 			name: "Already Exists",
 			input: args{
-				user: NewUserBuilder().withNickname("User Builder").build(),
+				user: builders.NewUserBuilder().WithNickname("User Builder").Build(),
 			},
-			mockCheck: func(r *mock_repositories.MockUser, nickname string) {
-				r.EXPECT().GetByNickname(nickname).Return(nil, nil)
-			},
-			mockCreate: func(r *mock_repositories.MockUser, user *models.User) {},
 			expectedApiResponse: &models.ApiResponse{
 				Code: StatusConflict,
 			},
@@ -95,13 +84,7 @@ func TestUserService_Create(t *testing.T) {
 		{
 			name: "Repo Error",
 			input: args{
-				user: NewUserBuilder().withNickname("User Builder").build(),
-			},
-			mockCheck: func(r *mock_repositories.MockUser, nickname string) {
-				r.EXPECT().GetByNickname(nickname).Return(nil, errors.New("new nickname"))
-			},
-			mockCreate: func(r *mock_repositories.MockUser, user *models.User) {
-				r.EXPECT().Create(user).Return(0, errors.New("repo error"))
+				user: builders.NewUserBuilder().WithNickname("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").Build(),
 			},
 			expectedApiResponse: &models.ApiResponse{
 				Code: StatusInternalServerError,
@@ -111,15 +94,132 @@ func TestUserService_Create(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			c := gomock.NewController(t)
-			defer c.Finish()
 
-			repo := mock_repositories.NewMockUser(c)
-			test.mockCheck(repo, test.input.user.Nickname)
-			test.mockCreate(repo, test.input.user)
+			repo := postgres.NewUserPg(db)
 			s := &UserService{repo: repo}
 
 			got := s.Create(test.input.user)
+			assert.Equal(t, test.expectedApiResponse.Code, got.Code)
+			if test.expectedApiResponse.Code == StatusOK {
+				assert.Equal(t, test.expectedApiResponse.Data, got.Data)
+			}
+		})
+	}
+}
+
+func TestUserService_Get(t *testing.T) {
+	db, err := prepareTestDatabase()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	type args struct {
+		id int
+	}
+
+	tests := []struct {
+		name                string
+		input               args
+		expectedApiResponse *models.ApiResponse
+	}{
+		{
+			name: "Ok",
+			input: args{
+				id: 1,
+			},
+			expectedApiResponse: &models.ApiResponse{
+				Code: StatusOK,
+				Data: Map{"user": &models.User{
+					Id:       1,
+					Nickname: "test",
+					Email:    "test@.mail.ru",
+					Password: "",
+					Avatar:   "photo1",
+				}},
+			},
+		},
+		{
+			name: "Repo err",
+			input: args{
+				id: 3,
+			},
+			expectedApiResponse: &models.ApiResponse{
+				Code: StatusInternalServerError,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			repo := postgres.NewUserPg(db)
+			s := &UserService{repo: repo}
+
+			got := s.Get(test.input.id)
+			assert.Equal(t, test.expectedApiResponse.Code, got.Code)
+			if test.expectedApiResponse.Code == StatusOK {
+				assert.Equal(t, test.expectedApiResponse.Data, got.Data)
+			}
+		})
+	}
+}
+
+func TestUserService_Update(t *testing.T) {
+	db, err := prepareTestDatabase()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	type args struct {
+		id   int
+		user *models.UpdateUser
+	}
+
+	tests := []struct {
+		name                string
+		input               args
+		expectedApiResponse *models.ApiResponse
+	}{
+		{
+			name: "Ok",
+			input: args{
+				id:   1,
+				user: builders.NewUpdUserBuilder().Build(),
+			},
+			expectedApiResponse: &models.ApiResponse{
+				Code: StatusOK,
+				Data: Map{},
+			},
+		},
+		{
+			name: "User is not exists",
+			input: args{
+				id:   3,
+				user: builders.NewUpdUserBuilder().Build(),
+			},
+			expectedApiResponse: &models.ApiResponse{
+				Code: StatusConflict,
+			},
+		},
+		{
+			name: "Repo err",
+			input: args{
+				id:   3,
+				user: builders.NewUpdUserBuilder().WithNickname("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").Build(),
+			},
+			expectedApiResponse: &models.ApiResponse{
+				Code: StatusInternalServerError,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			repo := postgres.NewUserPg(db)
+			s := &UserService{repo: repo}
+
+			got := s.Update(test.input.id, test.input.user)
 			assert.Equal(t, test.expectedApiResponse.Code, got.Code)
 			if test.expectedApiResponse.Code == StatusOK {
 				assert.Equal(t, test.expectedApiResponse.Data, got.Data)
