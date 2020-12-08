@@ -95,8 +95,9 @@ func (r *TaskPg) Create(task *models.Task) (int, error) {
 	var id int
 	position, err := getTaskMaxPosition(tx, task.ListId)
 	if err != nil {
-		tx.Rollback()
-		return 0, err
+		// TODO: to use int pointer?
+		position = 0
+		// return 0, err
 	}
 	position++
 
