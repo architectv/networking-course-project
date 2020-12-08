@@ -1,12 +1,12 @@
 <Dialog bind:this={newDialog}>
-  <Title>Dialog Title</Title>
+  <Title>Create list</Title>
   <Content>
-    Do you want create a project?
+    Do you want create a list?
         <br />
         {#each fields as f, i}
             <Textfield bind:invalid={f.invalid}
                        bind:value={f.value} 
-                       on:input={(e) => {validateField(projects, f, e)}}
+                       on:input={(e) => {validateField(lists, f, e)}}
                        useNativeValidation={false}
                        label={f.name} 
                        type={f.type} />
@@ -17,7 +17,7 @@
         {/each}
   </Content>
   <Actions>
-    <Button on:click={createProject}>
+    <Button on:click={createList}>
       <Label>Create</Label>
     </Button>
     <Button on:click={() => {}}>
@@ -29,14 +29,13 @@
 <Dialog bind:this={errorDialog}>
   <Title>Error</Title>
   <Content>
-    New project wasn't created
+    New list wasn't created
   </Content>
 </Dialog>
 
 <div style="margin: auto;">
-{#if !$projects.current}
 <h1>
-  Projects
+  Lists
   <Button on:click={() => newDialog.open()}>
     <Label>
       New
@@ -44,39 +43,18 @@
   </Button>
 </h1>
 <br/>
-{/if}
 
-
-{#if $projects.current}
-  <Button on:click={() => {projects.unsetCurrent()}}>
-    <Label>Back to projects</Label>
-  </Button>
-
-  <Boards/>
-{:else if $projects.list} 
-<DataTable table$aria-label="People list">
-  <Head>
-    <Row>
-      <Cell>Id</Cell>
-      <Cell>Owner Id</Cell>
-      <Cell>Title</Cell>
-      <Cell>Description</Cell>
-    </Row>
-  </Head>
-  <Body>
-    {#each $projects.list as project, i}
-      <Row>
-        <Cell>{project.id}</Cell>
-        <Cell>{project.ownerId}</Cell>
-          <Cell on:click={() => {projects.setCurrent(project.id);}}>{project.title}</Cell>
-        <Cell>{project.description}</Cell>
-      </Row>
-    {/each}
-  </Body>
-</DataTable>
+{#if $lists.list} 
+  <List>
+  {#each $lists.list as list, i}
+    <Item>
+      <Text>{list.title}</Text>
+    </Item>
+  {/each}
+  </List>
 {:else}
   <p>
-  You don't have projects now
+  You don't have lists now
   </p>
 {/if}
 </div>
@@ -87,15 +65,16 @@
   import Dialog, {Title, Content, Actions, InitialFocus} from '@smui/dialog';
   import Button, {Label, Icon} from '@smui/button';
   import DataTable, {Head, Body, Row, Cell} from '@smui/data-table';
-  import {projects} from './projects.js';
+  import {lists} from './lists.js';
   import HelperText from '@smui/textfield/helper-text/index';
   import Textfield from '@smui/textfield';
   import {validateField, getValidData} from './utils';
-  import Boards from './Boards.svelte';
+  import Drawer, {Subtitle, Scrim} from '@smui/drawer';
+  import List, {Item, Text, Graphic, Separator, Subheader} from '@smui/list';
   import {onDestroy} from 'svelte';
 
   onDestroy(() => {
-    projects.release();
+    lists.release();
   });
 
   let newDialog;
@@ -107,18 +86,12 @@
           value: "", 
           type: "text", invalid: false,
           error: ""
-      },
-      {
-          name: "Description", key: "description", 
-          value: "", 
-          type: "text", invalid: false,
-          error: ""
-      },
+      }
     ];
 
-  function createProject() {
-    let data = getValidData(fields, projects);
+  function createList() {
+    let data = getValidData(fields, lists);
     if (!data) return;
-    projects.create(data, (x) => {errorDialog.open();});
+    lists.create(data, (x) => {errorDialog.open();});
   }
 </script>

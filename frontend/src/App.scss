@@ -14,10 +14,17 @@
   min-width: 100%;
   max-width: 100%;
   color: var(--mdc-theme-text-primary-on-background, black) !important;
+}
+
+.dark-theme {
   background-color: var(--mdc-theme-background, #fff) !important;
 }
 
-table {
+.light-theme {
+  background: linear-gradient(180deg, #B0EEF2 13.54%, #FD8078 100%) !important;
+}
+
+table, h1, h2, h3, h4, h5, h6, div {
   color: var(--mdc-theme-text-primary-on-background, black) !important;
 }
 

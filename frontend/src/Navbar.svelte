@@ -42,11 +42,10 @@
   import Menu from '@smui/menu';
   import List, {Item, Separator, Text, PrimaryText, SecondaryText, Graphic} from '@smui/list';
   import Button from '@smui/button';
-  import {getUser} from './auth';
+  import {user} from './auth';
   export let dark_theme;
   export let section="Main";
   export let reload;
-  let user = getUser();
   let menu;
 </script>
 

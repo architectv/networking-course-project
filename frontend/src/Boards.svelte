@@ -1,12 +1,12 @@
 <Dialog bind:this={newDialog}>
   <Title>Dialog Title</Title>
   <Content>
-    Do you want create a project?
+    Do you want create a board?
         <br />
         {#each fields as f, i}
             <Textfield bind:invalid={f.invalid}
                        bind:value={f.value} 
-                       on:input={(e) => {validateField(projects, f, e)}}
+                       on:input={(e) => {validateField(boards, f, e)}}
                        useNativeValidation={false}
                        label={f.name} 
                        type={f.type} />
@@ -17,7 +17,7 @@
         {/each}
   </Content>
   <Actions>
-    <Button on:click={createProject}>
+    <Button on:click={createBoard}>
       <Label>Create</Label>
     </Button>
     <Button on:click={() => {}}>
@@ -34,9 +34,9 @@
 </Dialog>
 
 <div style="margin: auto;">
-{#if !$projects.current}
+{#if !$boards.current}
 <h1>
-  Projects
+  Boards
   <Button on:click={() => newDialog.open()}>
     <Label>
       New
@@ -46,37 +46,19 @@
 <br/>
 {/if}
 
-
-{#if $projects.current}
-  <Button on:click={() => {projects.unsetCurrent()}}>
-    <Label>Back to projects</Label>
-  </Button>
-
-  <Boards/>
-{:else if $projects.list} 
-<DataTable table$aria-label="People list">
-  <Head>
-    <Row>
-      <Cell>Id</Cell>
-      <Cell>Owner Id</Cell>
-      <Cell>Title</Cell>
-      <Cell>Description</Cell>
-    </Row>
-  </Head>
-  <Body>
-    {#each $projects.list as project, i}
-      <Row>
-        <Cell>{project.id}</Cell>
-        <Cell>{project.ownerId}</Cell>
-          <Cell on:click={() => {projects.setCurrent(project.id);}}>{project.title}</Cell>
-        <Cell>{project.description}</Cell>
-      </Row>
-    {/each}
-  </Body>
-</DataTable>
+{#if $boards.current}
+  <Lists/>
+{:else if $boards.list} 
+  <List>
+  {#each $boards.list as board, i}
+    <Item on:click={() => {boards.setCurrent(board.id)}}>
+      <Text>{board.title}</Text>
+    </Item>
+  {/each}
+  </List>
 {:else}
   <p>
-  You don't have projects now
+  You don't have boards now
   </p>
 {/if}
 </div>
@@ -87,16 +69,19 @@
   import Dialog, {Title, Content, Actions, InitialFocus} from '@smui/dialog';
   import Button, {Label, Icon} from '@smui/button';
   import DataTable, {Head, Body, Row, Cell} from '@smui/data-table';
-  import {projects} from './projects.js';
+  import {boards} from './boards.js';
   import HelperText from '@smui/textfield/helper-text/index';
   import Textfield from '@smui/textfield';
   import {validateField, getValidData} from './utils';
-  import Boards from './Boards.svelte';
+  import Drawer, {Subtitle, Scrim} from '@smui/drawer';
+  import List, {Item, Text, Graphic, Separator, Subheader} from '@smui/list';
+  import Lists from './Lists.svelte';
   import {onDestroy} from 'svelte';
 
   onDestroy(() => {
-    projects.release();
+    boards.release();
   });
+
 
   let newDialog;
   let errorDialog;
@@ -107,18 +92,12 @@
           value: "", 
           type: "text", invalid: false,
           error: ""
-      },
-      {
-          name: "Description", key: "description", 
-          value: "", 
-          type: "text", invalid: false,
-          error: ""
-      },
+      }
     ];
 
-  function createProject() {
-    let data = getValidData(fields, projects);
+  function createBoard() {
+    let data = getValidData(fields, boards);
     if (!data) return;
-    projects.create(data, (x) => {errorDialog.open();});
+    boards.create(data, (x) => {errorDialog.open();});
   }
 </script>

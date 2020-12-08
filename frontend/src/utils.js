@@ -21,4 +21,54 @@ function getCookie(cname) {
   return "";
 }
 
-export {getCookie, setCookie};
+export function validate_prop(validators, prop, value) {
+  console.log("Validate", prop, value)
+  if (validators[prop]) {
+    return validators[prop](value);
+  }
+  return null;
+}
+
+export function validate(validators, data) {
+  let res = {};
+  let flag = false;
+  for (const key in data) {
+    let ret = validate_prop(key, data[key]);
+    if (ret) {
+      res[key] = ret;
+      flag = true;
+    }
+  }
+  if (flag) {
+    return res;
+  }
+  return null;
+}
+
+export function getValidData(fields, obj) {
+  let data = {}
+  for (let i in fields) {
+    data[fields[i].key] = fields[i].value;
+  }
+  let validation = obj.validate(data);
+  if (validation) {
+    return null;
+  }
+  return data;
+}
+
+export function validateField(obj, field, e) {
+  console.log(field);
+  if (e.srcElement) {
+    let value = e.srcElement.value;
+    let invalid = obj.validate_prop(field.key, value);
+    if (invalid) {
+      field.invalid = true;
+      field.error = invalid;
+      field = field;
+    } else {
+      field.invalid = false;
+    }
+  }
+}
+

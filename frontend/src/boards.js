@@ -1,8 +1,9 @@
 import {writable} from 'svelte/store';
 import {user} from './auth.js';
+import {projects} from './projects.js';
 import {validate, validate_prop} from './utils.js';
 
-const projects_store = writable({});
+const boards_store = writable({});
 
 let validators = {
   title: (value) => {
@@ -13,14 +14,28 @@ let validators = {
   }
 };
 
-function getProjects() {
-  let { subscribe, set, update } = projects_store;
+function getBoards() {
+  let { subscribe, set, update } = boards_store;
+
+  function getProjectId() {
+    let projectId;
+    update((value) => {
+      projectId = value.projectId;
+      return value;
+    });
+    return projectId;
+  }
+
   async function refresh() {
+    let projectId = getProjectId();
+    if (projectId == undefined) {
+      return;
+    }
     let token = localStorage.token;
     if (!token) {
       return;
     }
-    let obj = await fetch("api/v1/projects", {
+    let obj = await fetch("api/v1/projects/" + projectId + "/boards", {
       headers: {
         Authorization: "Bearer " + token
       },
@@ -33,10 +48,14 @@ function getProjects() {
       }
       return response.json();
     }).then((x) => {
-      set({list: x.data.projects});
+      update((value) => {
+        value.list = x.data.boards;
+        value.error = undefined;
+        return value;
+      });
     }).catch((x) => {
       update((value) => {
-        value.error = "Load projects error";
+        value.error = "Load boards error";
         return value;
       });
       console.log("error: ", x);
@@ -44,12 +63,16 @@ function getProjects() {
   }
 
   async function create(data, onError) {
-    let token = localStorage.getItem("token");
+    let projectId = getProjectId();
+    if (projectId == undefined) {
+      return;
+    }
+    let token = localStorage.token;
     if (!token) {
       user.unauthorized();
       return;
     }
-    let success = await fetch("api/v1/projects", {
+    let success = await fetch("api/v1/projects/" + projectId + "/boards", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json;charset=utf-8',
@@ -92,15 +115,24 @@ function getProjects() {
     set({});
   }
 
-  user.subscribe((value) => {
-    if (!value.authorized) {
-      release();
-    } else {
+  projects.subscribe((value) => {
+    let newProjectId = value.current;
+    let projectId;
+    update((value) => {
+      projectId = value.projectId;
+      if (!newProjectId) {
+        return {};
+      }
+      value.projectId = newProjectId;
+      return value;
+    });
+    if (newProjectId != projectId) {
       refresh();
     }
   });
 
   return {
+    getProjectId,
     subscribe,
     setCurrent,
     unsetCurrent,
@@ -111,4 +143,4 @@ function getProjects() {
   };
 }
 
-export const projects = getProjects();
+export const boards = getBoards();
