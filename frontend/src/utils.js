@@ -5,6 +5,20 @@ function setCookie(cname, cvalue, exsec) {
   document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
+export function getDate(ts) {
+  let date = new Date(ts * 1000);
+
+  let day = "0" + date.getDay();
+  let month = "0" + date.getMonth();
+  let year = date.getFullYear();
+  let hours = "0" + date.getHours();
+  let minutes = "0" + date.getMinutes();
+  let seconds = "0" + date.getSeconds();
+  let formattedDate = `${day.substr(-2)}.${month.substr(-2)}.${year}`;
+  let formattedTime = `${hours.substr(-2)}:${minutes.substr(-2)}`;
+  return `${formattedDate} ${formattedTime}`;
+}
+
 function getCookie(cname) {
   var name = cname + "=";
   var decodedCookie = decodeURIComponent(document.cookie);

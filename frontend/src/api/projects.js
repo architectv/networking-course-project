@@ -1,10 +1,8 @@
 import {writable} from 'svelte/store';
 import {user} from './auth.js';
-import {projects} from './projects.js';
-import {boards} from './boards.js';
-import {validate, validate_prop} from './utils.js';
+import {validate, validate_prop} from '../utils.js';
 
-const lists_store = writable({});
+const projects_store = writable({});
 
 let validators = {
   title: (value) => {
@@ -15,31 +13,14 @@ let validators = {
   }
 };
 
-function getLists() {
-  let { subscribe, set, update } = lists_store;
-  function getBoardId() {
-    let boardId;
-    update((value) => {
-      boardId = value.boardId;
-      return value;
-    });
-    return boardId;
-  }
+function getProjects() {
+  let { subscribe, set, update } = projects_store;
   async function refresh() {
-    let projectId = boards.getProjectId();
-    if (projectId == undefined) {
-      return;
-    }
-    let boardId = getBoardId();
-    if (boardId == undefined) {
-      return;
-    }
     let token = localStorage.token;
     if (!token) {
       return;
     }
-    let obj = await fetch("api/v1/projects/" + projectId + 
-                          "/boards/" + boardId + "/lists", {
+    let obj = await fetch("api/v1/projects", {
       headers: {
         Authorization: "Bearer " + token
       },
@@ -52,36 +33,63 @@ function getLists() {
       }
       return response.json();
     }).then((x) => {
-      update((value) => {
-        value.list = x.data.lists;
-        value.error = undefined;
-        return value;
-      });
+      set({list: x.data.projects});
     }).catch((x) => {
       update((value) => {
-        value.error = "Load lists error";
+        value.error = "Load projects error";
         return value;
       });
       console.log("error: ", x);
     });
   }
-
-  async function create(data, onError) {
-    let projectId = boards.getProjectId();
-    if (projectId == undefined) {
-      return;
-    }
-    let boardId = getBoardId();
-    if (boardId == undefined) {
-      return;
-    }
-    let token = localStorage.token;
+  
+  async function deleteCurrent(onError) {
+    let token = localStorage.getItem("token");
     if (!token) {
       user.unauthorized();
       return;
     }
-    let success = await fetch("api/v1/projects/" + projectId + 
-                              "/boards/" + boardId + "/lists", {
+    let current;
+    update((value) => {
+      current = value.current;
+      return value;
+    })
+    if (!current) {
+      return;
+    }
+    let success = await fetch("api/v1/projects/" + current, {
+      method: "DELETE",
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    }).then((response) => {
+      if (response.status == 401) {
+        user.unauthorized();
+        throw new Error('Unauthorized');
+      }
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    }).then((x) => {
+      return true;
+    }).catch((x) => {
+      if (onError) onError(x);
+      return false;
+    });
+    if (success) {
+      unsetCurrent();
+      await refresh();
+    }
+  }
+
+  async function create(data, onError) {
+    let token = localStorage.getItem("token");
+    if (!token) {
+      user.unauthorized();
+      return;
+    }
+    let success = await fetch("api/v1/projects", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json;charset=utf-8',
@@ -107,34 +115,42 @@ function getLists() {
     }
   }
 
+  function setCurrent(id) {
+    update((value) => {
+      value.current = id;
+      return value;
+    });
+  }
+  function unsetCurrent() {
+    update((value) => {
+      value.current = undefined;
+      return value;
+    });
+  }
+
   function release() {
     set({});
   }
 
-  boards.subscribe((value) => {
-    let newBoardId = value.current;
-    let boardId;
-    update((value) => {
-      boardId = value.boardId;
-      if (!newBoardId) {
-        return {};
-      }
-      value.boardId = newBoardId;
-      return value;
-    });
-    if (newBoardId != boardId) {
+  user.subscribe((value) => {
+    if (!value.authorized) {
+      release();
+    } else {
       refresh();
     }
   });
 
   return {
-    getBoardId,
     subscribe,
+    setCurrent,
+    unsetCurrent,
     refresh,
+    release,
+    deleteCurrent,
     create,
     validate: (data) => validate(validators, data),
     validate_prop: (prop, val) => validate_prop(validators, prop, val)
   };
 }
 
-export const lists = getLists();
+export const projects = getProjects();

@@ -1,7 +1,9 @@
 // Nothing here. Just use the default theme.
 @import "@material/theme/color-palette";
+@import "@material/typography/mdc-typography";
 
 .light-theme {
+  --list-bg: #bac6ce;
   --mdc-theme-primary: #6200ee;
   --mdc-theme-secondary: #018786;
   --mdc-theme-background: #bdbdbd;
@@ -29,6 +31,7 @@
 }
 
 .dark-theme {
+  --list-bg: #2d3b42;
   --mdc-theme-primary: #9fa8da;
   --mdc-theme-secondary: #b39ddb;
   --mdc-theme-background: #212121;

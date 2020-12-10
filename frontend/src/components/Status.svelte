@@ -21,7 +21,7 @@
   import Fab from '@smui/fab';
   import {Icon} from '@smui/common';
   import Card, {Content, PrimaryAction, Media, MediaContent, Actions, ActionIcons} from '@smui/card';
-  import {user} from './auth';
+  import {user} from '../api/auth';
 
   const data = writable("");
   const isFetching = writable(false);

@@ -9,6 +9,7 @@
                        on:input={(e) => {validateField(projects, f, e)}}
                        useNativeValidation={false}
                        label={f.name} 
+                       textarea={f.long}
                        type={f.type} />
             {#if f.invalid}
             <HelperText validationMsg>{f.error}</HelperText>
@@ -33,47 +34,37 @@
   </Content>
 </Dialog>
 
+
 <div style="margin: auto;">
 {#if !$projects.current}
-<h1>
+<div class="mdc-typography--headline4">
   Projects
-  <Button on:click={() => newDialog.open()}>
-    <Label>
-      New
-    </Label>
-  </Button>
-</h1>
-<br/>
+  <IconButton on:click={() => newDialog.open()}>
+    <Icon class="material-icons">add_circle_outline</Icon>
+  </IconButton>
+</div>
 {/if}
 
 
 {#if $projects.current}
-  <Button on:click={() => {projects.unsetCurrent()}}>
-    <Label>Back to projects</Label>
-  </Button>
-
-  <Boards/>
+  <Boards project={project_curr}/>
 {:else if $projects.list} 
-<DataTable table$aria-label="People list">
-  <Head>
-    <Row>
-      <Cell>Id</Cell>
-      <Cell>Owner Id</Cell>
-      <Cell>Title</Cell>
-      <Cell>Description</Cell>
-    </Row>
-  </Head>
-  <Body>
-    {#each $projects.list as project, i}
-      <Row>
-        <Cell>{project.id}</Cell>
-        <Cell>{project.ownerId}</Cell>
-          <Cell on:click={() => {projects.setCurrent(project.id);}}>{project.title}</Cell>
-        <Cell>{project.description}</Cell>
-      </Row>
-    {/each}
-  </Body>
-</DataTable>
+<List twoLine>
+  {#each $projects.list as project, i}
+    <Item on:click={() => {project_curr = project; projects.setCurrent(project.id);}}>
+      <Text>
+        <PrimaryText>{project.title}</PrimaryText>
+        {#if project.description}
+          <SecondaryText style="width: 50%;">{project.description}</SecondaryText>
+        {/if}
+      </Text>
+      <Meta>
+        Changed
+       {getDate(project.datetimes.updated)}
+      </Meta>
+    </Item>
+  {/each}
+</List>
 {:else}
   <p>
   You don't have projects now
@@ -84,15 +75,18 @@
 
 
 <script>
+  import IconButton from '@smui/icon-button';
   import Dialog, {Title, Content, Actions, InitialFocus} from '@smui/dialog';
   import Button, {Label, Icon} from '@smui/button';
   import DataTable, {Head, Body, Row, Cell} from '@smui/data-table';
-  import {projects} from './projects.js';
+  import {projects} from '../api/projects.js';
   import HelperText from '@smui/textfield/helper-text/index';
   import Textfield from '@smui/textfield';
-  import {validateField, getValidData} from './utils';
+  import {validateField, getValidData, getDate} from '../utils';
   import Boards from './Boards.svelte';
   import {onDestroy} from 'svelte';
+  import List, {Group, Item, Meta, Separator, Subheader, Text, PrimaryText, SecondaryText} from '@smui/list';
+  let project_curr;
 
   onDestroy(() => {
     projects.release();
@@ -110,7 +104,7 @@
       },
       {
           name: "Description", key: "description", 
-          value: "", 
+          value: "", long: true,
           type: "text", invalid: false,
           error: ""
       },

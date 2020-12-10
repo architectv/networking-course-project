@@ -14,13 +14,14 @@
 </div>
 
 <script>
-  import Navbar from './Navbar.svelte';
-  import Main from './Main.svelte';
-  import Docs from './Docs.svelte';
-  import Status from './Status.svelte';
-  import Admin from './Admin.svelte';
+  import Navbar from './components/Navbar.svelte';
+  import Main from './components/Main.svelte';
+  import Docs from './components/Docs.svelte';
+  import Status from './components/Status.svelte';
+  import Admin from './components/Admin.svelte';
   let dark_theme = true;
   $: theme = dark_theme ? "dark-theme" : "light-theme";
+  $: document.body.className = theme;
   let section;
   let reload;
 </script>

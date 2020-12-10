@@ -14,6 +14,16 @@
       <Title style="color: var(--mdc-theme-text-primary-on-background);">Yak</Title>
     </Section>
     <Section align="end" toolbar>
+      {#if $user.data}
+        {#if !$user.data.avatar}
+          <img src="unknown.png" alt="Avatar" style="border-radius: 50%;">
+        {:else}
+          <img src="{$user.data.avatar}" alt="Avatar" style="border-radius: 50%;">
+        {/if}
+        <div style="margin-right: 1em; margin-left: 5px;">
+          {$user.data.nickname}
+        </div>
+      {/if}
       {#if reload}
         <IconButton on:click={reload}>
           <Icon class="material-icons">cached</Icon>
@@ -41,8 +51,7 @@
   import {Icon} from '@smui/common';
   import Menu from '@smui/menu';
   import List, {Item, Separator, Text, PrimaryText, SecondaryText, Graphic} from '@smui/list';
-  import Button from '@smui/button';
-  import {user} from './auth';
+  import {user} from '../api/auth';
   export let dark_theme;
   export let section="Main";
   export let reload;

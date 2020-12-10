@@ -1,7 +1,7 @@
 import {writable} from 'svelte/store';
 import {user} from './auth.js';
 import {projects} from './projects.js';
-import {validate, validate_prop} from './utils.js';
+import {validate, validate_prop} from '../utils.js';
 
 const boards_store = writable({});
 
@@ -131,13 +131,56 @@ function getBoards() {
     }
   });
 
+  async function deleteCurrent(onError) {
+    let token = localStorage.getItem("token");
+    if (!token) {
+      user.unauthorized();
+      return;
+    }
+    let current;
+    update((value) => {
+      current = value.current;
+      return value;
+    })
+    if (!current) {
+      return;
+    }
+    let currentProject = getProjectId();
+    let success = await fetch(`api/v1/projects/${currentProject}/boards/${current}`, {
+      method: "DELETE",
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    }).then((response) => {
+      if (response.status == 401) {
+        user.unauthorized();
+        throw new Error('Unauthorized');
+      }
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    }).then((x) => {
+      return true;
+    }).catch((x) => {
+      if (onError) onError(x);
+      return false;
+    });
+    if (success) {
+      unsetCurrent();
+      await refresh();
+    }
+  }
+
   return {
     getProjectId,
     subscribe,
     setCurrent,
     unsetCurrent,
+    deleteCurrent,
     refresh,
     create,
+    release,
     validate: (data) => validate(validators, data),
     validate_prop: (prop, val) => validate_prop(validators, prop, val)
   };

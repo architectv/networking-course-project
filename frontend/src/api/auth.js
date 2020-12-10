@@ -1,5 +1,5 @@
 import {writable} from 'svelte/store';
-import {validate, validate_prop} from './utils.js';
+import {validate, validate_prop} from '../utils.js';
 
 const user_store = writable({});
 
@@ -57,9 +57,30 @@ function getUser() {
         await login({nickname: data.nickname, password: data.password});
       }
     }
+  
+    async function setUserdata() {
+      let userdata = await fetch("api/v1/users", {
+        method: "GET",
+        headers: {
+          Authorization: 'Bearer ' + localStorage.token
+        }
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      }).then((x) => {
+        return {authorized: true, data: x.data.user};
+      }).catch((x) => {
+        console.log("Login:", x);
+        return {authorized: false, error: "Login error"};
+      });
+      console.log("Set data", userdata);
+      set(userdata);
+    }
 
     async function login(data) {
-      let userdata = await fetch("api/v1/users/signin", {
+      let success = await fetch("api/v1/users/signin", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
@@ -78,8 +99,10 @@ function getUser() {
         console.log("Login:", x);
         return {authorized: false, error: "Login error"};
       });
-      console.log("Set data", userdata);
-      set(userdata);
+      if (!success.authorized) {
+        set(success)
+      }
+      await setUserdata();
     }
 
     async function logout() {
@@ -119,7 +142,7 @@ function getUser() {
     }
     
     if (localStorage.token) {
-      set({authorized: true, token: localStorage.token});
+      setUserdata();
     }
 
     return {

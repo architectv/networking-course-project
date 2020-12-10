@@ -5,6 +5,7 @@
       <Projects/>
     </div>
   {:else}
+  Login
     <Login/>
   {/if}
 </div>
@@ -12,10 +13,8 @@
 
 <script>
   import Card, {Content, Actions} from '@smui/card';
-  import {user} from './auth';
+  import {user} from '../api/auth';
   import Projects from './Projects.svelte';
   import Login from './Login.svelte';
-  import FieldsTest from './FieldsTest.svelte';
-  $: userJson = JSON.stringify($user);
 </script>
 
