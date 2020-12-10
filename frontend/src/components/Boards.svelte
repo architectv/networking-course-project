@@ -26,32 +26,61 @@
   </Actions>
 </Dialog>
 
-<Dialog bind:this={errorDialog}>
-  <Title>Error</Title>
+<Members bind:this={membersDialog} path={`api/v1/projects/${project.id}/members`} />
+
+<Dialog bind:this={deleteDialog}>
+  <Title>Dialog Title</Title>
   <Content>
-    New project wasn't created
+    Do you want delete a project?
   </Content>
+  <Actions>
+    <Button on:click={deleteProject}>
+      <Label>Delete</Label>
+    </Button>
+    <Button on:click={() => {}}>
+      <Label>Cancel</Label>
+    </Button>
+  </Actions>
 </Dialog>
+
 
 <div style="margin: auto;">
 {#if !$boards.current}
-<h1>
-  Boards
-  <Button on:click={() => newDialog.open()}>
-    <Label>
-      New
-    </Label>
-  </Button>
-</h1>
+<div class="mdc-typography--headline4">
+  <IconButton on:click={() => {projects.unsetCurrent()}}>
+    <Icon class="material-icons">keyboard_backspace</Icon>
+  </IconButton>
+  {project.title}
+  <IconButton on:click={membersDialog.open}>
+    <Icon class="material-icons">people</Icon>
+  </IconButton>
+  <IconButton on:click={deleteDialog.open}>
+    <Icon class="material-icons">delete_outline</Icon>
+  </IconButton>
+</div>
+
+{#if project.description}
+<div class="mdc-typography--body1">
+    {project.description}
+</div>
+{/if}
+
+
+<div class="mdc-typography--headline6">
+    Boards
+  <IconButton on:click={() => newDialog.open()}>
+    <Icon class="material-icons">add_circle_outline</Icon>
+  </IconButton>
+</div>
 <br/>
 {/if}
 
 {#if $boards.current}
-  <Lists/>
+  <Lists board={board_curr} project={project} />
 {:else if $boards.list} 
   <List>
   {#each $boards.list as board, i}
-    <Item on:click={() => {boards.setCurrent(board.id)}}>
+    <Item on:click={() => {board_curr = board; boards.setCurrent(board.id)}}>
       <Text>{board.title}</Text>
     </Item>
   {/each}
@@ -63,28 +92,32 @@
 {/if}
 </div>
 
-
-
 <script>
+  import Members from '../dialogs/Members.svelte';
   import Dialog, {Title, Content, Actions, InitialFocus} from '@smui/dialog';
   import Button, {Label, Icon} from '@smui/button';
+  import IconButton from '@smui/icon-button';
   import DataTable, {Head, Body, Row, Cell} from '@smui/data-table';
-  import {boards} from './boards.js';
+  import {boards} from '../api/boards.js';
   import HelperText from '@smui/textfield/helper-text/index';
   import Textfield from '@smui/textfield';
-  import {validateField, getValidData} from './utils';
-  import Drawer, {Subtitle, Scrim} from '@smui/drawer';
+  import {validateField, getValidData} from '../utils';
   import List, {Item, Text, Graphic, Separator, Subheader} from '@smui/list';
   import Lists from './Lists.svelte';
   import {onDestroy} from 'svelte';
+  import {projects} from '../api/projects';
+
+  export let project;
+  let board_curr;
 
   onDestroy(() => {
     boards.release();
   });
 
-
   let newDialog;
+  let membersDialog;
   let errorDialog;
+  let deleteDialog;
 
   let fields = [
       {
@@ -94,6 +127,10 @@
           error: ""
       }
     ];
+  
+  function deleteProject() {
+    projects.deleteCurrent();
+  }
 
   function createBoard() {
     let data = getValidData(fields, boards);

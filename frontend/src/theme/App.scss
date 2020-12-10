@@ -45,7 +45,45 @@ th, td, table, thead, tbody {
   color: var(--mdc-theme-text-primary-on-background, black) !important;
 }
 
-:root {
+.flex-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-item {
+  width: max-content;
+  margin-left: 1em;
+}
+
+.mdc-button {
+  width: max-content;
+}
+
+.task-list {
+  padding-top: 0 !important;
+	padding-left: 1em !important;
+	padding-right: 1em !important;
+	background-color: var(--list-bg,#6200ee) !important;
+}
+
+.mdc-list-item {
+  box-shadow: 0 0 5px black;
+  margin-top: 5px;
+}
+
+.list-paper {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+}
+
+.smui-paper.smui-paper--color-primary {
+  background-color: var(--mdc-theme-surface, #fff) !important;
+}
+
+.smui-paper {
+	padding: 6px 4px;
+  margin: auto;
 }
 
 html, body {
@@ -53,8 +91,4 @@ html, body {
   height: 100vh;
   width: 100%;
   height: 100%;
-}
-
-.mdc-text-field {
-//  color: var(--mdc-theme-text-primary-on-background, black) !important;
 }

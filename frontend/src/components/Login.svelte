@@ -63,8 +63,8 @@
   import HelperText from '@smui/textfield/helper-text/index';
   import Button, {Icon, Label} from '@smui/button';
   import Card, {Content, Actions} from '@smui/card';
-  import {user} from './auth';
-  import {validateField, getValidData} from './utils';
+  import {user} from '../api/auth';
+  import {validateField, getValidData} from '../utils';
 
   let have_account = true;
   let fields = [
