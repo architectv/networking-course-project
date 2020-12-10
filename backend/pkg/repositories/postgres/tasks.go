@@ -96,7 +96,7 @@ func (r *TaskPg) Create(task *models.Task) (int, error) {
 	position, err := getTaskMaxPosition(tx, task.ListId)
 	if err != nil {
 		// TODO: to use int pointer?
-		position = 0
+		position = -1
 		// return 0, err
 	}
 	position++
@@ -184,7 +184,6 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 				tx.Rollback()
 				return err
 			}
-			fmt.Println(err)
 
 			if oldPos < newPos {
 				operation = "-"
@@ -193,6 +192,7 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 				operation = "+"
 				start, end = newPos, oldPos-1
 			}
+			fmt.Println(oldPos, newPos)
 
 			if operation != "" {
 				setValues = append(setValues, fmt.Sprintf("position=$%d", argId))
@@ -208,6 +208,9 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 					tx.Rollback()
 					return err
 				}
+			} else {
+				tx.Commit()
+				return nil
 			}
 		}
 	}
@@ -215,6 +218,7 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 	setQuery := strings.Join(setValues, ", ")
 	query := fmt.Sprintf(`UPDATE %s SET %s where id=$%d`,
 		tasksTable, setQuery, argId)
+	fmt.Println(query)
 	args = append(args, taskId)
 	fmt.Println(query)
 	_, err = tx.Exec(query, args...)
