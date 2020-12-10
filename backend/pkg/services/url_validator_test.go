@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"testing"
+	"yak/backend/pkg/builders"
 	"yak/backend/pkg/models"
 
 	mock_repositories "yak/backend/pkg/repositories/mocks"
@@ -11,43 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type UrlIdsBuilder struct {
-	UrlIds *models.UrlIds
-}
-
-func NewUrlIdsBuilder() *UrlIdsBuilder {
-	urlIds := &models.UrlIds{
-		ProjectId: 0,
-		BoardId:   0,
-		ListId:    0,
-		TaskId:    0,
-	}
-	return &UrlIdsBuilder{UrlIds: urlIds}
-}
-
-func (u *UrlIdsBuilder) build() *models.UrlIds {
-	return u.UrlIds
-}
-
-func (u *UrlIdsBuilder) withProject(id int) *UrlIdsBuilder {
-	u.UrlIds.ProjectId = id
-	return u
-}
-
-func (u *UrlIdsBuilder) withBoard(id int) *UrlIdsBuilder {
-	u.UrlIds.BoardId = id
-	return u
-}
-
-func (u *UrlIdsBuilder) withList(id int) *UrlIdsBuilder {
-	u.UrlIds.ListId = id
-	return u
-}
-
-func (u *UrlIdsBuilder) withTask(id int) *UrlIdsBuilder {
-	u.UrlIds.TaskId = id
-	return u
-}
 func TestUrlValidatorService_Create(t *testing.T) {
 	type args struct {
 		urlIds *models.UrlIds
@@ -67,7 +31,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "Ok",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(1).withList(1).withTask(1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(1).WithList(1).WithTask(1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(&models.Board{1, 1, 1, &models.Permission{true, true, false},
@@ -87,7 +51,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "Board is not defined",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(-1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(-1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(nil, errors.New(DbResultNotFound))
@@ -101,7 +65,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "Repo error for Get in Board",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(nil, errors.New("Some error"))
@@ -115,7 +79,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "There is no requested board inside the project",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(&models.Board{1, 2, 1, &models.Permission{true, true, false},
@@ -130,7 +94,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "List is not defined",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(1).withList(-1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(1).WithList(-1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(&models.Board{1, 1, 1, &models.Permission{true, true, false},
@@ -147,7 +111,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "Repo error for Get in List",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(1).withList(1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(1).WithList(1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(&models.Board{1, 1, 1, &models.Permission{true, true, false},
@@ -164,7 +128,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "There is no requested list inside the board",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(1).withList(1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(1).WithList(1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(&models.Board{1, 1, 1, &models.Permission{true, true, false},
@@ -181,7 +145,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "Task is not defined",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(1).withList(1).withTask(-1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(1).WithList(1).WithTask(-1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(&models.Board{1, 1, 1, &models.Permission{true, true, false},
@@ -200,7 +164,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "Repo error for Get in Task",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(1).withList(1).withTask(1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(1).WithList(1).WithTask(1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(&models.Board{1, 1, 1, &models.Permission{true, true, false},
@@ -219,7 +183,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 		{
 			name: "There is no requested task inside the list",
 			input: args{
-				urlIds: NewUrlIdsBuilder().withProject(1).withBoard(1).withList(1).withTask(1).build(),
+				urlIds: builders.NewUrlIdsBuilder().WithProject(1).WithBoard(1).WithList(1).WithTask(1).Build(),
 			},
 			boardMock: func(r *mock_repositories.MockBoard, boardId int) {
 				r.EXPECT().GetById(boardId).Return(&models.Board{1, 1, 1, &models.Permission{true, true, false},
