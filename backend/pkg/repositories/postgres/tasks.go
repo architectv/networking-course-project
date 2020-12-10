@@ -145,11 +145,12 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 		if input.ListId != nil && *input.ListId != listId {
 			newListId := *input.ListId
 
-			err = checkListOutOfBounds(tx, newListId, listId)
-			if err != nil {
-				tx.Rollback()
-				return err
-			}
+			// TODO: check func
+			// err = checkListOutOfBounds(tx, newListId, listId)
+			// if err != nil {
+			// 	tx.Rollback()
+			// 	return err
+			// }
 
 			err = checkTaskOutOfBounds(tx, newPos, newListId, true)
 			if err != nil {
@@ -305,8 +306,9 @@ func getTaskMaxPosition(tx *sql.Tx, listId int) (int, error) {
 func checkTaskOutOfBounds(tx *sql.Tx, newPos, newListId int, is_insert bool) error {
 	maxPos, err := getTaskMaxPosition(tx, newListId)
 	if err != nil {
-		tx.Rollback()
-		return err
+		// tx.Rollback()
+		// return err
+		maxPos = -1
 	}
 	if is_insert == true {
 		maxPos++
@@ -315,5 +317,5 @@ func checkTaskOutOfBounds(tx *sql.Tx, newPos, newListId int, is_insert bool) err
 		tx.Rollback()
 		return errors.New("Task position out of bounds")
 	}
-	return err
+	return nil
 }

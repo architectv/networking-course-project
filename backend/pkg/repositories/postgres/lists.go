@@ -216,6 +216,7 @@ func checkListOutOfBounds(tx *sql.Tx, newPos, listId int) error {
 
 	maxPos, err := getListMaxPosition(tx, boardId)
 	if err != nil {
+		// TODO: maxPos = -1
 		tx.Rollback()
 		return err
 	}
@@ -224,5 +225,6 @@ func checkListOutOfBounds(tx *sql.Tx, newPos, listId int) error {
 		tx.Rollback()
 		return errors.New("List position out of bounds")
 	}
+	// TODO: return nil
 	return err
 }
