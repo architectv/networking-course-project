@@ -146,11 +146,11 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 			newListId := *input.ListId
 
 			// TODO: check func
-			// err = checkListOutOfBounds(tx, newListId, listId)
-			// if err != nil {
-			// 	tx.Rollback()
-			// 	return err
-			// }
+			err = checkListIsExists(tx, newListId)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
 
 			err = checkTaskOutOfBounds(tx, newPos, newListId, true)
 			if err != nil {
@@ -316,6 +316,22 @@ func checkTaskOutOfBounds(tx *sql.Tx, newPos, newListId int, is_insert bool) err
 	if newPos > maxPos {
 		tx.Rollback()
 		return errors.New("Task position out of bounds")
+	}
+	return nil
+}
+
+func checkListIsExists(tx *sql.Tx, listId int) error {
+	var id int
+	query := fmt.Sprintf(
+		`SELECT id FROM %s WHERE id = $1`, taskListsTable)
+	row := tx.QueryRow(query, listId)
+	if err := row.Scan(&id); err != nil {
+		tx.Rollback()
+		if err.Error() == DbResultNotFound {
+			return errors.New("List is not exists")
+		} else {
+			return err
+		}
 	}
 	return nil
 }
