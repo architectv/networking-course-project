@@ -21,7 +21,7 @@ func NewTaskPg(db *sqlx.DB) *TaskPg {
 func (r *TaskPg) GetAll(listId int) ([]*models.Task, error) {
 	var tasks []*models.Task
 	query := fmt.Sprintf(
-		`SELECT t.id, t.list_id, t.title, d.created, d.updated, d.accessed, t.position
+		`SELECT t.id, t.list_id, t.title, t.description, d.created, d.updated, d.accessed, t.position
 		FROM %s AS t
 			INNER JOIN %s AS tl ON t.list_id = tl.id
 			INNER JOIN %s AS d ON t.datetimes_id = d.id
@@ -40,7 +40,7 @@ func (r *TaskPg) GetAll(listId int) ([]*models.Task, error) {
 		task := &models.Task{}
 		datetimes := &models.Datetimes{}
 
-		err := rows.Scan(&task.Id, &task.ListId, &task.Title, &datetimes.Created,
+		err := rows.Scan(&task.Id, &task.ListId, &task.Title, &task.Description, &datetimes.Created,
 			&datetimes.Updated, &datetimes.Accessed, &task.Position)
 
 		if err != nil {
@@ -63,14 +63,14 @@ func (r *TaskPg) GetById(taskId int) (*models.Task, error) {
 	datetimes := &models.Datetimes{}
 
 	query := fmt.Sprintf(
-		`SELECT t.id, t.list_id, t.title, d.created, d.updated, d.accessed, t.position
+		`SELECT t.id, t.list_id, t.title, t.description, d.created, d.updated, d.accessed, t.position
 		FROM %s AS t
 		INNER JOIN %s AS d ON t.datetimes_id = d.id
 		WHERE t.id = $1`,
 		tasksTable, datetimesTable)
 
 	row := r.db.QueryRow(query, taskId)
-	err := row.Scan(&task.Id, &task.ListId, &task.Title, &datetimes.Created,
+	err := row.Scan(&task.Id, &task.ListId, &task.Title, &task.Description, &datetimes.Created,
 		&datetimes.Updated, &datetimes.Accessed, &task.Position)
 	if err != nil {
 		return nil, err
@@ -102,10 +102,10 @@ func (r *TaskPg) Create(task *models.Task) (int, error) {
 	position++
 
 	query := fmt.Sprintf(
-		`INSERT INTO %s (list_id, title, datetimes_id, position)
-		VALUES ($1, $2, $3, $4) RETURNING id`, tasksTable)
+		`INSERT INTO %s (list_id, title, description, datetimes_id, position)
+		VALUES ($1, $2, $3, $4, $5) RETURNING id`, tasksTable)
 
-	row := tx.QueryRow(query, task.ListId, task.Title, datetimesId, position)
+	row := tx.QueryRow(query, task.ListId, task.Title, task.Description, datetimesId, position)
 	if err := row.Scan(&id); err != nil {
 		tx.Rollback()
 		return 0, err
@@ -130,6 +130,13 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 		args = append(args, *input.Title)
 		argId++
 	}
+
+	if input.Description != nil {
+		setValues = append(setValues, fmt.Sprintf("description=$%d", argId))
+		args = append(args, *input.Description)
+		argId++
+	}
+
 	if input.Position != nil {
 		newPos := *input.Position
 
