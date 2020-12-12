@@ -77,7 +77,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 				r.EXPECT().GetById(listId).Return(&models.TaskList{1, 1, "title", 1}, nil)
 			},
 			taskMock: func(r *mock_repositories.MockTask, taskId int) {
-				r.EXPECT().GetById(taskId).Return(&models.Task{1, 1, "title", &models.Datetimes{1, 1, 1}, 1}, nil)
+				r.EXPECT().GetById(taskId).Return(&models.Task{1, 1, "title", "description", &models.Datetimes{1, 1, 1}, 1}, nil)
 			},
 			expectedApiResponse: &models.ApiResponse{
 				Code: StatusOK,
@@ -229,7 +229,7 @@ func TestUrlValidatorService_Create(t *testing.T) {
 				r.EXPECT().GetById(listId).Return(&models.TaskList{1, 1, "title", 1}, nil)
 			},
 			taskMock: func(r *mock_repositories.MockTask, taskId int) {
-				r.EXPECT().GetById(taskId).Return(&models.Task{1, 2, "title", &models.Datetimes{1, 1, 1}, 1}, nil)
+				r.EXPECT().GetById(taskId).Return(&models.Task{1, 2, "title", "description", &models.Datetimes{1, 1, 1}, 1}, nil)
 			},
 			expectedApiResponse: &models.ApiResponse{
 				Code: StatusNotFound,
