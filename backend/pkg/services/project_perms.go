@@ -24,10 +24,10 @@ func NewProjectPermsService(repo repositories.ObjectPerms, projectRepo repositor
 	return &ProjectPermsService{repo: repo, projectRepo: projectRepo, boardRepo: boardRepo}
 }
 
-func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiResponse {
+func (s *ProjectPermsService) Get(userId, projectId int, memberNickname string) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	_, err := s.repo.Get(projectId, userId, IsProject)
+	_, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -37,7 +37,7 @@ func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiRe
 		return r
 	}
 
-	permissions, err := s.repo.Get(projectId, memberId, IsProject)
+	permissions, err := s.repo.GetByNickname(projectId, IsProject, memberNickname)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Project member not found")
@@ -72,7 +72,7 @@ func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPer
 		}
 	}
 
-	permissions, err := s.repo.Get(projectId, userId, IsProject)
+	permissions, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -100,7 +100,7 @@ func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPer
 func (s *ProjectPermsService) Delete(userId, projectId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	permissions, err := s.repo.Get(projectId, userId, IsProject)
+	permissions, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -115,7 +115,7 @@ func (s *ProjectPermsService) Delete(userId, projectId, memberId int) *models.Ap
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Excluding user is not project member")
@@ -169,7 +169,7 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	permissions, err := s.repo.Get(projectId, userId, IsProject)
+	permissions, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -184,7 +184,7 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Updating user is not project member")

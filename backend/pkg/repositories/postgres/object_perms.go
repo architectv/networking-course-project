@@ -29,7 +29,7 @@ func NewObjectPermsPg(db *sqlx.DB) *ObjectPermsPg {
 	return &ObjectPermsPg{db: db}
 }
 
-func (r *ObjectPermsPg) Get(objectId, memberId, objectType int) (*models.Permission, error) {
+func (r *ObjectPermsPg) GetById(objectId, memberId, objectType int) (*models.Permission, error) {
 	permissions := &models.Permission{}
 	objParams, err := getObjectParams(objectType)
 	if err != nil {
@@ -49,6 +49,26 @@ func (r *ObjectPermsPg) Get(objectId, memberId, objectType int) (*models.Permiss
 	return permissions, err
 }
 
+func (r *ObjectPermsPg) GetByNickname(objectId, objectType int, memberNickname string) (*models.Permission, error) {
+	permissions := &models.Permission{}
+	objParams, err := getObjectParams(objectType)
+	if err != nil {
+		return permissions, err
+	}
+
+	query := fmt.Sprintf(
+		`SELECT per.read, per.write, per.admin
+		FROM %s AS obj
+			INNER JOIN %s AS per ON obj.permissions_id = per.id
+			INNER JOIN %s AS u ON obj.user_id = u.id
+		WHERE obj.%s = $1 AND u.nickname = $2`,
+		objParams.Table, permissionsTable, usersTable, objParams.IdTitle)
+
+	row := r.db.QueryRow(query, objectId, memberNickname)
+	err = row.Scan(&permissions.Read, &permissions.Write, &permissions.Admin)
+	return permissions, err
+}
+
 func (r *ObjectPermsPg) Create(objectId, memberId, objectType int, permissions *models.Permission) (int, error) {
 	fmt.Println(objectId, memberId, objectType)
 	objParams, err := getObjectParams(objectType)
@@ -61,7 +81,7 @@ func (r *ObjectPermsPg) Create(objectId, memberId, objectType int, permissions *
 		return 0, err
 	}
 
-	_, err = r.Get(objectId, memberId, objectType)
+	_, err = r.GetById(objectId, memberId, objectType)
 	if err != nil && err.Error() != DbResultNotFound {
 		return 0, err
 	} else if err == nil {

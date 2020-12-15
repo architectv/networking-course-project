@@ -66,14 +66,14 @@ type UrlValidator interface {
 
 type ProjectPerms interface {
 	Create(userId, projectId, memberId int, permissions *models.Permission) *models.ApiResponse
-	Get(userId, projectId, memberId int) *models.ApiResponse
+	Get(userId, projectId int, memberNickname string) *models.ApiResponse
 	Delete(userId, projectId, memberId int) *models.ApiResponse
 	Update(userId, projectId, memberId int, list *models.UpdatePermission) *models.ApiResponse
 }
 
 type BoardPerms interface {
 	Create(userId, projectId, boardId, memberId int, permissions *models.Permission) *models.ApiResponse
-	Get(userId, projectId, boardId, memberId int) *models.ApiResponse
+	Get(userId, projectId, boardId int, memberNickname string) *models.ApiResponse
 	Delete(userId, projectId, boardId, memberId int) *models.ApiResponse
 	Update(userId, projectId, boardId, memberId int, list *models.UpdatePermission) *models.ApiResponse
 }

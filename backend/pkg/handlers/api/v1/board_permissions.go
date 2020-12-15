@@ -36,13 +36,8 @@ func (apiVX *ApiV1) getBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberId, err := strconv.Atoi(ctx.Query("member_id"))
-	if err != nil || memberId == 0 {
-		response.Error(fiber.StatusBadRequest, "Invalid memberId")
-		return Send(ctx, response)
-	}
-
-	response = apiVX.services.BoardPerms.Get(userId, projectId, boardId, memberId)
+	memberNickname := ctx.Query("member_nickname")
+	response = apiVX.services.BoardPerms.Get(userId, projectId, boardId, memberNickname)
 	return Send(ctx, response)
 }
 

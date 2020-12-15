@@ -17,10 +17,10 @@ func NewBoardPermsService(repo repositories.ObjectPerms, boardRepo repositories.
 	return &BoardPermsService{repo: repo, boardRepo: boardRepo, projectRepo: projectRepo}
 }
 
-func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *models.ApiResponse {
+func (s *BoardPermsService) Get(userId, projectId, boardId int, memberNickname string) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	_, err := s.repo.Get(projectId, userId, IsProject)
+	_, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -30,7 +30,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *model
 		return r
 	}
 
-	_, err = s.repo.Get(boardId, userId, IsBoard)
+	_, err = s.repo.GetById(boardId, userId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not board member")
@@ -40,7 +40,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *model
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetByNickname(projectId, IsProject, memberNickname)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Board member is not project member")
@@ -50,7 +50,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *model
 		return r
 	}
 
-	permissions, err := s.repo.Get(boardId, memberId, IsBoard)
+	permissions, err := s.repo.GetByNickname(boardId, IsBoard, memberNickname)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Board member not found")
@@ -85,7 +85,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 		}
 	}
 
-	_, err := s.repo.Get(projectId, userId, IsProject)
+	_, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -94,7 +94,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 		r.Error(StatusInternalServerError, err.Error())
 		return r
 	}
-	permissions, err := s.repo.Get(boardId, userId, IsBoard)
+	permissions, err := s.repo.GetById(boardId, userId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not board member")
@@ -109,7 +109,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "New board member is not project member")
@@ -132,7 +132,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	_, err := s.repo.Get(projectId, userId, IsProject)
+	_, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -141,7 +141,7 @@ func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *mo
 		r.Error(StatusInternalServerError, err.Error())
 		return r
 	}
-	permissions, err := s.repo.Get(boardId, userId, IsBoard)
+	permissions, err := s.repo.GetById(boardId, userId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not board member")
@@ -156,7 +156,7 @@ func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *mo
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Excluding user is not project member")
@@ -166,7 +166,7 @@ func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *mo
 		return r
 	}
 
-	_, err = s.repo.Get(boardId, memberId, IsBoard)
+	_, err = s.repo.GetById(boardId, memberId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Excluding user is not board member")
@@ -219,7 +219,7 @@ func (s *BoardPermsService) Update(userId, projectId, boardId, memberId int, boa
 		return r
 	}
 
-	_, err := s.repo.Get(projectId, userId, IsProject)
+	_, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -228,7 +228,7 @@ func (s *BoardPermsService) Update(userId, projectId, boardId, memberId int, boa
 		r.Error(StatusInternalServerError, err.Error())
 		return r
 	}
-	permissions, err := s.repo.Get(boardId, userId, IsBoard)
+	permissions, err := s.repo.GetById(boardId, userId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not board member")
@@ -243,7 +243,7 @@ func (s *BoardPermsService) Update(userId, projectId, boardId, memberId int, boa
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Excluding user is not project member")
@@ -253,7 +253,7 @@ func (s *BoardPermsService) Update(userId, projectId, boardId, memberId int, boa
 		return r
 	}
 
-	_, err = s.repo.Get(boardId, memberId, IsBoard)
+	_, err = s.repo.GetById(boardId, memberId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Excluding user is not board member")
