@@ -17,7 +17,7 @@ func NewBoardPermsService(repo repositories.ObjectPerms, boardRepo repositories.
 	return &BoardPermsService{repo: repo, boardRepo: boardRepo, projectRepo: projectRepo}
 }
 
-func (s *BoardPermsService) Get(userId, projectId, boardId int, memberNickname string) *models.ApiResponse {
+func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
 	_, err := s.repo.GetById(projectId, userId, IsProject)
@@ -40,7 +40,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId int, memberNickname s
 		return r
 	}
 
-	_, err = s.repo.GetByNickname(projectId, IsProject, memberNickname)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Board member is not project member")
@@ -50,7 +50,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId int, memberNickname s
 		return r
 	}
 
-	permissions, err := s.repo.GetByNickname(boardId, IsBoard, memberNickname)
+	permissions, err := s.repo.GetById(boardId, memberId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Board member not found")
@@ -64,7 +64,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId int, memberNickname s
 	return r
 }
 
-func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boardPerms *models.Permission) *models.ApiResponse {
+func (s *BoardPermsService) Create(userId, projectId, boardId int, memberNickname string, boardPerms *models.Permission) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
 	if err := permsValidation(boardPerms); err != nil {
@@ -109,7 +109,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 		return r
 	}
 
-	_, err = s.repo.GetById(projectId, memberId, IsProject)
+	_, err = s.repo.GetByNickname(projectId, IsProject, memberNickname)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "New board member is not project member")
@@ -119,7 +119,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 		return r
 	}
 
-	permissionsId, err := s.repo.Create(boardId, memberId, IsBoard, boardPerms)
+	permissionsId, err := s.repo.Create(boardId, IsBoard, memberNickname, boardPerms)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r

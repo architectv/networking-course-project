@@ -68,7 +68,7 @@ type Label interface {
 }
 
 type ObjectPerms interface {
-	Create(objectId, memberId, objectType int, permissions *models.Permission) (int, error)
+	Create(objectId, objectType int, memberNickname string, permissions *models.Permission) (int, error)
 	GetById(objectId, memberId, objectType int) (*models.Permission, error)
 	GetByNickname(objectId, objectType int, memberId string) (*models.Permission, error)
 	Delete(objectId, oldOwnerId, newOwnerId, objectType int) error

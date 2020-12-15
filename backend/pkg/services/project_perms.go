@@ -24,7 +24,7 @@ func NewProjectPermsService(repo repositories.ObjectPerms, projectRepo repositor
 	return &ProjectPermsService{repo: repo, projectRepo: projectRepo, boardRepo: boardRepo}
 }
 
-func (s *ProjectPermsService) Get(userId, projectId int, memberNickname string) *models.ApiResponse {
+func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
 	_, err := s.repo.GetById(projectId, userId, IsProject)
@@ -37,7 +37,7 @@ func (s *ProjectPermsService) Get(userId, projectId int, memberNickname string) 
 		return r
 	}
 
-	permissions, err := s.repo.GetByNickname(projectId, IsProject, memberNickname)
+	permissions, err := s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Project member not found")
@@ -51,7 +51,7 @@ func (s *ProjectPermsService) Get(userId, projectId int, memberNickname string) 
 	return r
 }
 
-func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPerms *models.Permission) *models.ApiResponse {
+func (s *ProjectPermsService) Create(userId, projectId int, memberNickname string, projectPerms *models.Permission) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
 	if err := permsValidation(projectPerms); err != nil {
@@ -87,7 +87,7 @@ func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	permissionsId, err := s.repo.Create(projectId, memberId, IsProject, projectPerms)
+	permissionsId, err := s.repo.Create(projectId, IsProject, memberNickname, projectPerms)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r

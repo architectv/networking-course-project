@@ -69,8 +69,8 @@ func (r *ObjectPermsPg) GetByNickname(objectId, objectType int, memberNickname s
 	return permissions, err
 }
 
-func (r *ObjectPermsPg) Create(objectId, memberId, objectType int, permissions *models.Permission) (int, error) {
-	fmt.Println(objectId, memberId, objectType)
+func (r *ObjectPermsPg) Create(objectId, objectType int, memberNickname string, permissions *models.Permission) (int, error) {
+
 	objParams, err := getObjectParams(objectType)
 	if err != nil {
 		return 0, err
@@ -81,7 +81,7 @@ func (r *ObjectPermsPg) Create(objectId, memberId, objectType int, permissions *
 		return 0, err
 	}
 
-	_, err = r.GetById(objectId, memberId, objectType)
+	_, err = r.GetByNickname(objectId, objectType, memberNickname)
 	if err != nil && err.Error() != DbResultNotFound {
 		return 0, err
 	} else if err == nil {
@@ -98,9 +98,13 @@ func (r *ObjectPermsPg) Create(objectId, memberId, objectType int, permissions *
 
 	query := fmt.Sprintf(
 		`INSERT INTO %s (user_id, %s, permissions_id)
-		VALUES ($1, $2, $3) RETURNING id`, objParams.Table, objParams.IdTitle)
+		VALUES (
+			(SELECT id FROM %s WHERE nickname = $1),
+			$2, $3) RETURNING id`, objParams.Table, objParams.IdTitle, usersTable)
 
-	row := tx.QueryRow(query, memberId, objectId, permissionsId)
+	fmt.Println(query, memberNickname)
+
+	row := tx.QueryRow(query, memberNickname, objectId, permissionsId)
 	if err := row.Scan(&objectPermsId); err != nil {
 		tx.Rollback()
 		return 0, err

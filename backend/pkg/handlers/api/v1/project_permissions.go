@@ -30,8 +30,13 @@ func (apiVX *ApiV1) getProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberNickname := ctx.Query("member_nickname")
-	response = apiVX.services.ProjectPerms.Get(userId, projectId, memberNickname)
+	memberId, err := strconv.Atoi(ctx.Query("member_id"))
+	if err != nil || memberId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid memberId")
+		return Send(ctx, response)
+	}
+
+	response = apiVX.services.ProjectPerms.Get(userId, projectId, memberId)
 	return Send(ctx, response)
 }
 
@@ -49,11 +54,7 @@ func (apiVX *ApiV1) createProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberId, err := strconv.Atoi(ctx.Query("member_id"))
-	if err != nil || memberId == 0 {
-		response.Error(fiber.StatusBadRequest, "Invalid memberId")
-		return Send(ctx, response)
-	}
+	memberNickname := ctx.Query("member_nickname")
 
 	permissions := &models.Permission{}
 	if err := ctx.BodyParser(permissions); err != nil {
@@ -66,7 +67,7 @@ func (apiVX *ApiV1) createProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	response = apiVX.services.ProjectPerms.Create(userId, projectId, memberId,
+	response = apiVX.services.ProjectPerms.Create(userId, projectId, memberNickname,
 		permissions)
 	return Send(ctx, response)
 }
