@@ -43,21 +43,57 @@ export function getMembers(prefix) {
     });
   }
   
-  async function addMember(member_name, role) {
-    let data = {read: true};
+  function getData(role) {
+    let data = {read: true, write: false, admin: false};
     if (role == 'writer' || role == 'admin') {
       data.write = true;
     }
     if (role == 'admin') {
       data.admin = true;
     }
+    return data;
+  }
+
+  async function changeMember(member_name, role) {
+    let data = getData(role);
     if (!member_name) {
       return;
     }
     if (!localStorage.token) {
       return [];
     }
-    await fetch(`${prefix}/permissions?member_nickname=${member_name}`, {
+    await fetch(`${prefix}/permissions/${member_name}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        Authorization: `Bearer ${localStorage.token}`
+      }
+    }).then((resp) => {
+      if (resp.status == 401) {
+        user.unauthorized();
+      }
+      if (resp.ok) {
+        return resp.json();
+      }
+      throw Error("Network error");
+    }).then((data) => {
+      refresh();
+    }).catch((e) => {
+      console.log(e);
+    });
+  }
+
+  
+  async function addMember(member_name, role) {
+    let data = getData(role);
+    if (!member_name) {
+      return;
+    }
+    if (!localStorage.token) {
+      return [];
+    }
+    await fetch(`${prefix}/permissions/${member_name}`, {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -65,7 +101,7 @@ export function getMembers(prefix) {
         Authorization: `Bearer ${localStorage.token}`
       }
     }).then((resp) => {
-      if (response.status == 401) {
+      if (resp.status == 401) {
         user.unauthorized();
       }
       if (resp.ok) {
@@ -78,11 +114,43 @@ export function getMembers(prefix) {
     });
   }
 
+  async function removeMember(member_name) {
+    if (!member_name) {
+      return;
+    }
+    if (!localStorage.token) {
+      return [];
+    }
+    let success = await fetch(`${prefix}/permissions/${member_name}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.token}`
+      }
+    }).then((resp) => {
+      if (resp.status == 401) {
+        user.unauthorized();
+      }
+      if (resp.ok) {
+        return resp.json();
+      }
+      throw Error("Network error");
+    }).then((data) => {
+      return true;
+    }).catch((e) => {
+      return false;
+    });
+    if (success) {
+      refresh();
+    }
+  }
+
   refresh();
   return {
     refresh,
     update,
     addMember,
+    changeMember,
+    removeMember,
     set,
     subscribe
   }

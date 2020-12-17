@@ -88,7 +88,7 @@
     <br/>
       <Button on:click={openNewLabelDialog} style="min-width: max-content; margin-left: 5px;">
         <Icon class="material-icons">add_circle_outline</Icon>
-        <Label>Add list</Label>
+        <Label>Add label</Label>
       </Button>
   </div>
 </div>

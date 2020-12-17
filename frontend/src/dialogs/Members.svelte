@@ -9,9 +9,25 @@
     </Select>
   </Content>
   <Actions>
-    <Button on:click={() => {members.addMember(nickname, role)}}
+    <Button on:click={() => {members.addMember(nickname, role); membersDialog.open()}}
     >Add member</Button>
-    <Button>Close</Button>
+    <Button on:click={membersDialog.open}>Close</Button>
+  </Actions>
+</Dialog>
+
+<Dialog bind:this={changeMemberDialog}>
+  <Title>Change member</Title>
+  <Content style="display: flex; flex-direction: column;">
+    <Select enhanced bind:value={role} label="Role">
+    {#each roles as r}
+      <Option value={r} selected={role === r}>{r}</Option>
+    {/each}
+    </Select>
+  </Content>
+  <Actions>
+    <Button on:click={() => {members.changeMember(memberId, role); membersDialog.open()}}
+    >Change member</Button>
+    <Button on:click={membersDialog.open}>Close</Button>
   </Actions>
 </Dialog>
 
@@ -34,6 +50,14 @@
       <div style="margin-right: 1em; margin-left: 5px;">
         {member.nickname}
       </div>
+      {#if !member.isOwner}
+      <IconButton on:click={() => {openChangeMember(member)}}>
+        <Icon class="material-icons">create</Icon>
+      </IconButton>
+      <IconButton on:click={() => {members.removeMember(member.id)}}>
+        <Icon class="material-icons">delete_outline</Icon>
+      </IconButton>
+      {/if}
     </div>
     {/each}
   </div>
@@ -54,16 +78,29 @@
   import TextField from '@smui/textfield';
   import Dialog, {Title, Content, Actions, InitialFocus} from '@smui/dialog';
   import Button, {Label} from '@smui/button';
+  import IconButton, {Icon} from '@smui/icon-button';
   import {getMembers} from '../api/members';
   export let path;
+  let changeMemberDialog;
   let addMemberDialog;
   let nickname = "";
+  let memberId;
   let roles = ["reader", "writer", "admin"];
   let role = roles[0];
   let members = getMembers(path);
+  $: console.log("Changed", $members);
   
   function openAddMember() {
+    role = roles[0];
+    membersDialog.close();
     addMemberDialog.open();
+  }
+  
+  function openChangeMember(member) {
+    memberId = member.id;
+    role = roles[0];
+    membersDialog.close();
+    changeMemberDialog.open();
   }
   
   let membersDialog;
