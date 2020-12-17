@@ -114,7 +114,7 @@
       return;
     }
     taskDialog.close();
-    deleteDialog.open(task, _deleteTask);
+    deleteDialog.open(task, () => _deleteTask(task.id));
   }
 
   $: fields = [

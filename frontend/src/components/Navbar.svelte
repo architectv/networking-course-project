@@ -61,9 +61,10 @@
   import {user} from '../api/auth';
   import NewDialog from '../dialogs/NewDialog.svelte';
 import { getValidData } from '../utils';
+  import { boards } from '../api/boards';
   export let dark_theme;
   export let section="Main";
-  export let reload;
+  export let reload = () => {boards.refresh();};
   let menu;
   let newDialog;
 
