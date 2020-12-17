@@ -89,7 +89,7 @@ func (r *ObjectPermsPg) Create(objectId, objectType int, memberNickname string, 
 		return 0, errors.New(str)
 	}
 
-	_, err = r.GetById(objectId, objectType, memberId)
+	_, err = r.GetById(objectId, memberId, objectType)
 	if err != nil && err.Error() != DbResultNotFound {
 		return 0, err
 	} else if err == nil {
@@ -234,7 +234,7 @@ func getObjectParams(objectType int) (*ObjectParams, error) {
 			Table:   boardUsersTable,
 		}
 	default:
-		fmt.Println(objectType)
+		fmt.Println("objectType", objectType)
 		return &objParams, errors.New("Object type is not defined")
 	}
 	return &objParams, nil
