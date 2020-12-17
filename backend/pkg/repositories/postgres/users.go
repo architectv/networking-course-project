@@ -20,7 +20,7 @@ func (r *UserPg) GetById(id int) (*models.User, error) {
 	user := &models.User{}
 
 	query := fmt.Sprintf(
-		`SELECT u.id, u.nickname, u.email, u.avatar
+		`SELECT *
 		FROM %s AS u
 		WHERE u.id = $1`,
 		usersTable)
@@ -48,9 +48,27 @@ func (r *UserPg) Update(id int, profile *models.UpdateUser) error {
 		argId++
 	}
 
+	if profile.Firstname != nil {
+		setValues = append(setValues, fmt.Sprintf("firstname=$%d", argId))
+		args = append(args, *profile.Firstname)
+		argId++
+	}
+
+	if profile.Lastname != nil {
+		setValues = append(setValues, fmt.Sprintf("lastname=$%d", argId))
+		args = append(args, *profile.Lastname)
+		argId++
+	}
+
 	if profile.Email != nil {
 		setValues = append(setValues, fmt.Sprintf("email=$%d", argId))
 		args = append(args, *profile.Email)
+		argId++
+	}
+
+	if profile.Phone != nil {
+		setValues = append(setValues, fmt.Sprintf("phone=$%d", argId))
+		args = append(args, *profile.Phone)
 		argId++
 	}
 

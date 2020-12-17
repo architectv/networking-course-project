@@ -2,7 +2,6 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"yak/backend/pkg/models"
@@ -60,23 +59,6 @@ func (apiVX *ApiV1) update(ctx *fiber.Ctx) error {
 		logrus.Println("govalid!")
 		response.Error(fiber.StatusBadRequest, err.Error())
 		return Send(ctx, response)
-	}
-
-	if input.Avatar != nil {
-		// TODO: check file extension
-		file, err := ctx.FormFile("document")
-		if err != nil {
-			response.Error(fiber.StatusBadRequest, err.Error())
-			return Send(ctx, response)
-		}
-		// TODO: media dir
-		avatar := fmt.Sprintf("./media/%s", file.Filename)
-		err = ctx.SaveFile(file, avatar)
-		if err != nil {
-			response.Error(fiber.StatusBadRequest, err.Error())
-			return Send(ctx, response)
-		}
-		input.Avatar = &avatar
 	}
 
 	response = apiVX.services.User.Update(id, input)

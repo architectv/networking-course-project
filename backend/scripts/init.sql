@@ -13,7 +13,10 @@ DROP TABLE IF EXISTS tokens CASCADE;
 CREATE TABLE IF NOT EXISTS users (
     id serial PRIMARY KEY,
     nickname varchar(32) UNIQUE NOT NULL,
+    firstname varchar(32) NOT NULL DEFAULT '',
+    lastname varchar(32) NOT NULL DEFAULT '',
     email varchar(32) NOT NULL,
+    phone varchar(32) NOT NULL DEFAULT '',
     password varchar(32) NOT NULL,
     avatar varchar(100) NOT NULL DEFAULT ''
 );
