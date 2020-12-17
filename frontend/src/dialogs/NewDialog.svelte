@@ -79,6 +79,15 @@
     title = title_;
     subtitle = subtitle_;
     isUpdate = isUpdate_;
+    if (!isUpdate_) {
+      fields.forEach((value) => {
+        if (value.type != "checkbox") {
+          value.value = "";
+        } else {
+          value.value = false;
+        }
+      })
+    }
     newDialog.open(...args)
   }
 </script>
