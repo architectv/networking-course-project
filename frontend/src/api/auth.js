@@ -32,6 +32,34 @@ let validators = {
 
 function getUser() {
   const { subscribe, set, update } = user_store;
+    async function updateUser(data) {
+      if (!localStorage.token) {
+        return;
+      }
+      let success = await fetch("api/v1/users/update", {
+        method: "PUT",
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.token,
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(data)
+      }).then((response) => {
+        if (response.status == 401) {
+          unauthorized();
+        }
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      }).then((x) => {
+        return true;
+      }).catch((x) => {
+        console.log("error: ", x);
+        return false;
+      });
+      await setUserdata();
+    }
+
     async function register(data) {
       let success = await fetch("api/v1/users/signup", {
         method: "POST",
@@ -151,6 +179,7 @@ function getUser() {
       register,
       logout,
       unauthorized,
+      updateUser,
       validate: (data) => validate(validators, data),
       validate_prop: (prop, val) => validate_prop(validators, prop, val)
     };

@@ -131,6 +131,55 @@ function getBoards() {
     }
   });
 
+  async function updateCurrent(data, onError) {
+    let p = {};
+    p.read = data.read;
+    data.read = undefined;
+    p.write = data.write;
+    data.write = undefined;
+    data.defaultPermissions = p;
+    let token = localStorage.getItem("token");
+    if (!token) {
+      user.unauthorized();
+      return;
+    }
+    let current;
+    update((value) => {
+      current = value.current;
+      return value;
+    })
+    if (!current) {
+      return;
+    }
+    let currentProject = getProjectId();
+    let success = await fetch(`api/v1/projects/${currentProject}/boards/${current}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        'Authorization': 'Bearer ' + token
+      }
+    }).then((response) => {
+      if (response.status == 401) {
+        user.unauthorized();
+        throw new Error('Unauthorized');
+      }
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    }).then((x) => {
+      return true;
+    }).catch((x) => {
+      if (onError) onError(x);
+      return false;
+    });
+    if (success) {
+      await refresh();
+    }
+    return success;
+  }
+
   async function deleteCurrent(onError) {
     let token = localStorage.getItem("token");
     if (!token) {
@@ -181,6 +230,7 @@ function getBoards() {
     refresh,
     create,
     release,
+    updateCurrent,
     validate: (data) => validate(validators, data),
     validate_prop: (prop, val) => validate_prop(validators, prop, val)
   };

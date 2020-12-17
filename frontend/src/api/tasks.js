@@ -15,27 +15,17 @@ let validators = {
   }
 };
 
-export function getTasks(listId) {
+export function getTasks(pid, bid, listId) {
   if (!tasks_stores[listId]) {
     tasks_stores[listId] = writable({});
   }
   let { subscribe, set, update } = tasks_stores[listId];
   async function refresh() {
-    let projectId = boards.getProjectId();
-    if (projectId == undefined) {
-      return;
-    }
-    let boardId = lists.getBoardId();
-    if (boardId == undefined) {
-      return;
-    }
     let token = localStorage.token;
-    if (!token) {
+    if (bid == undefined || pid == undefined || listId == undefined || !token) {
       return;
     }
-    let obj = await fetch("api/v1/projects/" + projectId + 
-                          "/boards/" + boardId + "/lists/" +
-                          listId + "/tasks", {
+    let obj = await fetch(`api/v1/projects/${pid}/boards/${bid}/lists/${listId}/tasks`, {
       headers: {
         Authorization: "Bearer " + token
       },
@@ -60,24 +50,105 @@ export function getTasks(listId) {
       });
       console.log("error: ", x);
     });
+    refreshLabels();
+  }
+  
+  async function updateLabel(method, tid, lid) {
+    let token = localStorage.token;
+    if (bid == undefined || pid == undefined || tid == undefined || !method ||
+        listId == undefined || lid == undefined || !token) {
+      return;
+    }
+    return await fetch(`api/v1/projects/${pid}/boards/${bid}/` +
+                          `lists/${listId}/tasks/${tid}/labels/${lid}`, {
+      method,
+      headers: {
+        Authorization: "Bearer " + token
+      },
+    }).then((response) => {
+      if (response.status == 401) {
+        user.unauthorized();
+      }
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    }).then((x) => {
+      loadLabels(tid);
+    }).catch((x) => {
+      console.log("error: ", x);
+    });
+  }
+  
+  async function addLabel(tid, lid) {
+    await updateLabel("POST", tid, lid);
+  }
+  
+  async function removeLabel(tid, lid) {
+    await updateLabel("DELETE", tid, lid);
+  }
+  
+  async function loadLabels(tid) {
+    let token = localStorage.token;
+    if (bid == undefined || pid == undefined || tid == undefined ||
+        listId == undefined || !token) {
+      return;
+    }
+    return await fetch(`api/v1/projects/${pid}/boards/${bid}/` +
+                          `lists/${listId}/tasks/${tid}/labels`, {
+      headers: {
+        Authorization: "Bearer " + token
+      },
+    }).then((response) => {
+      if (response.status == 401) {
+        user.unauthorized();
+      }
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    }).then((x) => {
+      let labels = x.data.labels;
+      update((value) => {
+        if (value.list) {
+          value.list.forEach((task) => {
+            if (task._id == tid) {
+              if (!labels) {
+                task.labels = [];
+              } else {
+                task.labels = labels;
+              }
+            }
+          });
+        }
+        return value;
+      });
+    }).catch((x) => {
+      console.log("error: ", x);
+    });
+  }
+  
+  async function refreshLabels() {
+    let tlist;
+    update((value) => {
+      tlist = value.list;
+      return value;
+    });
+    if (!tlist) {
+      return;
+    }
+    for (const value of tlist) {
+      await loadLabels(value._id);
+    }
   }
 
   async function create(data, onError) {
-    let projectId = boards.getProjectId();
-    if (projectId == undefined) {
-      return;
-    }
-    let boardId = lists.getBoardId();
-    if (boardId == undefined) {
-      return;
-    }
     let token = localStorage.token;
-    if (!token) {
-      user.unauthorized();
+    if (bid == undefined || pid == undefined || listId == undefined || !token) {
       return;
     }
-    let success = await fetch("api/v1/projects/" + projectId + 
-                              "/boards/" + boardId + "/lists/" + 
+    let success = await fetch("api/v1/projects/" + pid + 
+                              "/boards/" + bid + "/lists/" + 
                               listId + "/tasks", {
       method: "POST",
       headers: {
@@ -104,37 +175,12 @@ export function getTasks(listId) {
     }
   }
 
-  let unsubscribe = boards.subscribe((value) => {
-    let newBoardId = value.current;
-    let boardId;
-    update((value) => {
-      boardId = value.boardId;
-      if (!newBoardId) {
-        return {};
-      }
-      value.boardId = newBoardId;
-      return value;
-    });
-    if (newBoardId != boardId) {
-      refresh();
-    }
-  });
-
   async function deleteTask(id) {
-    let projectId = boards.getProjectId();
-    if (projectId == undefined) {
-      return;
-    }
-    let boardId = lists.getBoardId();
-    if (boardId == undefined) {
-      return;
-    }
     let token = localStorage.token;
-    if (!token) {
-      user.unauthorized();
+    if (bid == undefined || pid == undefined || listId == undefined || id == undefined || !token) {
       return;
     }
-    let success = await fetch(`api/v1/projects/${projectId}/boards/${boardId}` + 
+    let success = await fetch(`api/v1/projects/${pid}/boards/${bid}` + 
                               `/lists/${listId}/tasks/${id}`, {
       method: "DELETE",
       headers: {
@@ -155,9 +201,18 @@ export function getTasks(listId) {
     }
   }
 
+  let unsubscribe = lists.subscribe((value) => {
+    console.log("List", value);
+    if (!value.list) {
+      set({});
+    } else {
+      refresh();
+    }
+  });
+  
+
   
   async function updateTask(id, prevListId, data) {
-    console.log("UpdateTask", id, prevListId, data);
     let projectId = boards.getProjectId();
     if (projectId == undefined) {
       return;
@@ -190,6 +245,7 @@ export function getTasks(listId) {
       return false;
     });
     if (success) {
+      set({});
       refresh();
     }
   }
@@ -207,6 +263,8 @@ export function getTasks(listId) {
     refresh,
     create,
     release,
+    addLabel,
+    removeLabel,
     validate: (data) => validate(validators, data),
     validate_prop: (prop, val) => validate_prop(validators, prop, val)
   };

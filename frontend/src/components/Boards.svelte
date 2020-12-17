@@ -1,32 +1,6 @@
-<Dialog bind:this={newDialog}>
-  <Title>Dialog Title</Title>
-  <Content>
-    Do you want create a board?
-        <br />
-        {#each fields as f, i}
-            <Textfield bind:invalid={f.invalid}
-                       bind:value={f.value} 
-                       on:input={(e) => {validateField(boards, f, e)}}
-                       useNativeValidation={false}
-                       label={f.name} 
-                       type={f.type} />
-            {#if f.invalid}
-            <HelperText validationMsg>{f.error}</HelperText>
-            {/if}
-            <br />
-        {/each}
-  </Content>
-  <Actions>
-    <Button on:click={createBoard}>
-      <Label>Create</Label>
-    </Button>
-    <Button on:click={() => {}}>
-      <Label>Cancel</Label>
-    </Button>
-  </Actions>
-</Dialog>
+<NewDialog bind:this={newDialog} />
 
-<Members bind:this={membersDialog} path={`api/v1/projects/${project.id}/members`} />
+<Members bind:this={membersDialog} path={`api/v1/projects/${project.id}`} />
 
 <Dialog bind:this={deleteDialog}>
   <Title>Dialog Title</Title>
@@ -57,6 +31,9 @@
   <IconButton on:click={deleteDialog.open}>
     <Icon class="material-icons">delete_outline</Icon>
   </IconButton>
+  <IconButton on:click={openEditProject}>
+    <Icon class="material-icons">create</Icon>
+  </IconButton>
 </div>
 
 {#if project.description}
@@ -68,7 +45,7 @@
 
 <div class="mdc-typography--headline6">
     Boards
-  <IconButton on:click={() => newDialog.open()}>
+  <IconButton on:click={openCreateBoard}>
     <Icon class="material-icons">add_circle_outline</Icon>
   </IconButton>
 </div>
@@ -106,6 +83,7 @@
   import Lists from './Lists.svelte';
   import {onDestroy} from 'svelte';
   import {projects} from '../api/projects';
+  import NewDialog from '../dialogs/NewDialog.svelte';
 
   export let project;
   let board_curr;
@@ -118,6 +96,48 @@
   let membersDialog;
   let errorDialog;
   let deleteDialog;
+
+  let fieldsProject = [
+      {
+          name: "Title", key: "title", 
+          value: project.title || "", 
+          type: "text", invalid: false,
+          error: ""
+      },
+      {
+          name: "Description", key: "description", 
+          value: project.description || "", long: true,
+          type: "text", invalid: false,
+          error: ""
+      },
+      {
+          name: "Read", key: "read", 
+          value: project.defaultPermissions.read || false, 
+          type: "checkbox", invalid: false,
+          error: ""
+      },
+      {
+          name: "Write", key: "write", 
+          value: project.defaultPermissions.write || false, 
+          type: "checkbox", invalid: false,
+          error: ""
+      }
+    ];
+  
+  async function updateProject(fields) {
+    let data = getValidData(fields, projects);
+    if (!data) return;
+    let ret = await projects.updateCurrent(data);
+    if (ret) project.title = data.title;
+  }
+  
+  function openEditProject() {
+    newDialog.open(projects, fieldsProject, undefined, updateProject, "Change project", "", true);
+  }
+
+  function openCreateBoard() {
+    newDialog.open(boards, fields, undefined, createBoard, "Create board", "Do you want to create board");
+  }
 
   let fields = [
       {
@@ -132,7 +152,7 @@
     projects.deleteCurrent();
   }
 
-  function createBoard() {
+  function createBoard(fields) {
     let data = getValidData(fields, boards);
     if (!data) return;
     boards.create(data, (x) => {errorDialog.open();});

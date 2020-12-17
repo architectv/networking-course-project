@@ -1,8 +1,8 @@
-<Dialog bind:this={deleteDialog}>
+<Dialog bind:this={deleteDialog} style="z-index: 2000;">
 {#if item}
-  <Title>Delete {item.title}</Title>
+  <Title>Delete {item.title || item.name}</Title>
   <Content>
-  Do you really want to delete {item.title}?
+  Do you really want to delete {item.title || item.name}?
   </Content>
 {/if}
   <Actions>
