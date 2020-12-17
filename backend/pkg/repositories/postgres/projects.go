@@ -207,9 +207,11 @@ func (r *ProjectPg) Update(projectId int, input *models.UpdateProject) error {
 		return err
 	}
 
-	if err = updatePermissions(tx, defPermissionsId, input.DefaultPermissions); err != nil {
-		tx.Rollback()
-		return err
+	if input.DefaultPermissions != nil {
+		if err = updatePermissions(tx, defPermissionsId, input.DefaultPermissions); err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	if err = updateDatetimes(tx, datetimesId, input.Datetimes); err != nil {

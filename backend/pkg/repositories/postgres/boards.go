@@ -183,9 +183,11 @@ func (r *BoardPg) Update(boardId int, input *models.UpdateBoard) error {
 		return err
 	}
 
-	if err = updatePermissions(tx, defPermissionsId, input.DefaultPermissions); err != nil {
-		tx.Rollback()
-		return err
+	if input.DefaultPermissions != nil {
+		if err = updatePermissions(tx, defPermissionsId, input.DefaultPermissions); err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	if err = updateDatetimes(tx, datetimesId, input.Datetimes); err != nil {
