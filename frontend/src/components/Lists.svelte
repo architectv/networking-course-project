@@ -44,6 +44,9 @@
                 <IconButton on:click={() => listMoveNext(list)}>
                   <Icon class="material-icons">arrow_forward_ios</Icon>
                 </IconButton>
+                <IconButton on:click={openChangeList(list)}>
+                  <Icon class="material-icons">create</Icon>
+                </IconButton>
                 <IconButton on:click={() => {deleteDialog.open(list, () => {deleteList(list.id)})}}>
                   <Icon class="material-icons">delete_outline</Icon>
                 </IconButton>
@@ -212,6 +215,20 @@
           error: ""
       }
     ];
+    
+  function changeListFunction(id) {
+    return (fields) => {
+      let data = getValidData(fields, lists);
+      if (!data) return;
+      lists.updateList(id, data);
+    }
+  }
+  
+  function openChangeList(list) {
+    fields[0].value = list.title;
+    newDialog.open(lists, fields, undefined, changeListFunction(list.id), 
+                   "Change list", "", true);
+  }
 
   function createList(fields) {
     let data = getValidData(fields, lists);
