@@ -26,7 +26,7 @@
   </Actions>
 </Dialog>
 
-<Members bind:this={membersDialog} path={`api/v1/projects/${project.id}/members`} />
+<Members bind:this={membersDialog} path={`api/v1/projects/${project.id}`} />
 
 <Dialog bind:this={deleteDialog}>
   <Title>Dialog Title</Title>

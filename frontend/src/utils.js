@@ -7,9 +7,8 @@ function setCookie(cname, cvalue, exsec) {
 
 export function getDate(ts) {
   let date = new Date(ts * 1000);
-
-  let day = "0" + date.getDay();
-  let month = "0" + date.getMonth();
+  let day = "0" + date.getDate();
+  let month = "0" + (date.getMonth() + 1);
   let year = date.getFullYear();
   let hours = "0" + date.getHours();
   let minutes = "0" + date.getMinutes();
@@ -36,11 +35,18 @@ function getCookie(cname) {
 }
 
 export function validate_prop(validators, prop, value) {
-  console.log("Validate", prop, value)
   if (validators[prop]) {
     return validators[prop](value);
   }
   return null;
+}
+
+export function toColor(num) {
+  num >>>= 0;
+  var b = num & 0xFF,
+      g = (num & 0xFF00) >>> 8,
+      r = (num & 0xFF0000) >>> 16;
+  return "rgb(" + [r, g, b].join(",") + ")";
 }
 
 export function validate(validators, data) {
@@ -72,7 +78,6 @@ export function getValidData(fields, obj) {
 }
 
 export function validateField(obj, field, e) {
-  console.log(field);
   if (e.srcElement) {
     let value = e.srcElement.value;
     let invalid = obj.validate_prop(field.key, value);

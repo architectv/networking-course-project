@@ -1,22 +1,48 @@
+<Dialog bind:this={addMemberDialog}>
+  <Title>Add member</Title>
+  <Content style="display: flex; flex-direction: column;">
+    <TextField bind:value={nickname} label="Nickname" type="text"/>
+    <Select enhanced bind:value={role} label="Role">
+    {#each roles as r}
+      <Option value={r} selected={role === r}>{r}</Option>
+    {/each}
+    </Select>
+  </Content>
+  <Actions>
+    <Button on:click={() => {members.addMember(nickname, role)}}
+    >Add member</Button>
+    <Button>Close</Button>
+  </Actions>
+</Dialog>
+
+
 <Dialog bind:this={membersDialog}>
   <Title>Members</Title>
   <Content>
-  {#await getMembers()}
-    Loading...
-  {:then value}
-  {#each value as group}
+  {#each $members as group}
+  <div>
+  <div class="mdc-typography--headline4">
     {group.name}
-    <br/>
+  </div>
     {#each group.items as member}
-      {member.nickname}
-      <br/>
+    <div style="display: flex; flex-direction: row; align-items: center;">
+      {#if !member.avatar}
+        <img src="unknown.png" alt="Avatar" style="border-radius: 50%; height: 48px;">
+      {:else}
+        <img src="{member.avatar}" alt="Avatar" style="border-radius: 50%; height: 48px;">
+      {/if}
+      <div style="margin-right: 1em; margin-left: 5px;">
+        {member.nickname}
+      </div>
+    </div>
     {/each}
+  </div>
   {/each}
-  {:catch error}
-    {error}
-  {/await}
   </Content>
   <Actions>
+    <Button on:click={openAddMember}>
+      <Label>Add member</Label>
+    </Button>
     <Button on:click={() => {}}>
       <Label>Close</Label>
     </Button>
@@ -24,46 +50,22 @@
 </Dialog>
 
 <script>
+  import Select, {Option} from '@smui/select';
+  import TextField from '@smui/textfield';
   import Dialog, {Title, Content, Actions, InitialFocus} from '@smui/dialog';
   import Button, {Label} from '@smui/button';
+  import {getMembers} from '../api/members';
   export let path;
-  async function getMembers() {
-    if (!localStorage.token) {
-      return [];
-    }
-    let members = fetch(path, {
-      headers: {
-        Authorization: `Bearer ${localStorage.token}`
-      }
-    }).then((resp) => {
-      if (resp.ok) {
-        return resp.json();
-      }
-      throw Error("Network error");
-    }).then((data) => {
-      let m = data.data.members;
-      let owner = [];
-      let admins = [];
-      let writers = [];
-      let readers = [];
-      m.forEach((value) => {
-        if (value.isOwner) owner.push(value);
-        else if (value.permissions.admin) admins.push(value);
-        else if (value.permissions.write) writers.push(value);
-        else readers.push(value);
-      });
-      let res = [];
-      res.push({name: 'Бог', items: owner});
-      if (admins.length) res.push({name: 'Админы', items: admins});
-      if (writers.length) res.push({name: 'Писатели', items: writers});
-      if (readers.length) res.push({name: 'Читатели', items: readers});
-      console.log(res);
-      return res;
-    });
-    return members;
+  let addMemberDialog;
+  let nickname = "";
+  let roles = ["reader", "writer", "admin"];
+  let role = roles[0];
+  let members = getMembers(path);
+  
+  function openAddMember() {
+    addMemberDialog.open();
   }
-
-
+  
   let membersDialog;
   export function open(...args) {
     membersDialog.open(...args);

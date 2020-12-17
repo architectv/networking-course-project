@@ -5,7 +5,6 @@
       <Projects/>
     </div>
   {:else}
-  Login
     <Login/>
   {/if}
 </div>

@@ -1,12 +1,13 @@
 import {writable} from 'svelte/store';
 import {user} from './auth.js';
 import {boards} from './boards.js';
+import {lists} from './lists';
 import {validate, validate_prop} from '../utils.js';
 
-const lists_store = writable({});
+const labels_store = writable({});
 
 let validators = {
-  title: (value) => {
+  name: (value) => {
     if (value.length <= 50) {
       return null;
     }
@@ -14,8 +15,8 @@ let validators = {
   }
 };
 
-function getLists() {
-  let { subscribe, set, update } = lists_store;
+function getLabels() {
+  let { subscribe, set, update } = labels_store;
   function getBoardId() {
     let boardId;
     update((value) => {
@@ -38,7 +39,7 @@ function getLists() {
       return;
     }
     let obj = await fetch("api/v1/projects/" + projectId + 
-                          "/boards/" + boardId + "/lists", {
+                          "/boards/" + boardId + "/labels", {
       headers: {
         Authorization: "Bearer " + token
       },
@@ -52,20 +53,20 @@ function getLists() {
       return response.json();
     }).then((x) => {
       update((value) => {
-        value.list = x.data.lists;
+        value.list = x.data.labels;
         value.error = undefined;
         return value;
       });
     }).catch((x) => {
       update((value) => {
-        value.error = "Load lists error";
+        value.error = "Load labels error";
         return value;
       });
       console.log("error: ", x);
     });
   }
   
-  async function deleteList(id) {
+  async function deleteLabel(id) {
     let projectId = boards.getProjectId();
     if (projectId == undefined) {
       return;
@@ -79,7 +80,7 @@ function getLists() {
       user.unauthorized();
       return;
     }
-    let success = await fetch(`api/v1/projects/${projectId}/boards/${boardId}/lists/${id}`, {
+    let success = await fetch(`api/v1/projects/${projectId}/boards/${boardId}/labels/${id}`, {
       method: "DELETE",
       headers: {
         'Authorization': 'Bearer ' + token
@@ -96,11 +97,17 @@ function getLists() {
     });
     if (success) {
       refresh();
+      lists.fullReload();
     }
     
   }
 
   async function create(data, onError) {
+    if (data.color == "") {
+      data.color = 0;
+    } else {
+      data.color = parseInt(data.color.substr(1), 16);
+    }
     let projectId = boards.getProjectId();
     if (projectId == undefined) {
       return;
@@ -115,7 +122,7 @@ function getLists() {
       return;
     }
     let success = await fetch("api/v1/projects/" + projectId + 
-                              "/boards/" + boardId + "/lists", {
+                              "/boards/" + boardId + "/labels", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json;charset=utf-8',
@@ -141,7 +148,7 @@ function getLists() {
     }
   }
 
-  async function updateList(id, data) {
+  async function updateLabel(id, data) {
     let projectId = boards.getProjectId();
     if (projectId == undefined) {
       return;
@@ -155,7 +162,7 @@ function getLists() {
       user.unauthorized();
       return;
     }
-    let success = await fetch(`api/v1/projects/${projectId}/boards/${boardId}/lists/${id}`, {
+    let success = await fetch(`api/v1/projects/${projectId}/boards/${boardId}/labels/${id}`, {
       method: "PATCH",
       headers: {
         'Content-Type': 'application/json;charset=utf-8',
@@ -180,11 +187,6 @@ function getLists() {
   function release() {
     set({});
   }
-  
-  function fullReload() {
-    release();
-    refresh();
-  }
 
   boards.subscribe((value) => {
     let newBoardId = value.current;
@@ -208,12 +210,11 @@ function getLists() {
     refresh,
     create,
     release,
-    updateList,
-    deleteList,
-    fullReload,
+    updateLabel,
+    deleteLabel,
     validate: (data) => validate(validators, data),
     validate_prop: (prop, val) => validate_prop(validators, prop, val)
   };
 }
 
-export const lists = getLists();
+export const labels = getLabels();
