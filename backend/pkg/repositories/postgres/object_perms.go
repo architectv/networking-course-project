@@ -81,7 +81,15 @@ func (r *ObjectPermsPg) Create(objectId, objectType int, memberNickname string, 
 		return 0, err
 	}
 
-	_, err = r.GetByNickname(objectId, objectType, memberNickname)
+	memberId, err := getUserIdByNickname(tx, memberNickname)
+	fmt.Println(memberId)
+	if err != nil {
+		tx.Rollback()
+		str := fmt.Sprintf("User with nickname '%s' is not exists", memberNickname)
+		return 0, errors.New(str)
+	}
+
+	_, err = r.GetById(objectId, objectType, memberId)
 	if err != nil && err.Error() != DbResultNotFound {
 		return 0, err
 	} else if err == nil {
@@ -98,13 +106,11 @@ func (r *ObjectPermsPg) Create(objectId, objectType int, memberNickname string, 
 
 	query := fmt.Sprintf(
 		`INSERT INTO %s (user_id, %s, permissions_id)
-		VALUES (
-			(SELECT id FROM %s WHERE nickname = $1),
-			$2, $3) RETURNING id`, objParams.Table, objParams.IdTitle, usersTable)
+		VALUES ($1, $2, $3) RETURNING id`, objParams.Table, objParams.IdTitle)
 
 	fmt.Println(query, memberNickname)
 
-	row := tx.QueryRow(query, memberNickname, objectId, permissionsId)
+	row := tx.QueryRow(query, memberId, objectId, permissionsId)
 	if err := row.Scan(&objectPermsId); err != nil {
 		tx.Rollback()
 		return 0, err
@@ -244,4 +250,13 @@ func deleteMemberFromAllBoardsInProject(tx *sql.Tx, projectId, memberId int) err
 	fmt.Println(query, projectId, memberId)
 	_, err := tx.Exec(query, projectId, memberId)
 	return err
+}
+
+func getUserIdByNickname(tx *sql.Tx, nickname string) (int, error) {
+	var userId int
+	query := fmt.Sprintf(
+		`SELECT id FROM %s WHERE nickname = $1`, usersTable)
+	row := tx.QueryRow(query, nickname)
+	err := row.Scan(&userId)
+	return userId, err
 }
