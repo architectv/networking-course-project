@@ -37,7 +37,13 @@
           <div class="flex-item" animate:flip={{duration: flipDurationMs}}>
             <Paper color="primary" class="list-paper flex-item">
               <Title style="width: max-content;">
+                <IconButton on:click={() => listMovePrev(list)}>
+                  <Icon class="material-icons">arrow_back_ios</Icon>
+                </IconButton>
                 {list.title}
+                <IconButton on:click={() => listMoveNext(list)}>
+                  <Icon class="material-icons">arrow_forward_ios</Icon>
+                </IconButton>
                 <IconButton on:click={() => {deleteDialog.open(list, () => {deleteList(list.id)})}}>
                   <Icon class="material-icons">delete_outline</Icon>
                 </IconButton>
@@ -151,6 +157,14 @@
   
   function openNewLabelDialog() {
     newDialog.open(labels, fieldsLabel, undefined, createLabel, "Create label", "Do you want create label?");
+  }
+  
+  function listMoveNext(list) {
+    lists.updateList(list.id, {position: list.position + 1});
+  }
+  
+  function listMovePrev(list) {
+    lists.updateList(list.id, {position: list.position - 1});
   }
   
   function prepareLists(list) {
