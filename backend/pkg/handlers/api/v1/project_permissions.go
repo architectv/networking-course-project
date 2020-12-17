@@ -9,7 +9,7 @@ import (
 )
 
 func (apiVX *ApiV1) registerProjectPermsHandlers(router fiber.Router) {
-	group := router.Group("/projects/:pid/permissions", apiVX.userIdentity)
+	group := router.Group("/projects/:pid/permissions/:member_id", apiVX.userIdentity)
 	group.Post("/", apiVX.createProjectPerms)
 	group.Get("/", apiVX.getProjectPerms)
 	group.Put("/", apiVX.updateProjectPerms)
@@ -30,7 +30,7 @@ func (apiVX *ApiV1) getProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberId, err := strconv.Atoi(ctx.Query("member_id"))
+	memberId, err := strconv.Atoi(ctx.Params("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
 		return Send(ctx, response)
@@ -54,7 +54,11 @@ func (apiVX *ApiV1) createProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberNickname := ctx.Query("member_nickname")
+	memberNickname := ctx.Params("member_id")
+	if memberNickname == "" {
+		response.Error(fiber.StatusBadRequest, "memberNickname is empty")
+		return Send(ctx, response)
+	}
 
 	permissions := &models.Permission{}
 	if err := ctx.BodyParser(permissions); err != nil {
@@ -86,7 +90,7 @@ func (apiVX *ApiV1) deleteProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberId, err := strconv.Atoi(ctx.Query("member_id"))
+	memberId, err := strconv.Atoi(ctx.Params("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
 		return Send(ctx, response)
@@ -110,7 +114,7 @@ func (apiVX *ApiV1) updateProjectPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberId, err := strconv.Atoi(ctx.Query("member_id"))
+	memberId, err := strconv.Atoi(ctx.Params("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
 		return Send(ctx, response)
