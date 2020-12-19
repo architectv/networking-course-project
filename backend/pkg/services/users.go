@@ -50,7 +50,7 @@ func (s *UserService) Update(id int, profile *models.UpdateUser) *models.ApiResp
 	r := &models.ApiResponse{}
 	if profile.Nickname != nil {
 		if err := s.checkByNickname(*profile.Nickname); err == nil {
-			r.Error(StatusConflict, "User already exists")
+			r.Error(StatusConflict, "User is not exists")
 			return r
 		}
 	}
