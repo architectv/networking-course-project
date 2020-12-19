@@ -20,10 +20,11 @@ func TestObjectpermsPg_Create(t *testing.T) {
 	r := NewObjectPermsPg(db)
 
 	type args struct {
-		objectId   int
-		memberId   int
-		objectType int
-		perms      *models.Permission
+		objectId       int
+		memberId       int
+		memberNickname string
+		objectType     int
+		perms          *models.Permission
 	}
 	type mockBehavior func(args args)
 
@@ -37,10 +38,11 @@ func TestObjectpermsPg_Create(t *testing.T) {
 		{
 			name: "Ok for project",
 			input: args{
-				objectId:   1,
-				memberId:   1,
-				objectType: IsProject,
-				perms:      builders.NewPermsBuilder().Build(),
+				objectId:       1,
+				memberId:       1,
+				memberNickname: "test_user",
+				objectType:     IsProject,
+				perms:          builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
@@ -48,6 +50,11 @@ func TestObjectpermsPg_Create(t *testing.T) {
 
 				permId := 1
 				projectUserId := 1
+
+				member := sqlmock.NewRows([]string{"id"}).
+					AddRow(args.memberId)
+				mock.ExpectQuery("SELECT (.+) FROM users").
+					WithArgs(args.memberNickname).WillReturnRows(member)
 
 				rows := sqlmock.NewRows([]string{"per.read", "per.write", "per.admin"}).
 					RowError(0, errors.New(DbResultNotFound))
@@ -71,10 +78,11 @@ func TestObjectpermsPg_Create(t *testing.T) {
 		{
 			name: "Ok for board",
 			input: args{
-				objectId:   1,
-				memberId:   1,
-				objectType: IsBoard,
-				perms:      builders.NewPermsBuilder().Build(),
+				objectId:       1,
+				memberId:       1,
+				memberNickname: "test_user",
+				objectType:     IsBoard,
+				perms:          builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
@@ -82,6 +90,11 @@ func TestObjectpermsPg_Create(t *testing.T) {
 
 				permId := 1
 				projectUserId := 1
+
+				member := sqlmock.NewRows([]string{"id"}).
+					AddRow(args.memberId)
+				mock.ExpectQuery("SELECT (.+) FROM users").
+					WithArgs(args.memberNickname).WillReturnRows(member)
 
 				rows := sqlmock.NewRows([]string{"per.read", "per.write", "per.admin"}).
 					RowError(0, errors.New(DbResultNotFound))
@@ -105,25 +118,54 @@ func TestObjectpermsPg_Create(t *testing.T) {
 		{
 			name: "bad object type",
 			input: args{
-				objectId:   1,
-				memberId:   1,
-				objectType: 0,
-				perms:      builders.NewPermsBuilder().Build(),
+				objectId:       1,
+				memberId:       1,
+				memberNickname: "test_user",
+				objectType:     0,
+				perms:          builders.NewPermsBuilder().Build(),
 			},
 			mock:    func(args args) {},
 			wantErr: true,
 		},
 		{
-			name: "Member already has permissions in the project",
+			name: "User with nickname is not exists",
 			input: args{
-				objectId:   1,
-				memberId:   1,
-				objectType: IsProject,
-				perms:      builders.NewPermsBuilder().Build(),
+				objectId:       1,
+				memberId:       1,
+				memberNickname: "bad_nickname",
+				objectType:     IsProject,
+				perms:          builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
 				mock.ExpectBegin()
+
+				member := sqlmock.NewRows([]string{"id"}).
+					RowError(0, errors.New(DbResultNotFound))
+				mock.ExpectQuery("SELECT (.+) FROM users").
+					WithArgs(args.memberNickname).WillReturnRows(member)
+
+				mock.ExpectRollback()
+			},
+			wantErr: true,
+		},
+		{
+			name: "Member already has permissions in the project",
+			input: args{
+				objectId:       1,
+				memberId:       1,
+				memberNickname: "test_user",
+				objectType:     IsProject,
+				perms:          builders.NewPermsBuilder().Build(),
+			},
+			want: 1,
+			mock: func(args args) {
+				mock.ExpectBegin()
+
+				member := sqlmock.NewRows([]string{"id"}).
+					AddRow(args.memberId)
+				mock.ExpectQuery("SELECT (.+) FROM users").
+					WithArgs(args.memberNickname).WillReturnRows(member)
 
 				rows := sqlmock.NewRows([]string{"per.read", "per.write", "per.admin"}).
 					AddRow(true, true, true)
@@ -137,14 +179,20 @@ func TestObjectpermsPg_Create(t *testing.T) {
 		{
 			name: "repo error for create in permissions",
 			input: args{
-				objectId:   1,
-				memberId:   1,
-				objectType: IsBoard,
-				perms:      builders.NewPermsBuilder().Build(),
+				objectId:       1,
+				memberId:       1,
+				memberNickname: "test_user",
+				objectType:     IsBoard,
+				perms:          builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
 				mock.ExpectBegin()
+
+				member := sqlmock.NewRows([]string{"id"}).
+					AddRow(args.memberId)
+				mock.ExpectQuery("SELECT (.+) FROM users").
+					WithArgs(args.memberNickname).WillReturnRows(member)
 
 				rows := sqlmock.NewRows([]string{"per.read", "per.write", "per.admin"}).
 					RowError(0, errors.New(DbResultNotFound))
@@ -165,16 +213,22 @@ func TestObjectpermsPg_Create(t *testing.T) {
 		{
 			name: "repo error for create in project_users",
 			input: args{
-				objectId:   1,
-				memberId:   1,
-				objectType: IsBoard,
-				perms:      builders.NewPermsBuilder().Build(),
+				objectId:       1,
+				memberId:       1,
+				memberNickname: "test_user",
+				objectType:     IsBoard,
+				perms:          builders.NewPermsBuilder().Build(),
 			},
 			want: 1,
 			mock: func(args args) {
 				mock.ExpectBegin()
 
 				permId := 1
+
+				member := sqlmock.NewRows([]string{"id"}).
+					AddRow(args.memberId)
+				mock.ExpectQuery("SELECT (.+) FROM users").
+					WithArgs(args.memberNickname).WillReturnRows(member)
 
 				rows := sqlmock.NewRows([]string{"per.read", "per.write", "per.admin"}).
 					RowError(0, errors.New(DbResultNotFound))
@@ -203,7 +257,7 @@ func TestObjectpermsPg_Create(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mock(tt.input)
 
-			got, err := r.Create(tt.input.objectId, tt.input.memberId, tt.input.objectType, tt.input.perms)
+			got, err := r.Create(tt.input.objectId, tt.input.objectType, tt.input.memberNickname, tt.input.perms)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

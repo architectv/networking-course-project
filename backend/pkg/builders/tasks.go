@@ -10,9 +10,10 @@ type TaskBuilder struct {
 
 func NewTaskBuilder() *TaskBuilder {
 	task := &models.Task{
-		ListId:   1,
-		Title:    "Default List Title",
-		Position: 1,
+		ListId:      1,
+		Title:       "Default List Title",
+		Description: "Default List Desription",
+		Position:    1,
 		Datetimes: &models.Datetimes{
 			Created:  1,
 			Updated:  1,

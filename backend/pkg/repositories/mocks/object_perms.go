@@ -35,7 +35,7 @@ func (m *MockObjectPerms) EXPECT() *MockObjectPermsMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockObjectPerms) Create(arg0, arg1, arg2 int, arg3 *models.Permission) (int, error) {
+func (m *MockObjectPerms) Create(arg0, arg1 int, arg2 string, arg3 *models.Permission) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(int)
@@ -63,19 +63,34 @@ func (mr *MockObjectPermsMockRecorder) Delete(arg0, arg1, arg2, arg3 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockObjectPerms)(nil).Delete), arg0, arg1, arg2, arg3)
 }
 
-// Get mocks base method.
-func (m *MockObjectPerms) Get(arg0, arg1, arg2 int) (*models.Permission, error) {
+// GetById mocks base method.
+func (m *MockObjectPerms) GetById(arg0, arg1, arg2 int) (*models.Permission, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetById", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.Permission)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
-func (mr *MockObjectPermsMockRecorder) Get(arg0, arg1, arg2 interface{}) *gomock.Call {
+// GetById indicates an expected call of GetById.
+func (mr *MockObjectPermsMockRecorder) GetById(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockObjectPerms)(nil).Get), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockObjectPerms)(nil).GetById), arg0, arg1, arg2)
+}
+
+// GetByNickname mocks base method.
+func (m *MockObjectPerms) GetByNickname(arg0, arg1 int, arg2 string) (*models.Permission, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByNickname", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*models.Permission)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByNickname indicates an expected call of GetByNickname.
+func (mr *MockObjectPermsMockRecorder) GetByNickname(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNickname", reflect.TypeOf((*MockObjectPerms)(nil).GetByNickname), arg0, arg1, arg2)
 }
 
 // Update mocks base method.

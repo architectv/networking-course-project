@@ -36,15 +36,16 @@ func TestTaskpermsPg_GetById(t *testing.T) {
 				listId: 1,
 			},
 			want: &models.Task{
-				Id:        1,
-				ListId:    1,
-				Title:     "title",
-				Datetimes: &models.Datetimes{1, 1, 1},
-				Position:  1,
+				Id:          1,
+				ListId:      1,
+				Title:       "title",
+				Description: "description",
+				Datetimes:   &models.Datetimes{1, 1, 1},
+				Position:    1,
 			},
 			mock: func(args args) {
-				rows := sqlmock.NewRows([]string{"t.id", "t.list_id", "t.title", "d.created", "d.updated", "d.accessed", "t.position"}).
-					AddRow(1, 1, "title", 1, 1, 1, 1)
+				rows := sqlmock.NewRows([]string{"t.id", "t.list_id", "t.title", "t.description", "d.created",
+					"d.updated", "d.accessed", "t.position"}).AddRow(1, 1, "title", "description", 1, 1, 1, 1)
 				mock.ExpectQuery("SELECT (.+) FROM tasks").WithArgs(args.listId).WillReturnRows(rows)
 			},
 		},
@@ -55,8 +56,8 @@ func TestTaskpermsPg_GetById(t *testing.T) {
 			},
 			want: nil,
 			mock: func(args args) {
-				rows := sqlmock.NewRows([]string{"t.id", "t.list_id", "t.title", "d.created", "d.updated", "d.accessed", "t.position"}).
-					RowError(0, errors.New("Some error"))
+				rows := sqlmock.NewRows([]string{"t.id", "t.list_id", "t.title", "t.description", "d.created",
+					"d.updated", "d.accessed", "t.position"}).RowError(0, errors.New("Some error"))
 				mock.ExpectQuery("SELECT (.+) FROM tasks").WithArgs(args.listId).WillReturnRows(rows)
 			},
 			wantErr: true,
