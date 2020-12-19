@@ -13,5 +13,4 @@ before_script:
 jobs:
   include:
     - stage: test
-      script:
-        - go test -short -v
+      script: go test -short -v
