@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 	"yak/backend/pkg/builders"
 	"yak/backend/pkg/models"
@@ -10,46 +9,10 @@ import (
 
 	mock_repositories "yak/backend/pkg/repositories/mocks"
 
-	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/golang/mock/gomock"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
-
-const (
-	UsernameTestDB = "postgres"
-	PasswordTestDB = "123matan123"
-	HostTestDB     = "localhost"
-	PortTestDB     = "5432"
-	DBnameTestDB   = "yak_test_real_db"
-	SslmodeTestDB  = "disable"
-)
-
-func openTestDatabase() (*sqlx.DB, error) {
-	db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
-		HostTestDB, PortTestDB, UsernameTestDB, DBnameTestDB, PasswordTestDB, SslmodeTestDB))
-	return db, err
-}
-
-func prepareTestDatabase() (*sqlx.DB, error) {
-	db, err := openTestDatabase()
-	if err != nil {
-		return nil, err
-	}
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db.DB),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Directory("fixtures"),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	err = fixtures.Load()
-	return db, err
-}
 
 func TestUserService_Create(t *testing.T) {
 	db, err := prepareTestDatabase()
@@ -216,7 +179,7 @@ func TestUserService_Get(t *testing.T) {
 					Id:       1,
 					Nickname: "test",
 					Email:    "test@.mail.ru",
-					Password: "",
+					Password: "qwerty",
 					Avatar:   "photo1",
 				}},
 			},

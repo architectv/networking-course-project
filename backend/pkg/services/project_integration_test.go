@@ -1,4 +1,3 @@
-// +build integration
 package services
 
 import (
@@ -13,6 +12,9 @@ import (
 )
 
 func Test_Integration_ProjectService_Create(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
 	type args struct {
 		userId  int
 		project *models.Project
