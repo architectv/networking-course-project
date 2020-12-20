@@ -7,10 +7,11 @@ services:
 
 before_script:
   - psql -c 'create database yak_test_db;' -U postgres
-  - psql -d yak_test_db -c '\i scripts/init.sql;' -U postgres
+  - psql -d yak_test_db -c '\i backend/scripts/init.sql;' -U postgres
   - psql -c "alter user postgres with password '1234';" -U postgres
 
 jobs:
   include:
     - stage: test
-      script: go test -short -v
+      script:
+        - cd backend && go test ./...
