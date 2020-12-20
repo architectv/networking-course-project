@@ -1,8 +1,10 @@
+// +build integration
 package services
 
 import (
 	"errors"
 	"testing"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 	"github.com/architectv/networking-course-project/backend/pkg/repositories/postgres"
 
