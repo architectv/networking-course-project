@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 	"github.com/architectv/networking-course-project/backend/pkg/repositories"
 
@@ -134,7 +135,6 @@ func (s *UserService) ParseToken(accessToken string) (int, error) {
 	}
 
 	err = s.repo.FindToken(accessToken)
-	// logrus.Println(err.Error())
 	if err == nil {
 		return 0, errors.New("Invalid token")
 	}

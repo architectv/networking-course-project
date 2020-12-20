@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 )
 
 type BoardPg struct {
@@ -19,7 +19,6 @@ func NewBoardPg(db *sqlx.DB) *BoardPg {
 }
 
 func (r *BoardPg) Create(userId int, board *models.Board) (int, error) {
-	logrus.Info(board.Title, board.Datetimes, board.DefaultPermissions)
 	var boardId int
 
 	tx, err := r.db.Begin()
@@ -281,7 +280,6 @@ func updateOwnerIdByProjectId(tx *sql.Tx, projectId, oldOwnerId, newOwnerId int)
 			SELECT project_id from %s WHERE id=$2
 		) AND owner_id = $3`,
 		boardsTable, boardsTable)
-	fmt.Println(newOwnerId, projectId, oldOwnerId)
 	_, err := tx.Exec(query, newOwnerId, projectId, oldOwnerId)
 	return err
 }
@@ -290,7 +288,6 @@ func updateOwnerIdByBoardId(tx *sql.Tx, boardId, oldOwnerId, newOwnerId int) err
 	query := fmt.Sprintf(`UPDATE %s SET owner_id=$1
 		WHERE id = $2 AND owner_id = $3`,
 		boardsTable)
-	fmt.Println(newOwnerId, boardId, oldOwnerId)
 	_, err := tx.Exec(query, newOwnerId, boardId, oldOwnerId)
 	return err
 }

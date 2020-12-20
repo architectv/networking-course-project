@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"strings"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
@@ -153,7 +154,6 @@ func (r *LabelPg) Update(labelId int, input *models.UpdateLabel) error {
 	query := fmt.Sprintf(`UPDATE %s SET %s where id=$%d`,
 		labelsTable, setQuery, argId)
 	args = append(args, labelId)
-	fmt.Println(query)
 	_, err = tx.Exec(query, args...)
 	if err != nil {
 		tx.Rollback()

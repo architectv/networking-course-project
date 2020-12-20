@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 	"github.com/architectv/networking-course-project/backend/pkg/repositories"
 )
@@ -200,7 +199,6 @@ func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *mo
 			projectOwnerId = userId
 		}
 	}
-	fmt.Println(projectId, memberId, projectOwnerId, IsBoard)
 	err = s.repo.Delete(boardId, memberId, projectOwnerId, IsBoard)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
@@ -287,7 +285,6 @@ func (s *BoardPermsService) Update(userId, projectId, boardId, memberId int, boa
 			projectOwnerId = userId
 		}
 	}
-	fmt.Println(boardId, memberId, projectOwnerId, IsBoard)
 	err = s.repo.Update(boardId, memberId, projectOwnerId, IsBoard, boardPerms)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())

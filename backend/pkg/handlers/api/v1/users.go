@@ -9,7 +9,6 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
-	"github.com/sirupsen/logrus"
 )
 
 func (apiVX *ApiV1) registerUsersHandlers(router fiber.Router) {
@@ -52,12 +51,10 @@ func (apiVX *ApiV1) update(ctx *fiber.Ctx) error {
 
 	input := &models.UpdateUser{}
 	if err := ctx.BodyParser(&input); err != nil {
-		logrus.Println("body parser!")
 		response.Error(fiber.StatusBadRequest, err.Error())
 		return Send(ctx, response)
 	}
 	if _, err := govalidator.ValidateStruct(input); err != nil {
-		logrus.Println("govalid!")
 		response.Error(fiber.StatusBadRequest, err.Error())
 		return Send(ctx, response)
 	}

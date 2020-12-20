@@ -2,7 +2,7 @@ package services
 
 import (
 	"errors"
-	"fmt"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 	"github.com/architectv/networking-course-project/backend/pkg/repositories"
 )
@@ -219,7 +219,6 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPer
 			projectOwnerId = userId
 		}
 	}
-	fmt.Println(projectId, memberId, projectOwnerId, IsProject, projectPerms)
 	err = s.repo.Update(projectId, memberId, projectOwnerId, IsProject, projectPerms)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
@@ -200,7 +201,6 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 				operation = "+"
 				start, end = newPos, oldPos-1
 			}
-			fmt.Println(oldPos, newPos)
 
 			if operation != "" {
 				setValues = append(setValues, fmt.Sprintf("position=$%d", argId))
@@ -226,9 +226,7 @@ func (r *TaskPg) Update(taskId int, input *models.UpdateTask) error {
 	setQuery := strings.Join(setValues, ", ")
 	query := fmt.Sprintf(`UPDATE %s SET %s where id=$%d`,
 		tasksTable, setQuery, argId)
-	fmt.Println(query)
 	args = append(args, taskId)
-	fmt.Println(query)
 	_, err = tx.Exec(query, args...)
 	if err != nil {
 		tx.Rollback()

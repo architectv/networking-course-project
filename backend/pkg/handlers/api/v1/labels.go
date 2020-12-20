@@ -2,11 +2,11 @@ package v1
 
 import (
 	"strconv"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
-	"github.com/sirupsen/logrus"
 )
 
 func (apiVX *ApiV1) registerLabelsHandlers(router fiber.Router) {
@@ -39,7 +39,6 @@ func (apiVX *ApiV1) getLabelsInTask(ctx *fiber.Ctx) error {
 
 	boardId, err := strconv.Atoi(ctx.Params("bid"))
 	if err != nil || boardId == 0 {
-		logrus.Println("boardId:", boardId)
 		response.Error(fiber.StatusBadRequest, "Invalid boardId")
 		return Send(ctx, response)
 	}

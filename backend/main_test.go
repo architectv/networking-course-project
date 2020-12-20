@@ -48,18 +48,27 @@ func prepareTestDatabase() (*sqlx.DB, error) {
 	return db, err
 }
 
+var Passed = 0
+var LogDisable = false
+
 func Test_E2E_App(t *testing.T) {
 	db, err := prepareTestDatabase()
 	if err != nil {
 		log.Fatalf("failed to initialize db: %s", err.Error())
 	}
+	defer db.Close()
 
 	repos := repositories.NewRepository(db)
 	services := services.NewService(repos)
 	handlers := handlers.NewHandler(services)
 
 	app := fiber.New()
-	app.Use(logger.New())
+	if LogDisable {
+		app.Use(logger.New(logger.Config{Output: ioutil.Discard}))
+	} else {
+		app.Use(logger.New())
+	}
+
 	handlers.RegisterHandlers(app)
 
 	// Register
@@ -448,4 +457,27 @@ func Test_E2E_App(t *testing.T) {
 		assert.Equal(t, inputTaskTitle[i], item.Title)
 		assert.Equal(t, inputTaskDescription[i], item.Description)
 	}
+
+	Passed++
+}
+
+func Test_E2E_N(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping e2e test")
+	}
+	const N = 100
+	Passed = 0
+	oldPassed := Passed
+	LogDisable = true
+	for i := 0; i < N; i++ {
+		Test_E2E_App(t)
+		if oldPassed == Passed {
+			fmt.Printf("[%d] E2E: FAIL\n", i+1)
+		} else {
+			fmt.Printf("[%d] E2E: OK\n", i+1)
+		}
+		oldPassed = Passed
+	}
+	LogDisable = false
+	fmt.Printf("E2E total passed: %d/%d\n", Passed, N)
 }

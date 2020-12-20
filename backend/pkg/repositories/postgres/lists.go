@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
@@ -220,7 +221,6 @@ func checkListOutOfBounds(tx *sql.Tx, newPos, listId int) error {
 		tx.Rollback()
 		return err
 	}
-	fmt.Println(newPos, maxPos, boardId)
 	if newPos > maxPos {
 		tx.Rollback()
 		return errors.New("List position out of bounds")

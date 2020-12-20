@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
@@ -45,7 +46,6 @@ func (r *ObjectPermsPg) GetById(objectId, memberId, objectType int) (*models.Per
 
 	row := r.db.QueryRow(query, objectId, memberId)
 	err = row.Scan(&permissions.Read, &permissions.Write, &permissions.Admin)
-	fmt.Println(objectId, memberId, permissions)
 	return permissions, err
 }
 
@@ -82,7 +82,6 @@ func (r *ObjectPermsPg) Create(objectId, objectType int, memberNickname string, 
 	}
 
 	memberId, err := getUserIdByNickname(tx, memberNickname)
-	fmt.Println(memberId)
 	if err != nil {
 		tx.Rollback()
 		str := fmt.Sprintf("User with nickname '%s' is not exists", memberNickname)
@@ -107,8 +106,6 @@ func (r *ObjectPermsPg) Create(objectId, objectType int, memberNickname string, 
 	query := fmt.Sprintf(
 		`INSERT INTO %s (user_id, %s, permissions_id)
 		VALUES ($1, $2, $3) RETURNING id`, objParams.Table, objParams.IdTitle)
-
-	fmt.Println(query, memberNickname)
 
 	row := tx.QueryRow(query, memberId, objectId, permissionsId)
 	if err := row.Scan(&objectPermsId); err != nil {
@@ -207,7 +204,6 @@ func (r *ObjectPermsPg) Update(objectId, memberId, ownerProjectId, objectType in
 
 	row := tx.QueryRow(query, objectId, memberId)
 	err = row.Scan(&objectPermsId)
-	fmt.Println(objectPermsId)
 
 	if err = updatePermissions(tx, objectPermsId, permissions); err != nil {
 		tx.Rollback()
@@ -234,7 +230,6 @@ func getObjectParams(objectType int) (*ObjectParams, error) {
 			Table:   boardUsersTable,
 		}
 	default:
-		fmt.Println("objectType", objectType)
 		return &objParams, errors.New("Object type is not defined")
 	}
 	return &objParams, nil
@@ -247,7 +242,6 @@ func deleteMemberFromAllBoardsInProject(tx *sql.Tx, projectId, memberId int) err
 				INNER JOIN %s AS b ON bu.board_id = b.id
 			WHERE b.project_id = $1 AND b.owner_id = $2 AND bu.user_id = b.owner_id)`,
 		permissionsTable, boardUsersTable, boardsTable)
-	fmt.Println(query, projectId, memberId)
 	_, err := tx.Exec(query, projectId, memberId)
 	return err
 }

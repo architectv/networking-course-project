@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"fmt"
 	"strconv"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/asaskevich/govalidator"
@@ -168,7 +168,6 @@ func (apiVX *ApiV1) updateTask(ctx *fiber.Ctx) error {
 		response.Error(fiber.StatusBadRequest, "Invalid taskId")
 		return Send(ctx, response)
 	}
-	fmt.Println("----")
 	response = apiVX.services.Task.Update(userId, projectId, boardId, listId, taskId, task)
 	return Send(ctx, response)
 }
