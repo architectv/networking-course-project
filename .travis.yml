@@ -16,4 +16,4 @@ jobs:
       script:
         - cd backend
         - go test -short ./... # unit tests
-        - go test -run Integration ./... # integration tests
+        - go test -tags=integration ./... # integration tests
