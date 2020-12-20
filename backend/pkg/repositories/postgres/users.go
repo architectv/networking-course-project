@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"strings"
+
 	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
