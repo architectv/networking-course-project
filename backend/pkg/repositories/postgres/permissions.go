@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"yak/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 )
 
 func createPermissions(tx *sql.Tx, permissions *models.Permission) (int, error) {

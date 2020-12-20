@@ -1,4 +1,4 @@
-module yak/backend
+module github.com/architectv/networking-course-project/backend
 
 go 1.15
 

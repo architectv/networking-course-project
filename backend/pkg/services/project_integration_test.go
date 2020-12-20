@@ -3,8 +3,8 @@ package services
 import (
 	"errors"
 	"testing"
-	"yak/backend/pkg/models"
-	"yak/backend/pkg/repositories/postgres"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/repositories/postgres"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

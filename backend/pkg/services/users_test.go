@@ -3,11 +3,11 @@ package services
 import (
 	"errors"
 	"testing"
-	"yak/backend/pkg/builders"
-	"yak/backend/pkg/models"
-	"yak/backend/pkg/repositories/postgres"
+	"github.com/architectv/networking-course-project/backend/pkg/builders"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/repositories/postgres"
 
-	mock_repositories "yak/backend/pkg/repositories/mocks"
+	mock_repositories "github.com/architectv/networking-course-project/backend/pkg/repositories/mocks"
 
 	"github.com/golang/mock/gomock"
 	_ "github.com/lib/pq"

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"yak/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 )
 
 func createDatetimes(tx *sql.Tx, permissions *models.Datetimes) (int, error) {

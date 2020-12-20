@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"yak/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
 )

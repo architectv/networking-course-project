@@ -2,8 +2,8 @@ package services
 
 import (
 	"time"
-	"yak/backend/pkg/models"
-	"yak/backend/pkg/repositories"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/repositories"
 )
 
 type ProjectService struct {
