@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"yak/backend/pkg/models"
-	"yak/backend/pkg/repositories/postgres"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/repositories/postgres"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -25,6 +25,7 @@ type Project interface {
 	Delete(projectId int) error
 	Update(projectId int, project *models.UpdateProject) error
 	GetPermissions(userId, projectId int) (*models.Permission, error)
+	GetMembers(projectId int) ([]*models.Member, error)
 }
 
 type Board interface {
@@ -34,7 +35,8 @@ type Board interface {
 	Delete(boardId int) error
 	Update(boardId int, board *models.UpdateBoard) error
 	GetPermissions(userId, boardId int) (*models.Permission, error)
-	GetCountByOwnerId(projectId, ownerId int) (int, error)
+	GetBoardsCountByOwnerId(projectId, ownerId int) (int, error)
+	GetMembers(projectId int) ([]*models.Member, error)
 }
 
 type TaskList interface {
@@ -65,11 +67,12 @@ type Label interface {
 	Update(labelId int, label *models.UpdateLabel) error
 }
 
-type ProjectPerms interface {
-	Create(projectId, memberId, objectType int, permissions *models.Permission) (int, error)
-	Get(projectId, memberId, objectType int) (*models.Permission, error)
-	Delete(projectId, oldOwnerId, newOwnerId, ownerProjectId int) error
-	Update(projectId, memberId int, permissions *models.UpdatePermission) error
+type ObjectPerms interface {
+	Create(objectId, objectType int, memberNickname string, permissions *models.Permission) (int, error)
+	GetById(objectId, memberId, objectType int) (*models.Permission, error)
+	GetByNickname(objectId, objectType int, memberId string) (*models.Permission, error)
+	Delete(objectId, oldOwnerId, newOwnerId, objectType int) error
+	Update(objectId, oldOwnerId, newOwnerId, objectType int, permissions *models.UpdatePermission) error
 }
 
 type Repository struct {
@@ -79,7 +82,7 @@ type Repository struct {
 	TaskList
 	Task
 	Label
-	ProjectPerms
+	ObjectPerms
 }
 
 // func NewRepository(db *mongo.Database) *Repository {
@@ -94,12 +97,12 @@ type Repository struct {
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		User:         postgres.NewUserPg(db),
-		Project:      postgres.NewProjectPg(db),
-		Board:        postgres.NewBoardPg(db),
-		TaskList:     postgres.NewTaskListPg(db),
-		Task:         postgres.NewTaskPg(db),
-		Label:        postgres.NewLabelPg(db),
-		ProjectPerms: postgres.NewProjectPermsPg(db),
+		User:        postgres.NewUserPg(db),
+		Project:     postgres.NewProjectPg(db),
+		Board:       postgres.NewBoardPg(db),
+		TaskList:    postgres.NewTaskListPg(db),
+		Task:        postgres.NewTaskPg(db),
+		Label:       postgres.NewLabelPg(db),
+		ObjectPerms: postgres.NewObjectPermsPg(db),
 	}
 }

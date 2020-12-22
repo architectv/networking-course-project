@@ -5,7 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"yak/backend/pkg/models"
+
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -60,7 +61,9 @@ func (r *TaskListPg) Create(list *models.TaskList) (int, error) {
 
 	row := tx.QueryRow(query, list.BoardId)
 	if err := row.Scan(&position); err != nil {
-		return 0, err
+		// TODO: to use int pointer?
+		position = -1
+		// return 0, err
 	}
 	position++
 
@@ -214,13 +217,14 @@ func checkListOutOfBounds(tx *sql.Tx, newPos, listId int) error {
 
 	maxPos, err := getListMaxPosition(tx, boardId)
 	if err != nil {
+		// TODO: maxPos = -1
 		tx.Rollback()
 		return err
 	}
-	fmt.Println(newPos, maxPos, boardId)
 	if newPos > maxPos {
 		tx.Rollback()
 		return errors.New("List position out of bounds")
 	}
+	// TODO: return nil
 	return err
 }

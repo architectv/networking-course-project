@@ -1,0 +1,94 @@
+// Import the typography styles.
+//
+// MDC Typography
+//
+
+
+@import "@material/top-app-bar/variables";
+.main-content {
+  padding-top: $mdc-top-app-bar-row-height;
+}
+
+.main {
+  min-height: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  color: var(--mdc-theme-text-primary-on-background, black) !important;
+}
+
+.dark-theme {
+  background-color: var(--mdc-theme-background, #fff) !important;
+}
+
+.light-theme {
+  background: linear-gradient(180deg, #B0EEF2 13.54%, #FD8078 100%) !important;
+}
+
+table, h1, h2, h3, h4, h5, h6, div {
+  color: var(--mdc-theme-text-primary-on-background, black) !important;
+}
+
+th, td, table, thead, tbody {
+  color: var(--mdc-theme-text-primary-on-background, black) !important;
+  background-color: var(--mdc-theme-surface, #fff) !important;
+}
+
+.mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
+  color: var(--mdc-theme-text-primary-on-background, black) !important;
+}
+
+.mdc-text-field:not(.mdc-text-field--disabled):not(.mdc-text-field--textarea) {
+  color: var(--mdc-theme-text-primary-on-background, black) !important;
+}
+
+.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
+  color: var(--mdc-theme-text-primary-on-background, black) !important;
+}
+
+.flex-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-item {
+  width: max-content;
+  margin-left: 1em;
+}
+
+.mdc-button {
+  width: max-content;
+}
+
+.task-list {
+  padding-top: 0 !important;
+	padding-left: 1em !important;
+	padding-right: 1em !important;
+	background-color: var(--list-bg,#6200ee) !important;
+}
+
+.mdc-list-item {
+  box-shadow: 0 0 5px black;
+  margin-top: 5px;
+}
+
+.list-paper {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+}
+
+.smui-paper.smui-paper--color-primary {
+  background-color: var(--mdc-theme-surface, #fff) !important;
+}
+
+.smui-paper {
+	padding: 6px 4px;
+  margin: auto;
+}
+
+html, body {
+  width: 100vh;
+  height: 100vh;
+  width: 100%;
+  height: 100%;
+}

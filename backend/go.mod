@@ -1,4 +1,4 @@
-module yak/backend
+module github.com/architectv/networking-course-project/backend
 
 go 1.15
 
@@ -8,8 +8,9 @@ require (
 	github.com/daixiang0/gci v0.2.5 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
+	github.com/go-testfixtures/testfixtures/v3 v3.4.1
 	github.com/gofiber/fiber/v2 v2.1.2
-	github.com/golang-migrate/migrate v3.5.4+incompatible // indirect
+	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/mock v1.4.4
 	github.com/golangci/golangci-lint v1.32.2 // indirect
 	github.com/golangci/misspell v0.3.5 // indirect
@@ -30,6 +31,7 @@ require (
 	github.com/quasilyte/regex/syntax v0.0.0-20200805063351-8f842688393c // indirect
 	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989 // indirect
 	github.com/sirupsen/logrus v1.7.0
+	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/afero v1.4.1 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

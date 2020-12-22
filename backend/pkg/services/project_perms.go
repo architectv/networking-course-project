@@ -2,8 +2,9 @@ package services
 
 import (
 	"errors"
-	"yak/backend/pkg/models"
-	"yak/backend/pkg/repositories"
+
+	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/repositories"
 )
 
 const (
@@ -14,18 +15,19 @@ const (
 )
 
 type ProjectPermsService struct {
-	repo        repositories.ProjectPerms
+	repo        repositories.ObjectPerms
 	projectRepo repositories.Project
+	boardRepo   repositories.Board
 }
 
-func NewProjectPermsService(repo repositories.ProjectPerms, projectRepo repositories.Project) *ProjectPermsService {
-	return &ProjectPermsService{repo: repo, projectRepo: projectRepo}
+func NewProjectPermsService(repo repositories.ObjectPerms, projectRepo repositories.Project, boardRepo repositories.Board) *ProjectPermsService {
+	return &ProjectPermsService{repo: repo, projectRepo: projectRepo, boardRepo: boardRepo}
 }
 
 func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	_, err := s.repo.Get(projectId, userId, IsProject)
+	_, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -35,7 +37,7 @@ func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiRe
 		return r
 	}
 
-	permissions, err := s.repo.Get(projectId, memberId, IsProject)
+	permissions, err := s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Project member not found")
@@ -49,7 +51,7 @@ func (s *ProjectPermsService) Get(userId, projectId, memberId int) *models.ApiRe
 	return r
 }
 
-func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPerms *models.Permission) *models.ApiResponse {
+func (s *ProjectPermsService) Create(userId, projectId int, memberNickname string, projectPerms *models.Permission) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
 	if err := permsValidation(projectPerms); err != nil {
@@ -70,7 +72,7 @@ func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPer
 		}
 	}
 
-	permissions, err := s.repo.Get(projectId, userId, IsProject)
+	permissions, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -85,7 +87,7 @@ func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	permissionsId, err := s.repo.Create(projectId, memberId, IsProject, projectPerms)
+	permissionsId, err := s.repo.Create(projectId, IsProject, memberNickname, projectPerms)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -98,7 +100,7 @@ func (s *ProjectPermsService) Create(userId, projectId, memberId int, projectPer
 func (s *ProjectPermsService) Delete(userId, projectId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	permissions, err := s.repo.Get(projectId, userId, IsProject)
+	permissions, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -113,7 +115,7 @@ func (s *ProjectPermsService) Delete(userId, projectId, memberId int) *models.Ap
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Excluding user is not project member")
@@ -133,7 +135,23 @@ func (s *ProjectPermsService) Delete(userId, projectId, memberId int) *models.Ap
 		return r
 	}
 
-	err = s.repo.Delete(projectId, memberId, 0, IsProject)
+	var projectOwnerId int
+	boardsCount, err := s.boardRepo.GetBoardsCountByOwnerId(projectId, memberId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	if boardsCount != 0 {
+		if project.OwnerId != userId {
+			r.Error(StatusBadRequest, "Exclude board owner from project can only be project owner")
+			return r
+		} else {
+			projectOwnerId = userId
+		}
+	}
+
+	err = s.repo.Delete(projectId, memberId, projectOwnerId, IsProject)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -151,7 +169,7 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	permissions, err := s.repo.Get(projectId, userId, IsProject)
+	permissions, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -166,7 +184,7 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Updating user is not project member")
@@ -176,7 +194,7 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	project, err := s.projectRepo.GetById(projectId) // TODO изменение прав автора
+	project, err := s.projectRepo.GetById(projectId)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -186,7 +204,22 @@ func (s *ProjectPermsService) Update(userId, projectId, memberId int, projectPer
 		return r
 	}
 
-	err = s.repo.Update(projectId, memberId, projectPerms)
+	var projectOwnerId int
+	boardsCount, err := s.boardRepo.GetBoardsCountByOwnerId(projectId, memberId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	if boardsCount != 0 {
+		if project.OwnerId != userId {
+			r.Error(StatusBadRequest, "Update board owner from project can only be project owner")
+			return r
+		} else {
+			projectOwnerId = userId
+		}
+	}
+	err = s.repo.Update(projectId, memberId, projectOwnerId, IsProject, projectPerms)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -243,5 +276,13 @@ func permsValidation(perms *models.Permission) error {
 		}
 	} else {
 		return errors.New(ErrPermsIncor)
+	}
+}
+
+func memberIsAdmin(perms *models.UpdatePermission) bool {
+	if perms != nil && perms.Admin != nil && *perms.Admin == false {
+		return false
+	} else {
+		return true
 	}
 }

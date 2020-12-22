@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
-	"yak/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 )
 
 func createPermissions(tx *sql.Tx, permissions *models.Permission) (int, error) {
@@ -21,7 +22,7 @@ func createPermissions(tx *sql.Tx, permissions *models.Permission) (int, error) 
 
 func updatePermissions(tx *sql.Tx, permissionsId int, input *models.UpdatePermission) error {
 	if input == nil {
-		return nil
+		return errors.New("Permissions is not defined")
 	}
 
 	setValues := make([]string, 0)

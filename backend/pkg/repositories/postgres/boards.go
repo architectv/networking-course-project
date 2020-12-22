@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"yak/backend/pkg/models"
+
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 )
 
 type BoardPg struct {
@@ -19,7 +19,6 @@ func NewBoardPg(db *sqlx.DB) *BoardPg {
 }
 
 func (r *BoardPg) Create(userId int, board *models.Board) (int, error) {
-	logrus.Info(board.Title, board.Datetimes, board.DefaultPermissions)
 	var boardId int
 
 	tx, err := r.db.Begin()
@@ -183,9 +182,11 @@ func (r *BoardPg) Update(boardId int, input *models.UpdateBoard) error {
 		return err
 	}
 
-	if err = updatePermissions(tx, defPermissionsId, input.DefaultPermissions); err != nil {
-		tx.Rollback()
-		return err
+	if input.DefaultPermissions != nil {
+		if err = updatePermissions(tx, defPermissionsId, input.DefaultPermissions); err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	if err = updateDatetimes(tx, datetimesId, input.Datetimes); err != nil {
@@ -261,55 +262,74 @@ func (r *BoardPg) GetPermissions(userId, boardId int) (*models.Permission, error
 	return permissions, nil
 }
 
-func (r *BoardPg) GetCountByOwnerId(projectId, ownerId int) (int, error) { // TODO не работает
-	var boardIds []int
+func (r *BoardPg) GetBoardsCountByOwnerId(projectId, ownerId int) (int, error) {
+	var count int
 
 	query := fmt.Sprintf(
-		`SELECT b.id 
+		`SELECT COUNT(*)
 		FROM %s AS b
 		WHERE b.project_id = $1 AND b.owner_id = $2`,
 		boardsTable)
-	fmt.Println(query)
+	err := r.db.QueryRow(query, projectId, ownerId).Scan(&count)
+	return count, err
+}
 
-	rows, err := r.db.Query(query, projectId, ownerId)
+func updateOwnerIdByProjectId(tx *sql.Tx, projectId, oldOwnerId, newOwnerId int) error {
+	query := fmt.Sprintf(`UPDATE %s SET owner_id=$1
+		WHERE project_id = (
+			SELECT project_id from %s WHERE id=$2
+		) AND owner_id = $3`,
+		boardsTable, boardsTable)
+	_, err := tx.Exec(query, newOwnerId, projectId, oldOwnerId)
+	return err
+}
+
+func updateOwnerIdByBoardId(tx *sql.Tx, boardId, oldOwnerId, newOwnerId int) error {
+	query := fmt.Sprintf(`UPDATE %s SET owner_id=$1
+		WHERE id = $2 AND owner_id = $3`,
+		boardsTable)
+	_, err := tx.Exec(query, newOwnerId, boardId, oldOwnerId)
+	return err
+}
+
+func (r *BoardPg) GetMembers(boardId int) ([]*models.Member, error) {
+	var members []*models.Member
+
+	query := fmt.Sprintf(
+		`SELECT u.id, u.nickname, u.avatar, per.read, per.write, per.admin,
+		CASE b.owner_id
+		WHEN user_id THEN true
+		ELSE false
+		END AS isOwner
+		FROM %s AS pu
+			INNER JOIN %s AS per ON pu.permissions_id = per.id
+			INNER JOIN %s AS u ON pu.user_id = u.id
+			INNER JOIN %s AS b ON pu.board_id = b.id
+		WHERE pu.board_id = $1`,
+		boardUsersTable, permissionsTable, usersTable, boardsTable)
+
+	rows, err := r.db.Query(query, boardId)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var boardId int
-		if err := rows.Scan(&boardId); err != nil {
-			return 0, err
+		member := &models.Member{}
+		permissions := &models.Permission{}
+
+		err := rows.Scan(&member.Id, &member.Nickname, &member.Avatar, &permissions.Read,
+			&permissions.Write, &permissions.Admin, &member.IsOwner)
+		if err != nil {
+			return nil, err
 		}
-		boardIds = append(boardIds, boardId)
+
+		member.Permissions = permissions
+		members = append(members, member)
 	}
 
 	if err := rows.Err(); err != nil {
-		return 0, err
+		return nil, err
 	}
-	return len(boardIds), nil
-}
-
-// TODO не работает, но лучше сделать так
-// func (r *BoardPg) GetCountByOwnerId(projectId, ownerId int) (int, error) {
-// 	var count int
-
-// 	query := fmt.Sprintf(
-// 		`SELECT COUNT(*)
-// 		FROM %s AS b
-// 		WHERE b.project_id = $1 AND b.owner_id = $2`,
-// 		boardsTable)
-
-// 	fmt.Println(count, projectId, ownerId)
-// 	err := r.db.Select(&count, query, projectId, ownerId)
-// 	return count, err
-// }
-
-func updateOwnerId(tx *sql.Tx, projectId, oldOwnerId, newOwnerId int) error {
-	query := fmt.Sprintf(`UPDATE %s SET owner_id=$1
-		WHERE b.project_id = $2 AND b.owner_id = $3`,
-		boardsTable)
-	_, err := tx.Exec(query, newOwnerId, projectId, oldOwnerId)
-	return err
+	return members, err
 }

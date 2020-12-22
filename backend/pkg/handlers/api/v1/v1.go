@@ -3,8 +3,8 @@ package v1
 import (
 	"fmt"
 	"runtime"
-	"yak/backend/pkg/models"
-	"yak/backend/pkg/services"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/services"
 
 	"github.com/gofiber/fiber/v2"
 )

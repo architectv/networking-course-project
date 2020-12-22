@@ -2,14 +2,14 @@ package v1
 
 import (
 	"strconv"
-	"yak/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
 )
 
 func (apiVX *ApiV1) registerBoardPermsHandlers(router fiber.Router) {
-	group := router.Group("/projects/:pid/boards/:bid/permissions", apiVX.userIdentity)
+	group := router.Group("/projects/:pid/boards/:bid/permissions/:member_id", apiVX.userIdentity)
 	group.Post("/", apiVX.urlIdsValidation, apiVX.createBoardPerms)
 	group.Get("/", apiVX.urlIdsValidation, apiVX.getBoardPerms)
 	group.Put("/", apiVX.urlIdsValidation, apiVX.updateBoardPerms)
@@ -36,7 +36,7 @@ func (apiVX *ApiV1) getBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberId, err := strconv.Atoi(ctx.Query("member_id"))
+	memberId, err := strconv.Atoi(ctx.Params("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
 		return Send(ctx, response)
@@ -66,9 +66,9 @@ func (apiVX *ApiV1) createBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberId, err := strconv.Atoi(ctx.Query("member_id"))
-	if err != nil || memberId == 0 {
-		response.Error(fiber.StatusBadRequest, "Invalid memberId")
+	memberNickname := ctx.Params("member_id")
+	if memberNickname == "" {
+		response.Error(fiber.StatusBadRequest, "memberNickname is empty")
 		return Send(ctx, response)
 	}
 
@@ -83,7 +83,7 @@ func (apiVX *ApiV1) createBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	response = apiVX.services.BoardPerms.Create(userId, projectId, boardId, memberId,
+	response = apiVX.services.BoardPerms.Create(userId, projectId, boardId, memberNickname,
 		permissions)
 	return Send(ctx, response)
 }
@@ -108,7 +108,7 @@ func (apiVX *ApiV1) deleteBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberId, err := strconv.Atoi(ctx.Query("member_id"))
+	memberId, err := strconv.Atoi(ctx.Params("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
 		return Send(ctx, response)
@@ -132,7 +132,13 @@ func (apiVX *ApiV1) updateBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	memberId, err := strconv.Atoi(ctx.Query("member_id"))
+	boardId, err := strconv.Atoi(ctx.Params("bid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
+	memberId, err := strconv.Atoi(ctx.Params("member_id"))
 	if err != nil || memberId == 0 {
 		response.Error(fiber.StatusBadRequest, "Invalid memberId")
 		return Send(ctx, response)
@@ -149,7 +155,7 @@ func (apiVX *ApiV1) updateBoardPerms(ctx *fiber.Ctx) error {
 		return Send(ctx, response)
 	}
 
-	response = apiVX.services.ProjectPerms.Update(userId, projectId, memberId,
+	response = apiVX.services.BoardPerms.Update(userId, projectId, boardId, memberId,
 		permissions)
 	return Send(ctx, response)
 }

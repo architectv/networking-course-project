@@ -2,7 +2,7 @@ package v1
 
 import (
 	"strconv"
-	"yak/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
@@ -13,6 +13,7 @@ func (apiVX *ApiV1) registerProjectsHandlers(router fiber.Router) {
 	group.Get("/", apiVX.getProjects)
 	group.Post("/", apiVX.createProject)
 	group.Get("/:pid", apiVX.getProject)
+	group.Get("/:pid/members", apiVX.getProjectMembers)
 	group.Put("/:pid", apiVX.updateProject)
 	group.Delete("/:pid", apiVX.deleteProject)
 }
@@ -115,5 +116,23 @@ func (apiVX *ApiV1) deleteProject(ctx *fiber.Ctx) error {
 	}
 
 	response = apiVX.services.Project.Delete(userId, projectId)
+	return Send(ctx, response)
+}
+
+func (apiVX *ApiV1) getProjectMembers(ctx *fiber.Ctx) error {
+	response := &models.ApiResponse{}
+	userId, err := getUserId(ctx)
+	if err != nil {
+		response.Error(fiber.StatusInternalServerError, err.Error())
+		return Send(ctx, response)
+	}
+
+	projectId, err := strconv.Atoi(ctx.Params("pid"))
+	if err != nil || projectId == 0 {
+		response.Error(fiber.StatusBadRequest, "Invalid projectId")
+		return Send(ctx, response)
+	}
+
+	response = apiVX.services.Project.GetMembers(userId, projectId)
 	return Send(ctx, response)
 }

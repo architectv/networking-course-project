@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"yak/backend/pkg/models"
-	"yak/backend/pkg/repositories"
+
+	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/repositories"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -50,7 +51,7 @@ func (s *UserService) Update(id int, profile *models.UpdateUser) *models.ApiResp
 	r := &models.ApiResponse{}
 	if profile.Nickname != nil {
 		if err := s.checkByNickname(*profile.Nickname); err == nil {
-			r.Error(StatusConflict, "User already exists")
+			r.Error(StatusConflict, "User is not exists")
 			return r
 		}
 	}
@@ -134,7 +135,6 @@ func (s *UserService) ParseToken(accessToken string) (int, error) {
 	}
 
 	err = s.repo.FindToken(accessToken)
-	// logrus.Println(err.Error())
 	if err == nil {
 		return 0, errors.New("Invalid token")
 	}

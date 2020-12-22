@@ -1,8 +1,8 @@
 package services
 
 import (
-	"yak/backend/pkg/models"
-	"yak/backend/pkg/repositories"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/repositories"
 )
 
 type User interface {
@@ -21,6 +21,7 @@ type Project interface {
 	GetById(userId, projectId int) *models.ApiResponse
 	Delete(userId, projectId int) *models.ApiResponse
 	Update(userId, projectId int, project *models.UpdateProject) *models.ApiResponse
+	GetMembers(userId, projectId int) *models.ApiResponse
 }
 
 type Board interface {
@@ -29,6 +30,7 @@ type Board interface {
 	GetById(userId, projectId, boardId int) *models.ApiResponse
 	Delete(userId, projectId, boardId int) *models.ApiResponse
 	Update(userId, projectId, boardId int, board *models.UpdateBoard) *models.ApiResponse
+	GetMembers(userId, projectId, boardId int) *models.ApiResponse
 }
 
 type TaskList interface {
@@ -63,17 +65,17 @@ type UrlValidator interface {
 }
 
 type ProjectPerms interface {
-	Create(userId, projectId, memberId int, permissions *models.Permission) *models.ApiResponse
+	Create(userId, projectId int, memberNickname string, permissions *models.Permission) *models.ApiResponse
 	Get(userId, projectId, memberId int) *models.ApiResponse
 	Delete(userId, projectId, memberId int) *models.ApiResponse
 	Update(userId, projectId, memberId int, list *models.UpdatePermission) *models.ApiResponse
 }
 
 type BoardPerms interface {
-	Create(userId, projectId, boardId, memberId int, permissions *models.Permission) *models.ApiResponse
+	Create(userId, projectId, boardId int, memberNickname string, permissions *models.Permission) *models.ApiResponse
 	Get(userId, projectId, boardId, memberId int) *models.ApiResponse
 	Delete(userId, projectId, boardId, memberId int) *models.ApiResponse
-	// Update(userId, projectId, boardId, memberId int, list *models.UpdatePermission) *models.ApiResponse
+	Update(userId, projectId, boardId, memberId int, list *models.UpdatePermission) *models.ApiResponse
 }
 
 type Service struct {
@@ -97,7 +99,7 @@ func NewService(repos *repositories.Repository) *Service {
 		Task:         NewTaskService(repos.Task, repos.Board, repos.Project),
 		Label:        NewLabelService(repos.Label, repos.Board, repos.Project),
 		UrlValidator: NewUrlValidatorService(repos.Board, repos.TaskList, repos.Task),
-		ProjectPerms: NewProjectPermsService(repos.ProjectPerms, repos.Project),
-		BoardPerms:   NewBoardPermsService(repos.ProjectPerms, repos.Board, repos.Project),
+		ProjectPerms: NewProjectPermsService(repos.ObjectPerms, repos.Project, repos.Board),
+		BoardPerms:   NewBoardPermsService(repos.ObjectPerms, repos.Board, repos.Project),
 	}
 }

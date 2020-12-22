@@ -19,6 +19,8 @@
     "svelte-material-ui": "^1.0.0"
   },
   "dependencies": {
-    "sirv-cli": "^1.0.0"
+    "marked": "^1.2.5",
+    "sirv-cli": "^1.0.0",
+    "svelte-dnd-action": "^0.6.22"
   }
 }

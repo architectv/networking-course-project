@@ -13,7 +13,10 @@ DROP TABLE IF EXISTS tokens CASCADE;
 CREATE TABLE IF NOT EXISTS users (
     id serial PRIMARY KEY,
     nickname varchar(32) UNIQUE NOT NULL,
+    firstname varchar(32) NOT NULL DEFAULT '',
+    lastname varchar(32) NOT NULL DEFAULT '',
     email varchar(32) NOT NULL,
+    phone varchar(32) NOT NULL DEFAULT '',
     password varchar(32) NOT NULL,
     avatar varchar(100) NOT NULL DEFAULT ''
 );
@@ -67,6 +70,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     id serial PRIMARY KEY,
     list_id int REFERENCES task_lists (id) ON DELETE CASCADE NOT NULL,
     title varchar(30) NOT NULL,
+    description text,
     datetimes_id int REFERENCES datetimes (id) ON DELETE CASCADE NOT NULL,
     position smallint NOT NULL
 );
@@ -176,14 +180,14 @@ VALUES (1605925262, 1605925262, 1605925262);
 INSERT INTO datetimes (created, updated, accessed)
 VALUES (1605925262, 1605925262, 1605925262);
 -- 1
-INSERT INTO tasks (list_id, title, datetimes_id, position)
-VALUES (1, 'First task', 3, 0);
+INSERT INTO tasks (list_id, title, description, datetimes_id, position)
+VALUES (1, 'First task', 'This is the first task', 3, 0);
 -- 2
-INSERT INTO tasks (list_id, title, datetimes_id, position)
-VALUES (1, 'Second task', 4, 1);
+INSERT INTO tasks (list_id, title, description, datetimes_id, position)
+VALUES (1, 'Second task', 'This is the second task', 4, 1);
 -- 3
-INSERT INTO tasks (list_id, title, datetimes_id, position)
-VALUES (1, 'Third task', 5, 2);
+INSERT INTO tasks (list_id, title, description, datetimes_id, position)
+VALUES (1, 'Third task', 'This is the third task', 5, 2);
 -- 6
 INSERT INTO datetimes (created, updated, accessed)
 VALUES (1605925262, 1605925262, 1605925262);
@@ -194,14 +198,14 @@ VALUES (1605925262, 1605925262, 1605925262);
 INSERT INTO datetimes (created, updated, accessed)
 VALUES (1605925262, 1605925262, 1605925262);
 -- 4
-INSERT INTO tasks (list_id, title, datetimes_id, position)
-VALUES (2, 'FIRST TASK', 6, 0);
+INSERT INTO tasks (list_id, title, description, datetimes_id, position)
+VALUES (2, 'FIRST TASK', 'This is the first task in second list', 6, 0);
 -- 5
-INSERT INTO tasks (list_id, title, datetimes_id, position)
-VALUES (2, 'SECOND TASK', 7, 1);
+INSERT INTO tasks (list_id, title, description, datetimes_id, position)
+VALUES (2, 'SECOND TASK', 'This is the second task in second list', 7, 1);
 -- 6
-INSERT INTO tasks (list_id, title, datetimes_id, position)
-VALUES (2, 'THIRD TASK', 8, 2);
+INSERT INTO tasks (list_id, title, description, datetimes_id, position)
+VALUES (2, 'THIRD TASK', 'This is the third task in second list', 8, 2);
 -- BOARD id=2
 -- 5
 INSERT INTO permissions (read, write, admin)
@@ -223,7 +227,7 @@ INSERT INTO boards (
 VALUES (1, 2, 6, 2, 'Second board');
 -- 2
 INSERT INTO board_users (user_id, board_id, permissions_id)
-VALUES (1, 2, 5);
+VALUES (2, 2, 5);
 -- PROJECT id=2
 -- 7
 INSERT INTO permissions (read, write, admin)
@@ -333,3 +337,10 @@ VALUES (2, 3, 16);
 -- USERS id=4
 INSERT INTO users (nickname, email, avatar, password)
 VALUES ('ivan', 'ivan@mail.ru', '', 'qwerty');
+-- PROJECT_USERS id=5
+-- 17
+INSERT INTO permissions (read, write, admin)
+VALUES (true, false, false);
+-- 3
+INSERT INTO project_users (user_id, project_id, permissions_id)
+VALUES (4, 1, 17);

@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
-	"yak/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 )
 
 func createDatetimes(tx *sql.Tx, permissions *models.Datetimes) (int, error) {
@@ -21,7 +22,7 @@ func createDatetimes(tx *sql.Tx, permissions *models.Datetimes) (int, error) {
 
 func updateDatetimes(tx *sql.Tx, datetimesId int, input *models.UpdateDatetimes) error {
 	if input == nil {
-		return nil
+		return errors.New("Datetimes is not defined")
 	}
 
 	setValues := make([]string, 0)

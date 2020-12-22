@@ -1,18 +1,17 @@
 package services
 
 import (
-	"fmt"
-	"yak/backend/pkg/models"
-	"yak/backend/pkg/repositories"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/repositories"
 )
 
 type BoardPermsService struct {
-	repo        repositories.ProjectPerms
+	repo        repositories.ObjectPerms
 	boardRepo   repositories.Board
 	projectRepo repositories.Project
 }
 
-func NewBoardPermsService(repo repositories.ProjectPerms, boardRepo repositories.Board,
+func NewBoardPermsService(repo repositories.ObjectPerms, boardRepo repositories.Board,
 	projectRepo repositories.Project) *BoardPermsService {
 	return &BoardPermsService{repo: repo, boardRepo: boardRepo, projectRepo: projectRepo}
 }
@@ -20,7 +19,7 @@ func NewBoardPermsService(repo repositories.ProjectPerms, boardRepo repositories
 func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	_, err := s.repo.Get(projectId, userId, IsProject)
+	_, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -30,7 +29,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *model
 		return r
 	}
 
-	_, err = s.repo.Get(boardId, userId, IsBoard)
+	_, err = s.repo.GetById(boardId, userId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not board member")
@@ -40,7 +39,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *model
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Board member is not project member")
@@ -50,7 +49,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *model
 		return r
 	}
 
-	permissions, err := s.repo.Get(boardId, memberId, IsBoard)
+	permissions, err := s.repo.GetById(boardId, memberId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Board member not found")
@@ -64,7 +63,7 @@ func (s *BoardPermsService) Get(userId, projectId, boardId, memberId int) *model
 	return r
 }
 
-func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boardPerms *models.Permission) *models.ApiResponse {
+func (s *BoardPermsService) Create(userId, projectId, boardId int, memberNickname string, boardPerms *models.Permission) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
 	if err := permsValidation(boardPerms); err != nil {
@@ -74,7 +73,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 				r.Error(StatusInternalServerError, err.Error())
 				return r
 			}
-			if board.DefaultPermissions == nil { // TODO права по умолчанию должны обязательно указываться при создании проекта или доски
+			if board.DefaultPermissions == nil {
 				r.Error(StatusInternalServerError, "Default permissions is not defined")
 				return r
 			}
@@ -85,7 +84,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 		}
 	}
 
-	_, err := s.repo.Get(projectId, userId, IsProject)
+	_, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -94,7 +93,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 		r.Error(StatusInternalServerError, err.Error())
 		return r
 	}
-	permissions, err := s.repo.Get(boardId, userId, IsBoard)
+	permissions, err := s.repo.GetById(boardId, userId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not board member")
@@ -109,7 +108,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetByNickname(projectId, IsProject, memberNickname)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "New board member is not project member")
@@ -119,7 +118,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 		return r
 	}
 
-	permissionsId, err := s.repo.Create(boardId, memberId, IsBoard, boardPerms)
+	permissionsId, err := s.repo.Create(boardId, IsBoard, memberNickname, boardPerms)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
 		return r
@@ -132,7 +131,7 @@ func (s *BoardPermsService) Create(userId, projectId, boardId, memberId int, boa
 func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *models.ApiResponse {
 	r := &models.ApiResponse{}
 
-	_, err := s.repo.Get(projectId, userId, IsProject)
+	_, err := s.repo.GetById(projectId, userId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not project member")
@@ -141,7 +140,7 @@ func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *mo
 		r.Error(StatusInternalServerError, err.Error())
 		return r
 	}
-	permissions, err := s.repo.Get(boardId, userId, IsBoard)
+	permissions, err := s.repo.GetById(boardId, userId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Request author is not board member")
@@ -156,7 +155,7 @@ func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *mo
 		return r
 	}
 
-	_, err = s.repo.Get(projectId, memberId, IsProject)
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Excluding user is not project member")
@@ -166,7 +165,7 @@ func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *mo
 		return r
 	}
 
-	_, err = s.repo.Get(boardId, memberId, IsBoard)
+	_, err = s.repo.GetById(boardId, memberId, IsBoard)
 	if err != nil {
 		if err.Error() == DbResultNotFound {
 			r.Error(StatusNotFound, "Excluding user is not board member")
@@ -187,17 +186,19 @@ func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *mo
 	}
 
 	var projectOwnerId int
-	boardsIds, err := s.boardRepo.GetCountByOwnerId(projectId, memberId)
-	fmt.Println("boardsIds ", boardsIds, projectId, memberId)
-	if boardsIds != 0 {
+	board, err := s.boardRepo.GetById(boardId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+	if board.OwnerId == memberId {
 		if project.OwnerId != userId {
-			r.Error(StatusBadRequest, "Exclude owner boards can only be project owner")
+			r.Error(StatusBadRequest, "Exclude board owner can only be project owner")
 			return r
 		} else {
 			projectOwnerId = userId
 		}
 	}
-	fmt.Println(projectId, memberId, projectOwnerId, IsBoard)
 	err = s.repo.Delete(boardId, memberId, projectOwnerId, IsBoard)
 	if err != nil {
 		r.Error(StatusInternalServerError, err.Error())
@@ -208,50 +209,88 @@ func (s *BoardPermsService) Delete(userId, projectId, boardId, memberId int) *mo
 	return r
 }
 
-// func (s *BoardPermsService) Update(userId, projectId, memberId int, ProjectPerms *models.UpdatePermission) *models.ApiResponse {
-// 	r := &models.ApiResponse{}
+func (s *BoardPermsService) Update(userId, projectId, boardId, memberId int, boardPerms *models.UpdatePermission) *models.ApiResponse {
+	r := &models.ApiResponse{}
 
-// 	permissions, err := s.repo.Get(projectId, userId)
-// 	if err != nil {
-// 		if err.Error() == DbResultNotFound {
-// 			r.Error(StatusNotFound, "Request author is not project member")
-// 			return r
-// 		}
-// 		r.Error(StatusInternalServerError, err.Error())
-// 		return r
-// 	}
+	if err := updatePermsValidation(boardPerms); err != nil {
+		r.Error(StatusBadRequest, err.Error())
+		return r
+	}
 
-// 	if permissions.Admin != true {
-// 		r.Error(StatusForbidden, "Request author is not project admin")
-// 		return r
-// 	}
+	_, err := s.repo.GetById(projectId, userId, IsProject)
+	if err != nil {
+		if err.Error() == DbResultNotFound {
+			r.Error(StatusNotFound, "Request author is not project member")
+			return r
+		}
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+	permissions, err := s.repo.GetById(boardId, userId, IsBoard)
+	if err != nil {
+		if err.Error() == DbResultNotFound {
+			r.Error(StatusNotFound, "Request author is not board member")
+			return r
+		}
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
 
-// 	_, err = s.repo.Get(projectId, memberId)
-// 	if err != nil {
-// 		if err.Error() == DbResultNotFound {
-// 			r.Error(StatusNotFound, "Updating user is not project member")
-// 			return r
-// 		}
-// 		r.Error(StatusInternalServerError, err.Error())
-// 		return r
-// 	}
+	if permissions.Admin != true {
+		r.Error(StatusForbidden, "Request author is not board admin")
+		return r
+	}
 
-// 	project, err := s.projectRepo.GetById(projectId) // TODO изменение прав автора
-// 	if err != nil {
-// 		r.Error(StatusInternalServerError, err.Error())
-// 		return r
-// 	}
-// 	if project.OwnerId == memberId {
-// 		r.Error(StatusBadRequest, "You can't update project owner permissions")
-// 		return r
-// 	}
+	_, err = s.repo.GetById(projectId, memberId, IsProject)
+	if err != nil {
+		if err.Error() == DbResultNotFound {
+			r.Error(StatusNotFound, "Excluding user is not project member")
+			return r
+		}
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
 
-// 	err = s.repo.Update(projectId, memberId, ProjectPerms)
-// 	if err != nil {
-// 		r.Error(StatusInternalServerError, err.Error())
-// 		return r
-// 	}
+	_, err = s.repo.GetById(boardId, memberId, IsBoard)
+	if err != nil {
+		if err.Error() == DbResultNotFound {
+			r.Error(StatusNotFound, "Excluding user is not board member")
+			return r
+		}
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
 
-// 	r.Set(StatusOK, "OK", Map{})
-// 	return r
-// }
+	project, err := s.projectRepo.GetById(projectId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+	if project.OwnerId == memberId {
+		r.Error(StatusBadRequest, "You can't update project owner permissions")
+		return r
+	}
+
+	var projectOwnerId int
+	board, err := s.boardRepo.GetById(boardId)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+	if board.OwnerId == memberId {
+		if project.OwnerId != userId {
+			r.Error(StatusBadRequest, "Update board owner permissions can only be project owner")
+			return r
+		} else {
+			projectOwnerId = userId
+		}
+	}
+	err = s.repo.Update(boardId, memberId, projectOwnerId, IsBoard, boardPerms)
+	if err != nil {
+		r.Error(StatusInternalServerError, err.Error())
+		return r
+	}
+
+	r.Set(StatusOK, "OK", Map{})
+	return r
+}

@@ -3,9 +3,9 @@ package services
 import (
 	"errors"
 	"testing"
-	"yak/backend/pkg/models"
+	"github.com/architectv/networking-course-project/backend/pkg/models"
 
-	mock_repositories "yak/backend/pkg/repositories/mocks"
+	mock_repositories "github.com/architectv/networking-course-project/backend/pkg/repositories/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
