@@ -261,7 +261,7 @@ func Test_E2E_App(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, pid, board.ProjectId)
 
-	// Create board
+	// Create list
 	expectedStatus = fiber.StatusOK
 	expectedListId := "4"
 	expectedBody = fmt.Sprintf(`{"code":200,"message":"OK","data":{"listId":%s}}`, expectedListId)
