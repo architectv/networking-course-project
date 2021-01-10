@@ -2,8 +2,8 @@ package services
 
 import (
 	"errors"
-	"testing"
 	"github.com/architectv/networking-course-project/backend/pkg/models"
+	"testing"
 
 	mock_repositories "github.com/architectv/networking-course-project/backend/pkg/repositories/mocks"
 

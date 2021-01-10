@@ -87,7 +87,7 @@ const (
 	PasswordTestDB = "1234"
 	HostTestDB     = "localhost"
 	PortTestDB     = "5432"
-	DBnameTestDB   = "yak_test_db"
+	DBnameTestDB   = "yak_test_real_db"
 	SslmodeTestDB  = "disable"
 )
 
