@@ -1,6 +1,6 @@
 # Менеджер задач YAK (Yet Another Kanban)
 
-[![Build Status](https://travis-ci.com/architectv/networking-course-project.svg?branch=main)](https://travis-ci.com/architectv/networking-course-project)
+[![Build Status](https://travis-ci.org/architectv/networking-course-project.svg?branch=main)](https://travis-ci.org/architectv/networking-course-project)
 [![CodeFactor](https://www.codefactor.io/repository/github/architectv/networking-course-project/badge)](https://www.codefactor.io/repository/github/architectv/networking-course-project)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/architectv/networking-course-project?filename=backend/go.mod)
 ![contributors](https://img.shields.io/github/contributors/architectv/networking-course-project)
